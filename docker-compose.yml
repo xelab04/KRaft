@@ -17,5 +17,10 @@ services:
     ports:
       - "5000:5000"
 
+  cluster-manage:
+    build: ./cluster-manage
+    ports:
+      - "5001:5000"
+
 volumes:
   pgdata:
