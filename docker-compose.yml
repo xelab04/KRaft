@@ -1,0 +1,21 @@
+services:
+  db:
+    image: postgres:16
+    container_name: postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: mydb
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+
+  resources-manage:
+    build: ./resources-manage
+    ports:
+      - "5000:5000"
+
+volumes:
+  pgdata:

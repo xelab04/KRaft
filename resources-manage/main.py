@@ -1,4 +1,8 @@
 from kubernetes import client, config
+from flask import Flask, send_file, jsonify
+
+app = Flask(__name__)
+
 
 def convert_cpu(cpu):
     if cpu.endswith("m"):
@@ -20,11 +24,15 @@ def convert_memory(mem):
         raise ValueError("Invalid memory value")
     return mem
 
-def main():
+@app.route('/get/resources/<namespace>', methods=['GET'])
+def get_resources(namespace):
     config.load_kube_config()
     api_instance = client.CoreV1Api()
-    print("Listing pods with their IPs:")
-    ret = api_instance.list_namespaced_pod(namespace="caddy", watch=False)
+
+    ret = api_instance.list_namespaced_pod(namespace=namespace, watch=False)
+
+    total_cpu, total_memory = 0, 0
+
     for pod in ret.items:
         for container in pod.spec.containers:
             cpu, memory = 0, 0
@@ -33,11 +41,14 @@ def main():
                     cpu = convert_cpu(container.resources.requests['cpu'])
                 if container.resources.requests.get('memory'):
                     memory = convert_memory(container.resources.requests['memory'])
-            print(cpu, memory)
-            # print(container.resources.requests['cpu'])
-            # print(container.resources.requests['memory'])
-        print("%s\t%s\t%s" % (pod.status.pod_ip, pod.metadata.namespace, pod.metadata.name))
-    print("Done")
 
+            total_cpu += cpu
+            total_memory += memory
 
-main()
+    return {
+        "cpu": total_cpu,
+        "memory": total_memory
+    }
+
+if __name__ == '__main__':
+    app.run(host='0.0.0.0', port=5000)
