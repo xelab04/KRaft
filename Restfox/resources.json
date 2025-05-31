@@ -4,8 +4,8 @@
     "body": {
         "mimeType": "No Body"
     },
-    "url": "http://127.0.0.1:5000/get/resources/caddy",
-    "sortOrder": 1,
+    "url": "http://127.0.0.1:5000/get/resources/default",
+    "sortOrder": 0,
     "parameters": [],
     "pathParameters": []
 }
