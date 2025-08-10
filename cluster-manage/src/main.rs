@@ -22,6 +22,8 @@ async fn main() -> io::Result<()> {
             .app_data(web::Data::new(db_pool.clone()))
             .wrap(middleware::Logger::default())
             .service(clusters::list)
+            .service(clusters::create)
+            .service(clusters::delete)
     })
     .bind("0.0.0.0:5000")?
     .run()

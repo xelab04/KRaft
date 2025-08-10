@@ -14,30 +14,28 @@ pub struct Cluster {
 }
 
 #[post("/api/create/clusters")]
-pub async fn create_cluster(
+pub async fn create(
     req: HttpRequest,
     pool: web::Data<MySqlPool>,
     Json(cluster): Json<Cluster>,
 ) -> HttpResponse {
     let jwt = jwt::extract_user_id_from_jwt(&req);
 
-    let user_id: String;
+    let mut user_id: String = String::from("0");
     match jwt {
         Ok(id) => {
             user_id = Some(id).unwrap();
         }
         Err(e) => {
             println!("Error: {:?}", e);
-            return HttpResponse::Unauthorized().json("Unauthorized");
+            // return HttpResponse::Unauthorized().json("Unauthorized");
         }
     };
 
     let cluster_name = format!("{}-{}", user_id, cluster.name);
 
-
-
     // check for other clusters of the same name
-    let count_same_name: i64 = sqlx::query_scalar("SELECT COUNT(*) FROM clusters WHERE name = ?")
+    let count_same_name: i64 = sqlx::query_scalar("SELECT COUNT(*) FROM clusters WHERE cluster_name = ?")
         .bind(&cluster_name)
         .fetch_one(pool.get_ref())
         .await
@@ -50,7 +48,7 @@ pub async fn create_cluster(
     // call function to create cluster
     // theoretically just do k3k create <cluster_name>
 
-    sqlx::query("INSERT INTO clusters (name, user_id) VALUES (?, ?)")
+    sqlx::query("INSERT INTO clusters (cluster_name, user_id) VALUES (?, ?)")
         .bind(&cluster_name)
         .bind(user_id)
         .execute(pool.get_ref())
@@ -61,13 +59,16 @@ pub async fn create_cluster(
 }
 
 #[get("/api/get/clusters")]
-pub async fn list(req: HttpRequest, pool: web::Data<MySqlPool>) -> HttpResponse {
+pub async fn list(
+    req: HttpRequest,
+    pool: web::Data<MySqlPool>
+) -> HttpResponse {
     let jwt = jwt::extract_user_id_from_jwt(&req);
 
-    let mut user_id = None;
+    let mut user_id:String = String::from("0");
     match jwt {
         Ok(id) => {
-            user_id = Some(id);
+            user_id = id;
         }
         Err(e) => {
             println!("Error: {:?}", e);
@@ -77,7 +78,7 @@ pub async fn list(req: HttpRequest, pool: web::Data<MySqlPool>) -> HttpResponse 
 
     // use id to get from postgres
 
-    let clusters = sqlx::query_as::<_, Cluster>("SELECT name FROM clusters WHERE user_id=(?)")
+    let clusters: Vec<String> = sqlx::query_scalar("SELECT cluster_name FROM clusters WHERE user_id=(?)")
         .bind(user_id)
         .fetch_all(pool.get_ref())
         .await
@@ -95,4 +96,52 @@ pub async fn list(req: HttpRequest, pool: web::Data<MySqlPool>) -> HttpResponse 
     HttpResponse::Ok()
         .content_type("application/json")
         .json(clusters)
+}
+
+
+#[delete("/api/delete/{cluster_name}")]
+pub async fn delete(
+    cluster_name: web::Path<String>,
+    req: HttpRequest,
+    pool: web::Data<MySqlPool>
+) -> HttpResponse {
+    // let cluster_name = query.cluster_id;
+    let cluster_name = cluster_name.into_inner();
+
+    let jwt = jwt::extract_user_id_from_jwt(&req);
+
+    let user_id: String; // = String::from("-1");
+    match jwt {
+        Ok(id) => {
+            user_id = id //Some(id);
+        }
+        Err(e) => {
+            println!("Error: {:?}", e);
+            user_id = String::from("1");
+            // return HttpResponse::Unauthorized().json("Unauthorized")
+        }
+    };
+
+    // use id to get from postgres
+    // add onto this - return 404 if cluster doesn't exist
+    let cluster_owner: String = sqlx::query_scalar("SELECT user_id FROM clusters WHERE cluster_name = ?")
+        .bind(&cluster_name)
+        .fetch_one(pool.get_ref())
+        .await
+        .unwrap();
+
+    if cluster_owner != user_id {
+        return HttpResponse::Forbidden().json("This cluster is not yours.")
+    }
+
+    // call function to delete cluster
+    // theoretically just do k3k delete <cluster_name>
+
+    sqlx::query("DELETE FROM clusters WHERE cluster_name = ?")
+        .bind(&cluster_name)
+        .execute(pool.get_ref())
+        .await
+        .unwrap();
+
+    HttpResponse::Ok().json("Cluster deleted successfully")
 }
