@@ -7,6 +7,7 @@ use sqlx::prelude::FromRow;
 use sqlx::MySqlPool;
 
 use crate::jwt;
+use random_word::Lang;
 
 #[derive(Serialize, Deserialize, FromRow)]
 pub struct Cluster {
@@ -44,6 +45,20 @@ pub async fn create(
 
     if count_same_name != 0 {
         return HttpResponse::BadRequest().json("Cluster with the same name already exists");
+    }
+
+    loop {
+        let  endpoint_string = format!("{}{}", random_word::get(Lang::En), random_word::get(Lang::En));
+
+        let count_with_same_endpoint: i64 = sqlx::query_scalar("SELECT COUNT(*) FROM clusters WHERE endpoint = (?)")
+            .bind(&endpoint_string)
+            .fetch_one(pool.get_ref())
+            .await
+            .unwrap();
+
+        if count_with_same_endpoint == 0 {
+            break
+        }
     }
 
     // #[PROD]
