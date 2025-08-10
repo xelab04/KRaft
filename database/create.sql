@@ -10,6 +10,7 @@ CREATE TABLE users (
 CREATE TABLE clusters (
     cluster_id int NOT NULL AUTO_INCREMENT,
     cluster_name varchar(255) NOT NULL,
+    cluster_endpoint varchar(255) NOT NULL,
     user_id int NOT NULL,
     PRIMARY KEY (cluster_id),
     FOREIGN KEY (user_id) REFERENCES users(user_id)
