@@ -28,6 +28,7 @@ pub async fn create(
         }
         Err(e) => {
             println!("Error: {:?}", e);
+            // #[PROD]
             // return HttpResponse::Unauthorized().json("Unauthorized");
         }
     };
@@ -45,6 +46,7 @@ pub async fn create(
         return HttpResponse::BadRequest().json("Cluster with the same name already exists");
     }
 
+    // #[PROD]
     // call function to create cluster
     // theoretically just do k3k create <cluster_name>
 
@@ -72,6 +74,7 @@ pub async fn list(
         }
         Err(e) => {
             println!("Error: {:?}", e);
+            // #[PROD]
             // return HttpResponse::Unauthorized().json("Unauthorized")
         }
     };
@@ -117,6 +120,7 @@ pub async fn delete(
         }
         Err(e) => {
             println!("Error: {:?}", e);
+            // #[PROD]
             user_id = String::from("1");
             // return HttpResponse::Unauthorized().json("Unauthorized")
         }
