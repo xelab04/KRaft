@@ -7,6 +7,7 @@ use actix_web::{middleware, web, App, HttpServer};
 
 mod clusters;
 mod db_connect;
+mod validatename;
 mod jwt;
 
 #[actix_rt::main]

@@ -7,6 +7,8 @@ use sqlx::prelude::FromRow;
 use sqlx::MySqlPool;
 
 use crate::jwt;
+use crate::validatename;
+
 use random_word::Lang;
 
 #[derive(Serialize, Deserialize, FromRow)]
@@ -35,6 +37,10 @@ pub async fn create(
     };
 
     let cluster_name = format!("{}-{}", user_id, cluster.name);
+
+    if !validatename::namevalid(&cluster_name) {
+        return HttpResponse::BadRequest().json("Invalid Name");
+    }
 
     // check for other clusters of the same name
     let count_same_name: i64 = sqlx::query_scalar("SELECT COUNT(*) FROM clusters WHERE cluster_name = ?")
