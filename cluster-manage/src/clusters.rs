@@ -6,6 +6,9 @@ use sqlx;
 use sqlx::prelude::FromRow;
 use sqlx::MySqlPool;
 
+use std::process::Command;
+
+
 use crate::jwt;
 use crate::validatename;
 
@@ -53,10 +56,11 @@ pub async fn create(
         return HttpResponse::BadRequest().json("Cluster with the same name already exists");
     }
 
+    let mut endpoint_string = String::new();
     loop {
-        let  endpoint_string = format!("{}{}", random_word::get(Lang::En), random_word::get(Lang::En));
+        endpoint_string = format!("{}{}", random_word::get(Lang::En), random_word::get(Lang::En));
 
-        let count_with_same_endpoint: i64 = sqlx::query_scalar("SELECT COUNT(*) FROM clusters WHERE endpoint = (?)")
+        let count_with_same_endpoint: i64 = sqlx::query_scalar("SELECT COUNT(*) FROM clusters WHERE cluster_endpoint = (?)")
             .bind(&endpoint_string)
             .fetch_one(pool.get_ref())
             .await
@@ -71,9 +75,27 @@ pub async fn create(
     // call function to create cluster
     // theoretically just do k3k create <cluster_name>
 
-    sqlx::query("INSERT INTO clusters (cluster_name, user_id) VALUES (?, ?)")
+    println!("{}", cluster_name);
+
+    Command::new("k3kcli")
+        .arg("cluster")
+        .arg("create")
+        .arg(&cluster_name)
+        .output()
+        .expect("k3kcli command failed");
+
+    Command::new("k3kcli")
+        .arg("kubeconfig")
+        .arg("generate")
+        .arg(format!("--namespace=k3k-{}", cluster_name))
+        .arg(format!("--name={}", cluster_name))
+        .output()
+        .expect("k3kcli command failed");
+
+    sqlx::query("INSERT INTO clusters (cluster_name, user_id, cluster_endpoint) VALUES (?, ?, ?)")
         .bind(&cluster_name)
         .bind(user_id)
+        .bind(&endpoint_string)
         .execute(pool.get_ref())
         .await
         .unwrap();
