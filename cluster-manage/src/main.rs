@@ -25,6 +25,7 @@ async fn main() -> io::Result<()> {
             .service(clusters::list)
             .service(clusters::create)
             .service(clusters::delete)
+            .service(clusters::get_kubeconfig)
     })
     .bind("0.0.0.0:5000")?
     .run()

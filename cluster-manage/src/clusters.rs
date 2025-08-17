@@ -81,15 +81,7 @@ pub async fn create(
         .arg("cluster")
         .arg("create")
         .arg(&cluster_name)
-        .output()
-        .expect("k3kcli command failed");
-
-    Command::new("k3kcli")
-        .arg("kubeconfig")
-        .arg("generate")
-        .arg(format!("--namespace=k3k-{}", cluster_name))
-        .arg(format!("--name={}", cluster_name))
-        .output()
+        .spawn()
         .expect("k3kcli command failed");
 
     sqlx::query("INSERT INTO clusters (cluster_name, user_id, cluster_endpoint) VALUES (?, ?, ?)")
@@ -101,6 +93,42 @@ pub async fn create(
         .unwrap();
 
     return HttpResponse::Ok().json("Cluster created successfully");
+}
+
+#[get("/api/get/kubeconfig/{cluster_name}")]
+pub async fn get_kubeconfig(
+    req: HttpRequest,
+    cluster_name: web::Path<String>,
+    pool: web::Data<MySqlPool>,
+) -> HttpResponse {
+
+    let raw_cluster_name = cluster_name.into_inner();
+
+    let jwt = jwt::extract_user_id_from_jwt(&req);
+
+    let mut user_id: String = String::from("0");
+    match jwt {
+        Ok(id) => {
+            user_id = Some(id).unwrap();
+        }
+        Err(e) => {
+            println!("Error: {:?}", e);
+            // #[PROD]
+            // return HttpResponse::Unauthorized().json("Unauthorized");
+        }
+    };
+
+    let cluster_name = format!("{}-{}", user_id, raw_cluster_name);
+
+    Command::new("k3kcli")
+        .arg("kubeconfig")
+        .arg("generate")
+        .arg(format!("--namespace=k3k-{}", cluster_name))
+        .arg(format!("--name={}", cluster_name))
+        .output()
+        .expect("k3kcli command failed");
+
+    return HttpResponse::Ok().json("Kubeconfig generated successfully");
 }
 
 #[get("/api/get/clusters")]
