@@ -9,11 +9,11 @@ docker:
 	cd auth && docker build . -t registry.alexbissessur.dev/kraft-auth
 	docker push registry.alexbissessur.dev/kraft-auth
 
-	cd cluster-manage && docker build . -t registry.alexbissessur.dev/kraft-cluster-manage
-	docker push registry.alexbissessur.dev/kraft-cluster-manage
+	# cd cluster-manage && docker build . -t registry.alexbissessur.dev/kraft-cluster-manage
+	# docker push registry.alexbissessur.dev/kraft-cluster-manage
 
-	cd cloudflare-manage && docker build . -t registry.alexbissessur.dev/kraft-cloudflare-manage
-	docker push registry.alexbissessur.dev/kraft-cloudflare-manage
+	# cd cloudflare-manage && docker build . -t registry.alexbissessur.dev/kraft-cloudflare-manage
+	# docker push registry.alexbissessur.dev/kraft-cloudflare-manage
 
-	cd resources-manage && docker build . -t registry.alexbissessur.dev/kraft-resources-manage
-	docker push registry.alexbissessur.dev/kraft-resources-manage
+	# cd resources-manage && docker build . -t registry.alexbissessur.dev/kraft-resources-manage
+	# docker push registry.alexbissessur.dev/kraft-resources-manage
