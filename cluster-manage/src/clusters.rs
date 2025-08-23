@@ -11,6 +11,7 @@ use std::process::Command;
 
 use crate::jwt;
 use crate::validatename;
+use crate::AppConfig;
 
 use random_word::Lang;
 
@@ -23,6 +24,7 @@ pub struct Cluster {
 pub async fn create(
     req: HttpRequest,
     pool: web::Data<MySqlPool>,
+    config: web::Data<AppConfig>,
     Json(cluster): Json<Cluster>,
 ) -> HttpResponse {
     let jwt = jwt::extract_user_id_from_jwt(&req);
@@ -34,8 +36,9 @@ pub async fn create(
         }
         Err(e) => {
             println!("Error: {:?}", e);
-            // #[PROD]
-            // return HttpResponse::Unauthorized().json("Unauthorized");
+            if config.environment == "prod" {
+                return HttpResponse::Unauthorized().json("Unauthorized");
+            }
         }
     };
 
@@ -99,7 +102,7 @@ pub async fn create(
 pub async fn get_kubeconfig(
     req: HttpRequest,
     cluster_name: web::Path<String>,
-    pool: web::Data<MySqlPool>,
+    config: web::Data<AppConfig>,
 ) -> HttpResponse {
 
     let raw_cluster_name = cluster_name.into_inner();
@@ -114,7 +117,9 @@ pub async fn get_kubeconfig(
         Err(e) => {
             println!("Error: {:?}", e);
             // #[PROD]
-            // return HttpResponse::Unauthorized().json("Unauthorized");
+            if config.environment == "prod" {
+                return HttpResponse::Unauthorized().json("Unauthorized");
+            }
         }
     };
 
@@ -134,7 +139,8 @@ pub async fn get_kubeconfig(
 #[get("/api/get/clusters")]
 pub async fn list(
     req: HttpRequest,
-    pool: web::Data<MySqlPool>
+    pool: web::Data<MySqlPool>,
+    config: web::Data<AppConfig>,
 ) -> HttpResponse {
     let jwt = jwt::extract_user_id_from_jwt(&req);
 
@@ -145,7 +151,10 @@ pub async fn list(
         }
         Err(e) => {
             println!("Error: {:?}", e);
-            // #[PROD]
+
+            if config.environment == "prod" {
+                return HttpResponse::Unauthorized().json("Unauthorized")
+            }
             // return HttpResponse::Unauthorized().json("Unauthorized")
         }
     };
@@ -158,15 +167,6 @@ pub async fn list(
         .await
         .unwrap();
 
-    // let clusters = vec![
-    //     Cluster {
-    //         name: "Cluster 1".to_string(),
-    //     },
-    //     Cluster {
-    //         name: "Cluster 2".to_string(),
-    //     },
-    // ];
-
     HttpResponse::Ok()
         .content_type("application/json")
         .json(clusters)
@@ -177,7 +177,8 @@ pub async fn list(
 pub async fn delete(
     cluster_name: web::Path<String>,
     req: HttpRequest,
-    pool: web::Data<MySqlPool>
+    pool: web::Data<MySqlPool>,
+    config: web::Data<AppConfig>
 ) -> HttpResponse {
     // let cluster_name = query.cluster_id;
     let cluster_name = cluster_name.into_inner();
@@ -191,9 +192,13 @@ pub async fn delete(
         }
         Err(e) => {
             println!("Error: {:?}", e);
-            // #[PROD]
-            user_id = String::from("1");
-            // return HttpResponse::Unauthorized().json("Unauthorized")
+            if config.environment == "prod" {
+                return HttpResponse::Unauthorized().json("Unauthorized")
+            }
+            else {
+                user_id = String::from("1");
+            }
+
         }
     };
 
