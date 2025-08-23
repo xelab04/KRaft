@@ -7,9 +7,9 @@ metadata:
   name: kraft-frontend
 spec:
   ports:
-  - port: 5000
+  - port: 80
     protocol: TCP
-    targetPort: 5000
+    targetPort: 80
   selector:
     app: kraft-frontend
 status:
