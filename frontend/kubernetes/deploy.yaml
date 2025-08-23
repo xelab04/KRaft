@@ -1,0 +1,26 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  creationTimestamp: null
+  labels:
+    app: kraft-frontend
+  name: kraft-frontend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: kraft-frontend
+  strategy: {}
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        app: kraft-frontend
+    spec:
+      containers:
+      - image: kraft-frontend:latest
+        name: kraft-frontend
+        ports:
+        - containerPort: 5000
+        resources: {}
+status: {}
