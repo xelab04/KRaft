@@ -9,13 +9,13 @@ spec:
   replicas: 1
   selector:
     matchLabels:
-      app: kraft-db
+      app: kraft-auth
   strategy: {}
   template:
     metadata:
       creationTimestamp: null
       labels:
-        app: kraft-db
+        app: kraft-auth
     spec:
       containers:
       - image: registry.alexbissessur.dev/kraft-auth:latest
