@@ -17,6 +17,8 @@ CRaft provides a very opinionated but fully-contained platform which runs on top
 Contributions are always welcome!
 Just check the issues page and let me know if you'll take one on. However, please communicate with me when adding large features.
 
+One limitation on all contributions - I will automatically reject any PRs with code written by LLMs and forward you to [justforfunnoreally.dev](https://justforfunnoreally.dev/) because you evidently need to learn to have fun with programming again.
+
 
 ## Structure
 
