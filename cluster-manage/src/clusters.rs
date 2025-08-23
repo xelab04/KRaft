@@ -59,7 +59,7 @@ pub async fn create(
         return HttpResponse::BadRequest().json("Cluster with the same name already exists");
     }
 
-    let mut endpoint_string = String::new();
+    let mut endpoint_string: String;
     loop {
         endpoint_string = format!("{}{}", random_word::get(Lang::En), random_word::get(Lang::En));
 
