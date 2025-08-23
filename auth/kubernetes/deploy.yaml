@@ -1,0 +1,26 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  creationTimestamp: null
+  labels:
+    app: kraft-db
+  name: kraft-db
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: kraft-db
+  strategy: {}
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        app: kraft-db
+    spec:
+      containers:
+      - image: registry.alexbissessur.dev/kraft-auth:latest
+        name: kraft-auth
+        ports:
+        - containerPort: 5000
+        resources: {}
+status: {}

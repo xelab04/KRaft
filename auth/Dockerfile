@@ -6,9 +6,8 @@ COPY . ./
 
 RUN cargo build --release
 
-# Bundle the application into a BCI micro (or other BCI image)
 FROM registry.suse.com/bci/bci-micro:latest
 
-COPY --from=build /app/target/release/cluster-manage /usr/local/bin/cluster-manage
+COPY --from=build /app/target/release/auth-api /usr/local/bin/auth-api
 
 CMD ["auth-api"]
