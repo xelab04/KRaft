@@ -3,8 +3,8 @@ kind: Deployment
 metadata:
   creationTimestamp: null
   labels:
-    app: kraft-db
-  name: kraft-db
+    app: kraft-auth
+  name: kraft-auth
 spec:
   replicas: 1
   selector:
