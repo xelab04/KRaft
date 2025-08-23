@@ -3,14 +3,14 @@ kind: Service
 metadata:
   creationTimestamp: null
   labels:
-    app: kraft-db
-  name: kraft-db
+    app: kraft-auth
+  name: kraft-auth
 spec:
   ports:
   - port: 5000
     protocol: TCP
     targetPort: 5000
   selector:
-    app: kraft-db
+    app: kraft-auth
 status:
   loadBalancer: {}
