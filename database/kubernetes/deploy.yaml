@@ -1,0 +1,35 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  creationTimestamp: null
+  labels:
+    app: kraft-db
+  name: kraft-db
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: kraft-db
+  strategy: {}
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        app: kraft-db
+    spec:
+      containers:
+      - image: registry.opensuse.org/opensuse/mariadb:11.8
+        name: mariadb
+        ports:
+        - containerPort: 3306
+        resources: {}
+        volumeMounts:
+        - name: kraft-db
+          mountPath: /var/lib/mariadb
+
+      volumes:
+      - name: kraft-db
+        persistentVolumeClaim:
+          claimName: kaft-db
+
+status: {}
