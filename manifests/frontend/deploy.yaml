@@ -18,7 +18,7 @@ spec:
         app: kraft-frontend
     spec:
       containers:
-      - image: kraft-frontend:latest
+      - image: registry.alexbissessur.dev/kraft-frontend:latest
         name: kraft-frontend
         ports:
         - containerPort: 5000

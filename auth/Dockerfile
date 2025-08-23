@@ -4,6 +4,8 @@ WORKDIR /app
 
 COPY . ./
 
+RUN zypper -n in openssl-devel
+
 RUN cargo build --release
 
 FROM registry.suse.com/bci/bci-micro:latest
