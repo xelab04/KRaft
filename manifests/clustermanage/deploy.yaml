@@ -27,6 +27,8 @@ spec:
         envFrom:
         - configMapRef:
             name: global-config
+        - secretRef:
+            name: jwtsecret
 
         volumeMounts:
         - name: kubeconfig-volume

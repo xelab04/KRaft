@@ -35,6 +35,18 @@ Just check the issues page and let me know if you'll take one on. Though, if you
 
 One limitation on all contributions - I will automatically reject any PRs with code written (mainly?) by LLMs and forward you to [justforfunnoreally.dev](https://justforfunnoreally.dev/) because you evidently need to learn to have fun with programming again.
 
+## How to Host This?
+You can totally host this on your own Kubernetes cluster! Though in development, I totally skipped on making this distributable, so you'll have to wait on yours-truly to make this easier.
+
+1. Clone repo
+2. Build all the services (refer to Makefile)
+3. Edit the domain (I hardcoded kraft.alexbissessur.dev, oops)
+4. Check the manifests folder and follow the steps there
+5. Deploy with your choice of CI/CD
+6. Enjoy for an hour
+7. Fill my GH issues with ideas and problems
+
+
 ## The story of why this exists
 > this is just me yapping, TLDR is that the previous version of this mess was an even more disastrous mess.
 
