@@ -5,9 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CRaft</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="//unpkg.com/alpinejs" defer></script>
 </head>
-<body class="bg-black h-screen w-screen flex flex-col items-center justify-center m-0 p-0">
-    <div class=" p-8 rounded-md shadow-lg max-w-2xl w-full mx-4 outline-white-500 h-[60vh] outline">
+<body class="bg-black h-screen w-screen flex flex-col items-center justify-center m-0 p-0"
+      x-data="clusterManager()">
+    <div class="p-8 rounded-md shadow-lg max-w-2xl w-full mx-4 outline-white-500 h-[60vh] outline">
         <!-- bg-zinc-800 -->
         <div class="flex items-center mb-4">
             <a href="/"><h1 class="text-white font-mono text-3xl">CRaft</h1></a>
@@ -18,16 +20,41 @@
         </div>
     </div>
 
-    <table class="table-fixed">
+    <table class="table-fixed text-white font-mono mt-8">
         <thead>
             <tr>
-                <th>Cluster</th>
-                <th>Endpoint</th>
-                <th>Actions</th>
+                <th class="px-4 py-2 border border-gray-500">Cluster</th>
+                <th class="px-4 py-2 border border-gray-500">Endpoint</th>
+                <th class="px-4 py-2 border border-gray-500">Actions</th>
             </tr>
         </thead>
 
         <tbody>
+            <template x-for="cluster in clusters" :key="cluster.id">
+                <tr>
+                    <td class="px-4 py-2 border border-gray-500" x-text="cluster.name"></td>
+                    <td class="px-4 py-2 border border-gray-500" x-text="cluster.endpoint"></td>
+                    <td class="px-4 py-2 border border-gray-500">
+                        <button class="bg-blue-600 hover:bg-blue-700 px-2 py-1 rounded text-sm">
+                            View
+                        </button>
+                    </td>
+                </tr>
+            </template>
+
+            <!-- Show non-existent loading -->
+            <tr x-show="loading">
+                <td colspan="3" class="px-4 py-2 border border-gray-500 text-center">
+                    Loading clusters...
+                </td>
+            </tr>
+
+            <!-- No clusters? -->
+            <tr x-show="!loading && clusters.length === 0">
+                <td colspan="3" class="px-4 py-2 border border-gray-500 text-center">
+                    No clusters found
+                </td>
+            </tr>
         </tbody>
 
     </table>
@@ -36,5 +63,38 @@
     <div class="absolute bottom-4">
         <img src="assets/88x31.gif" alt="88x31 banner" width="88" height="31" />
     </div>
+
+    <script>
+        function clusterManager() {
+            return {
+                clusters: [],
+                loading: true,
+                error: null,
+
+                async getClusters() {
+                    try {
+                        this.loading = true;
+                        const response = await fetch('https://kraft.alexbissessur.dev/api/get/clusters');
+
+                        if (!response.ok) {
+                            throw new Error(`HTTP error! status: ${response.status}`);
+                        }
+
+                        const data = await response.json();
+                        this.clusters = data;
+                        this.error = null;
+                    } catch (error) {
+                        console.error('Error fetching clusters:', error);
+                        this.error = error.message;
+                    } finally {
+                        this.loading = false;
+                    }
+                },
+
+                init() {
+                    this.getClusters();
+                }
+            }
+        }
+    </script>
 </body>
-</html>
