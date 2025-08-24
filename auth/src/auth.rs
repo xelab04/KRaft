@@ -113,10 +113,37 @@ pub async fn register(pool: web::Data<MySqlPool>, payload: web::Json<User>) -> H
     let email = &payload.email;
     let user_password = &payload.user_password;
 
+    let same_users: i64 = sqlx::query_scalar("SELECT COUNT(*) FROM users WHERE email = (?)")
+        .bind(email)
+        .fetch_one(pool.get_ref())
+        .await
+        .unwrap();
+    if same_users > 0 {
+        return HttpResponse::Conflict().json(json!({ "status": "error", "message": "User already exists with that email" }));
+    }
+
+    let same_users: i64 = sqlx::query_scalar("SELECT COUNT(*) FROM users WHERE user_name = (?)")
+        .bind(user)
+        .fetch_one(pool.get_ref())
+        .await
+        .unwrap();
+    if same_users > 0 {
+        return HttpResponse::Conflict().json(json!({ "status": "error", "message": "User already exists with that username" }));
+    }
+
+
+    // alex you idiot, you forgot to hash the password TwT
+
+    let salt_str = &SaltString::generate(&mut rand::rngs::OsRng);
+    let salt: Salt = salt_str.try_into().unwrap();
+
+    let argon2 = Argon2::default();
+    let password_hash = argon2.hash_password(user_password.as_bytes(), salt).unwrap();
+
     let r = sqlx::query("INSERT INTO users (user_name, email, password) VALUES (?, ?, ?)")
         .bind(user)
         .bind(email)
-        .bind(user_password)
+        .bind(password_hash.to_string())
         .execute(pool.get_ref())
         .await;
 
