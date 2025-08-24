@@ -31,7 +31,7 @@ spec:
         volumeMounts:
         - name: kubeconfig-volume
           mountPath: /root/.kube
-          subPath: config
+          # subPath: config
       volumes:
       - name: kubeconfig-volume
         secret:
