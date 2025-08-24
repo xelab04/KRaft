@@ -14,8 +14,8 @@ spec:
           service:
             name: kraft-auth
             port:
-              number: 80
-        path: /auth
+              number: 5000
+        path: /auth/
         pathType: Prefix
 status:
   loadBalancer: {}
