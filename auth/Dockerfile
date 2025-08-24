@@ -14,4 +14,6 @@ RUN zypper -n in openssl-devel
 
 COPY --from=build /app/target/release/auth-api /usr/local/bin/auth-api
 
+EXPOSE 5000
+
 CMD ["auth-api"]
