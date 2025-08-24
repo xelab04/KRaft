@@ -30,7 +30,7 @@ spec:
 
         volumeMounts:
         - name: kubeconfig-volume
-          mountPath: /root/.kube
+          mountPath: /root/.kube/
           # subPath: config
       volumes:
       - name: kubeconfig-volume
