@@ -13,6 +13,7 @@ data:
   DB_PORT: '3306'
   DB_USER: 'root'
 
+  # Hey so this is important because local skips a lot of the authentication
   ENVIRONMENT: 'prod'
   # JWT_SECRET: 'something-goes-here'
 kind: ConfigMap
