@@ -1,3 +1,5 @@
+# MARIADB_ROOT_PASSWORD, MARIADB_ROOT_PASSWORD_HASH, MARIADB_ALLOW_EMPTY_ROOT_PASSWORD and MARIADB_RANDOM_ROOT_PASSWORD
+
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -26,6 +28,13 @@ spec:
         volumeMounts:
         - name: kraft-db
           mountPath: /var/lib/mariadb
+
+        env:
+        - name: MARIADB_ROOT_PASSWORD
+          valueFrom:
+            configMapKeyRef:
+              name: global-config
+              key: DB_ROOT_PASSWORD
 
       volumes:
       - name: kraft-db
