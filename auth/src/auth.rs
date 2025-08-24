@@ -15,7 +15,7 @@ use crate::jwt;
 
 #[derive(serde::Serialize, serde::Deserialize, Debug, FromRow, Clone)]
 struct User {
-    id: Option<i32>,
+    user_id: Option<i32>,
     email: String,
     #[serde(rename = "password")]
     user_password: String
@@ -80,7 +80,7 @@ pub async fn login(pool: web::Data<MySqlPool>, payload: web::Json<User>) -> Http
         }
     };
 
-    let jwt_token = jwt::create_jwt(found_user.id.expect("Attempted to find user id in db").to_string());
+    let jwt_token = jwt::create_jwt(found_user.user_id.expect("Attempted to find user id in db").to_string());
 
     match Argon2::default().verify_password(user_password.as_bytes(), &parsed_hash) {
         Ok(_) => {
@@ -91,11 +91,14 @@ pub async fn login(pool: web::Data<MySqlPool>, payload: web::Json<User>) -> Http
                 .same_site(SameSite::Lax)
                 .finish();
 
+            let environment = std::env::var("ENVIRONMENT").unwrap_or_else(|_| "prod".to_string());
+            if environment == "prod" {
+                return HttpResponse::Ok().json(json!({"status":"success", "jwt":jwt_token}));
+            }
+
             HttpResponse::Ok()
                 .cookie(cookie)
                 .json(json!({ "status": "success" }))
-
-            // return HttpResponse::Ok().json(json!({"status":"success", "jwt":jwt_token}));
 
         }
         Err(_) => {return HttpResponse::Forbidden().finish();}
