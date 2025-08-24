@@ -27,4 +27,13 @@ spec:
         envFrom:
         - configMapRef:
             name: global-config
+
+        volumeMounts:
+        - name: kubeconfig-volume
+          mountPath: /root/.kube/config
+          subPath: kubeconfig.yaml
+      volumes:
+      - name: kubeconfig-volume
+        configMap:
+          name: kubeconfig
 status: {}
