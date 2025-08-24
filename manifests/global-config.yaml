@@ -5,12 +5,14 @@ data:
   CF_CNAME_PROXIED: 'true'
   CF_CNAME_TARGET: 'target.example.net'
   CF_ZONE_ID: 'your_zone_id'
+
   DB_DATABASE: 'kraft'
-  DB_HOST: '127.0.0.1'
+  DB_HOST: 'kraft-db'
   DB_PASSWORD: 'password'
   DB_ROOT_PASSWORD: 'password'
   DB_PORT: '3306'
   DB_USER: 'root'
+
   ENVIRONMENT: 'local'
   JWT_SECRET: 'something-goes-here'
 kind: ConfigMap
