@@ -16,48 +16,50 @@
             <h3 class="text-white font-mono text-sm ml-2 self-end mb-1">by Alex</h3>
         </div>
         <div class="text-white font-mono flex flex-col mt-8">
-            <a href="./sub/view.html" class="text-2xl underline block mt-6">> View clusters</a>
+            <a href="#" class="text-2xl underline block mt-6">> View Clusters</a>
         </div>
-    </div>
 
-    <table class="table-fixed text-white font-mono mt-8">
-        <thead>
-            <tr>
-                <th class="px-4 py-2 border border-gray-500">Cluster</th>
-                <th class="px-4 py-2 border border-gray-500">Endpoint</th>
-                <th class="px-4 py-2 border border-gray-500">Actions</th>
-            </tr>
-        </thead>
-
-        <tbody>
-            <template x-for="cluster in clusters" :key="cluster.id">
+        <table class="table-fixed text-white font-mono mt-8">
+            <thead>
                 <tr>
-                    <td class="px-4 py-2 border border-gray-500" x-text="cluster.name"></td>
-                    <td class="px-4 py-2 border border-gray-500" x-text="cluster.endpoint"></td>
-                    <td class="px-4 py-2 border border-gray-500">
-                        <button class="bg-blue-600 hover:bg-blue-700 px-2 py-1 rounded text-sm">
-                            View
-                        </button>
+                    <th class="px-4 py-2 border border-gray-500">Cluster</th>
+                    <th class="px-4 py-2 border border-gray-500">Endpoint</th>
+                    <th class="px-4 py-2 border border-gray-500">Actions</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                <template x-for="cluster in clusters" :key="cluster.id">
+                    <tr>
+                        <td class="px-4 py-2 border border-gray-500" x-text="cluster.name"></td>
+                        <td class="px-4 py-2 border border-gray-500" x-text="cluster.endpoint"></td>
+                        <td class="px-4 py-2 border border-gray-500">
+                            <button class="bg-blue-600 hover:bg-blue-700 px-2 py-1 rounded text-sm">
+                                View
+                            </button>
+                        </td>
+                    </tr>
+                </template>
+
+                <!-- Show non-existent loading -->
+                <tr x-show="loading">
+                    <td colspan="3" class="px-4 py-2 border border-gray-500 text-center">
+                        Loading clusters...
                     </td>
                 </tr>
-            </template>
 
-            <!-- Show non-existent loading -->
-            <tr x-show="loading">
-                <td colspan="3" class="px-4 py-2 border border-gray-500 text-center">
-                    Loading clusters...
-                </td>
-            </tr>
+                <!-- No clusters? -->
+                <tr x-show="!loading && clusters.length === 0">
+                    <td colspan="3" class="px-4 py-2 border border-gray-500 text-center">
+                        No clusters found
+                    </td>
+                </tr>
+            </tbody>
 
-            <!-- No clusters? -->
-            <tr x-show="!loading && clusters.length === 0">
-                <td colspan="3" class="px-4 py-2 border border-gray-500 text-center">
-                    No clusters found
-                </td>
-            </tr>
-        </tbody>
+        </table>
 
-    </table>
+    </div>
+
 
     <!-- 88x31 image at the bottom -->
     <div class="absolute bottom-4">
