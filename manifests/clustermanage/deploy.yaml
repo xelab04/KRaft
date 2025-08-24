@@ -34,6 +34,6 @@ spec:
           subPath: kubeconfig.yaml
       volumes:
       - name: kubeconfig-volume
-        configMap:
-          name: kubeconfig
+        secret:
+          secretName: kubeconfig
 status: {}
