@@ -3,6 +3,8 @@ kind: Ingress
 metadata:
   creationTimestamp: null
   name: kraft-auth
+  annotations:
+    traefik.ingress.kubernetes.io/router.priority: "200"
 spec:
   rules:
   - host: kraft.alexbissessur.dev
