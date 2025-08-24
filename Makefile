@@ -1,6 +1,9 @@
 .PHONY: frontend redeploy all db-init admin-ui admin-api auth-ui auth-api
 .SILENT:
 
+frontend:
+	cd frontend && docker build . -t registry.alexbissessur.dev/kraft-frontend
+	docker push registry.alexbissessur.dev/kraft-frontend
 
 docker:
 	cd frontend && docker build . -t registry.alexbissessur.dev/kraft-frontend

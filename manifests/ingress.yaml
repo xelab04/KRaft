@@ -13,7 +13,7 @@ spec:
             name: kraft-auth
             port:
               number: 80
-        path: /auth/
+        path: /auth
         pathType: Prefix
 
   - host: kraft.alexbissessur.dev
