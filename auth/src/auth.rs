@@ -115,10 +115,12 @@ pub async fn register(pool: web::Data<MySqlPool>, payload: web::Json<User>) -> H
     let user_password = &payload.user_password;
     let betacode = &payload.betacode.as_ref().map_or("", |s| s.as_str());
 
-    let valid_beta_code = std::env::var("BETACODE").unwrap_or("missingbetacode".to_string());
+
+    let valid_beta_code = std::env::var("BETACODE").unwrap_or("".to_string());
+
     // if beta code is not valid
     // and beta code is not empty
-    if valid_beta_code.as_str() != *betacode && *betacode != "" {
+    if *betacode != valid_beta_code.as_str() && *betacode != "" {
         return HttpResponse::Forbidden().json(json!({ "status": "error", "message": "Invalid beta code" }));
     }
 

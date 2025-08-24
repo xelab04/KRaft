@@ -27,4 +27,6 @@ spec:
         envFrom:
         - configMapRef:
             name: global-config
+        - secretRef:
+            name: betacode
 status: {}
