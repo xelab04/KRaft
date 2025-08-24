@@ -16,9 +16,6 @@ spec:
         path: /auth
         pathType: Prefix
 
-  - host: kraft.alexbissessur.dev
-    http:
-      paths:
       - backend:
           service:
             name: kraft-frontend
