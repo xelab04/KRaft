@@ -16,6 +16,7 @@ use crate::jwt;
 #[derive(serde::Serialize, serde::Deserialize, Debug, FromRow, Clone)]
 struct User {
     user_id: Option<i32>,
+    username: Option<String>,
     email: String,
     #[serde(rename = "password")]
     user_password: String
@@ -104,6 +105,27 @@ pub async fn login(pool: web::Data<MySqlPool>, payload: web::Json<User>) -> Http
         Err(_) => {return HttpResponse::Forbidden().finish();}
     }
 
+}
+
+#[actix_web::post("/auth/register")]
+pub async fn register(pool: web::Data<MySqlPool>, payload: web::Json<User>) -> HttpResponse {
+    let user = &payload.username;
+    let email = &payload.email;
+    let user_password = &payload.user_password;
+
+    let r = sqlx::query("INSERT INTO users (user_name, email, password) VALUES (?, ?, ?)")
+        .bind(user)
+        .bind(email)
+        .bind(user_password)
+        .execute(pool.get_ref())
+        .await;
+
+    // In the future, have email verification
+
+    match r {
+        Ok(_) => {return HttpResponse::Ok().json(json!({ "status": "success" }))}
+        Err(_) => {return HttpResponse::InternalServerError().finish();}
+    }
 }
 
 

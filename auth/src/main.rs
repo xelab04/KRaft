@@ -27,6 +27,7 @@ async fn main() -> io::Result<()> {
             .app_data(web::Data::new(db_pool.clone()))
             .wrap(middleware::Logger::default())
             .service(auth::login)
+            .service(auth::register)
             .service(auth::password)
             .service(auth::validate_jwt)
     })
