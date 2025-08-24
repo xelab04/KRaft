@@ -1,5 +1,5 @@
 .PHONY: frontend redeploy all db-init auth clustermanage docker
-# .SILENT:
+.SILENT:
 
 frontend:
 	cd frontend && docker build . -t registry.alexbissessur.dev/kraft-frontend
