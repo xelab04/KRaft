@@ -27,7 +27,7 @@ spec:
         envFrom:
         - configMapRef:
             name: global-config
-        - configMapRef:
+        - secretRef:
             name: betacode
 
         volumeMounts:
