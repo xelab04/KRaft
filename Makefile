@@ -5,6 +5,10 @@ frontend:
 	cd frontend && docker build . -t registry.alexbissessur.dev/kraft-frontend
 	docker push registry.alexbissessur.dev/kraft-frontend
 
+auth:
+	cd auth && docker build . -t registry.alexbissessur.dev/kraft-auth
+	docker push registry.alexbissessur.dev/kraft-auth
+
 docker:
 	cd frontend && docker build . -t registry.alexbissessur.dev/kraft-frontend
 	docker push registry.alexbissessur.dev/kraft-frontend
