@@ -83,6 +83,9 @@
                         }
 
                         const data = await response.json();
+
+                        console.log(data);
+
                         this.clusters = data;
                         this.error = null;
                     } catch (error) {

@@ -17,7 +17,9 @@ use random_word::Lang;
 
 #[derive(Serialize, Deserialize, FromRow)]
 pub struct Cluster {
+    id: Option<i64>,
     name: String,
+    endpoint: Option<String>
 }
 
 #[post("/api/create/clusters")]
@@ -162,8 +164,9 @@ pub async fn list(
 
     // use id to get from postgres
 
-    let clusters: Vec<String> = sqlx::query_scalar("SELECT cluster_name FROM clusters WHERE user_id=(?)")
-        .bind(user_id)
+    let user_id_int: i32 = user_id.parse().unwrap_or(0);
+    let clusters: Vec<Cluster> = sqlx::query_as::<_, Cluster>("SELECT cluster_id as id, cluster_name as name, cluster_endpoint as endpoint FROM clusters WHERE user_id=(?)")
+        .bind(user_id_int)
         .fetch_all(pool.get_ref())
         .await
         .unwrap();

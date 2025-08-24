@@ -86,7 +86,7 @@ pub async fn login(pool: web::Data<MySqlPool>, payload: web::Json<User>) -> Http
     match Argon2::default().verify_password(user_password.as_bytes(), &parsed_hash) {
         Ok(_) => {
             let cookie = Cookie::build("auth_token", &jwt_token)
-                .path("/admin")
+                .path("/")
                 .http_only(true)
                 .secure(true)
                 .same_site(SameSite::Lax)
