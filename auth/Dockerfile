@@ -1,4 +1,4 @@
-FROM registry.suse.com/bci/rust:1.85 as build
+FROM registry.suse.com/bci/rust:1.85 AS build
 
 WORKDIR /app
 
@@ -8,10 +8,10 @@ RUN zypper -n in openssl-devel
 
 RUN cargo build --release
 
+FROM registry.suse.com/bci/bci-base:latest
 
-# FROM registry.suse.com/bci/bci-micro:latest
+RUN zypper -n in openssl-devel
 
-RUN cp /app/target/release/auth-api /usr/local/bin/auth-api
-# COPY --from=build /app/target/release/auth-api /usr/local/bin/auth-api
+COPY --from=build /app/target/release/auth-api /usr/local/bin/auth-api
 
 CMD ["auth-api"]
