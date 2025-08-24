@@ -10,6 +10,17 @@ spec:
       paths:
       - backend:
           service:
+            name: kraft-auth
+            port:
+              number: 80
+        path: /auth/
+        pathType: Prefix
+
+  - host: kraft.alexbissessur.dev
+    http:
+      paths:
+      - backend:
+          service:
             name: kraft-frontend
             port:
               number: 80
