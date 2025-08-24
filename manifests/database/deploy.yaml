@@ -36,6 +36,12 @@ spec:
               name: global-config
               key: DB_ROOT_PASSWORD
 
+        - name: MARIADB_DATABASE
+          valueFrom:
+            configMapKeyRef:
+              name: global-config
+              key: DB_DATABASE
+
       volumes:
       - name: kraft-db
         persistentVolumeClaim:
