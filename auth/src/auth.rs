@@ -119,8 +119,8 @@ pub async fn register(pool: web::Data<MySqlPool>, payload: web::Json<User>) -> H
     let valid_beta_code = std::env::var("BETACODE").unwrap_or("".to_string());
 
     // if beta code is not valid
-    // and beta code is not empty
-    if *betacode != valid_beta_code.as_str() && *betacode != "" {
+    // and actual beta code is not empty
+    if *betacode != valid_beta_code.as_str() && valid_beta_code != "" {
         return HttpResponse::Forbidden().json(json!({ "status": "error", "message": "Invalid beta code" }));
     }
 
@@ -151,7 +151,7 @@ pub async fn register(pool: web::Data<MySqlPool>, payload: web::Json<User>) -> H
     let argon2 = Argon2::default();
     let password_hash = argon2.hash_password(user_password.as_bytes(), salt).unwrap();
 
-    let r = sqlx::query("INSERT INTO users (user_name, email, password) VALUES (?, ?, ?)")
+    let r = sqlx::query("INSERT INTO users (username, email, password) VALUES (?, ?, ?)")
         .bind(user)
         .bind(email)
         .bind(password_hash.to_string())
@@ -162,7 +162,9 @@ pub async fn register(pool: web::Data<MySqlPool>, payload: web::Json<User>) -> H
 
     match r {
         Ok(_) => {return HttpResponse::Ok().json(json!({ "status": "success" }))}
-        Err(_) => {return HttpResponse::InternalServerError().finish();}
+        Err(e) => {
+            println!("Error inserting user: {}", e);
+            return HttpResponse::InternalServerError().finish();}
     }
 }
 
