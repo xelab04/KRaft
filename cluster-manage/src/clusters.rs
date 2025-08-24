@@ -29,6 +29,7 @@ pub async fn create(
 ) -> HttpResponse {
     let jwt = jwt::extract_user_id_from_jwt(&req);
 
+    // assume that for testing purposes the User's ID is 0
     let mut user_id: String = String::from("0");
     match jwt {
         Ok(id) => {
