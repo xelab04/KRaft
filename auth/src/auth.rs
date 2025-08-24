@@ -19,7 +19,8 @@ struct User {
     username: Option<String>,
     email: String,
     #[serde(rename = "password")]
-    user_password: String
+    user_password: String,
+    betacode: Option<String>
 }
 
 #[derive(Deserialize)]
@@ -112,6 +113,14 @@ pub async fn register(pool: web::Data<MySqlPool>, payload: web::Json<User>) -> H
     let user = &payload.username;
     let email = &payload.email;
     let user_password = &payload.user_password;
+    let betacode = &payload.betacode.as_ref().map_or("", |s| s.as_str());
+
+    let valid_beta_code = std::env::var("BETACODE").unwrap_or("missingbetacode".to_string());
+    // if beta code is not valid
+    // and beta code is not empty
+    if valid_beta_code.as_str() != *betacode && *betacode != "" {
+        return HttpResponse::Forbidden().json(json!({ "status": "error", "message": "Invalid beta code" }));
+    }
 
     let same_users: i64 = sqlx::query_scalar("SELECT COUNT(*) FROM users WHERE email = (?)")
         .bind(email)

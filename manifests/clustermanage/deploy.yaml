@@ -27,6 +27,8 @@ spec:
         envFrom:
         - configMapRef:
             name: global-config
+        - configMapRef:
+            name: betacode
 
         volumeMounts:
         - name: kubeconfig-volume
