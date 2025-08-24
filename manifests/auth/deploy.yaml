@@ -29,4 +29,6 @@ spec:
             name: global-config
         - secretRef:
             name: betacode
+        - secretRef:
+            name: jwtsecret
 status: {}

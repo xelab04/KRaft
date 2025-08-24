@@ -13,8 +13,8 @@ data:
   DB_PORT: '3306'
   DB_USER: 'root'
 
-  ENVIRONMENT: 'local'
-  JWT_SECRET: 'something-goes-here'
+  ENVIRONMENT: 'prod'
+  # JWT_SECRET: 'something-goes-here'
 kind: ConfigMap
 metadata:
   creationTimestamp: null
