@@ -1,12 +1,12 @@
 
-# CRaft
+# KRaft
 
-When you want to learn Kubernetes or have a quick lab, maybe for workshops, it becomes chaos. Users on Windows, or Mac, or Linux, and half a thousand ways to run Kubernetes in a way conducive to learning makes it unpleasant. Rancher made Hobby Farm, which spins up VMs on cloud service providers, and their implementation is a lot more thorough than CRaft hopes to be.
+When you want to learn Kubernetes or have a quick lab, maybe for workshops, it becomes chaos. Users on Windows, or Mac, or Linux, and half a thousand ways to run Kubernetes in a way conducive to learning makes it unpleasant. Rancher made Hobby Farm, which spins up VMs on cloud service providers, and their implementation is a lot more thorough than KRaft hopes to be.
 
 
-## What is CRaft?
+## What is KRaft?
 
-CRaft provides a very opinionated but fully-contained platform which runs on top of a host Kubernetes cluster, and spins up virtual clusters for each person who wants one. You can use this for workshops and training sessions. Or you can try it out as "cloud service provider" for you and your friends to share resources over a lab.
+KRaft provides a very opinionated but fully-contained platform which runs on top of a host Kubernetes cluster, and spins up virtual clusters for each person who wants one. You can use this for workshops and training sessions. Or you can try it out as "cloud service provider" for you and your friends to share resources over a lab.
 ## Components
 
 - Create cluster
