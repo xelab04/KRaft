@@ -8,7 +8,8 @@
 
     <script>
       function submitForm() {
-        const username = document.getElementById('username').value;
+        // const username = document.getElementById('username').value;
+        const email = document.getElementById('email').value;
         const password = document.getElementById('password').value;
 
         console.log("meow");
@@ -18,7 +19,7 @@
           headers: {
             'Content-Type': 'application/json'
           },
-          body: JSON.stringify({ username, password })
+          body: JSON.stringify({ email, password })
         })
         .then(response => response.json())
         .then(data => {
@@ -53,8 +54,8 @@
         </div>
         <!-- login form -->
         <form class="text-white text-xl font-mono flex flex-col mt-8" onsubmit="return submitForm();">
-            <label for="username">Username :</label><br>
-            <input class="text-gray-800" type="text" id="username" name="username" required><br>
+            <label for="email">Email :</label><br>
+            <input class="text-gray-800" type="text" id="email" name="email" required><br>
 
             <label for="password">Password :</label><br>
             <input class="text-gray-800" type="password" id="password" name="password">
