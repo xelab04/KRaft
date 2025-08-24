@@ -1,0 +1,26 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  creationTimestamp: null
+  labels:
+    app: kraft-cluster-manage
+  name: kraft-cluster-manage
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: kraft-cluster-manage
+  strategy: {}
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        app: kraft-cluster-manage
+    spec:
+      containers:
+      - image: registry.alexbissessur.dev/kraft-cluster-manage:latest
+        name: kraft-cluster-manage
+        ports:
+        - containerPort: 5000
+        resources: {}
+status: {}
