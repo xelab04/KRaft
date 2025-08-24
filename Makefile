@@ -1,9 +1,13 @@
-.PHONY: frontend redeploy all db-init admin-ui admin-api auth-ui auth-api
-.SILENT:
+.PHONY: frontend redeploy all db-init auth clustermanage docker
+# .SILENT:
 
 frontend:
 	cd frontend && docker build . -t registry.alexbissessur.dev/kraft-frontend
 	docker push registry.alexbissessur.dev/kraft-frontend
+
+clustermanage:
+	cd cluster-manage && docker build . -t registry.alexbissessur.dev/kraft-cluster-manage
+	docker push registry.alexbissessur.dev/kraft-cluster-manage
 
 auth:
 	cd auth && docker build . -t registry.alexbissessur.dev/kraft-auth
