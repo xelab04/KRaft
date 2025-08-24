@@ -62,7 +62,7 @@ pub async fn create(
 
     let mut endpoint_string: String;
     loop {
-        endpoint_string = format!("{}{}", random_word::get(Lang::En), random_word::get(Lang::En));
+        endpoint_string = format!("{}-{}", random_word::get(Lang::En), random_word::get(Lang::En));
 
         let count_with_same_endpoint: i64 = sqlx::query_scalar("SELECT COUNT(*) FROM clusters WHERE cluster_endpoint = (?)")
             .bind(&endpoint_string)
