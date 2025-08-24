@@ -8,8 +8,10 @@ RUN zypper -n in openssl-devel
 
 RUN cargo build --release
 
-FROM registry.suse.com/bci/bci-micro:latest
 
-COPY --from=build /app/target/release/auth-api /usr/local/bin/auth-api
+# FROM registry.suse.com/bci/bci-micro:latest
+
+RUN cp /app/target/release/auth-api /usr/local/bin/auth-api
+# COPY --from=build /app/target/release/auth-api /usr/local/bin/auth-api
 
 CMD ["auth-api"]
