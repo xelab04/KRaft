@@ -10,16 +10,17 @@
       function submitForm() {
         // const username = document.getElementById('username').value;
         const email = document.getElementById('email').value;
+        const username = document.getElementById('username').value;
         const password = document.getElementById('password').value;
 
         console.log("meow");
 
-        fetch('https://kraft.alexbissessur.dev/auth/login', {
+        fetch('https://kraft.alexbissessur.dev/auth/register', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json'
           },
-          body: JSON.stringify({ email, password })
+          body: JSON.stringify({ email, username, password })
         })
         .then(response => response.json())
         .then(data => {
@@ -50,17 +51,20 @@
             <h3 class="text-white font-mono text-sm ml-2 self-end mb-1">by Alex</h3>
         </div>
         <div class="text-white font-mono flex flex-col mt-8">
-            <a href="#" class="text-2xl underline block">> Login</a>
+            <a href="#" class="text-2xl underline block">> Register</a>
         </div>
         <!-- login form -->
         <form class="text-white text-xl font-mono flex flex-col mt-8" onsubmit="return submitForm();">
             <label for="email">Email :</label><br>
             <input class="text-gray-800" type="text" id="email" name="email" required><br>
 
+            <label for="username">Username :</label><br>
+            <input class="text-gray-800" type="text" id="username" name="username" required><br>
+
             <label for="password">Password :</label><br>
             <input class="text-gray-800" type="password" id="password" name="password" required>
 
-            <input type="submit" value="Submit">
+            <input type="submit" value="Submit" class="mt-8 hover:bg-gray-500">
         </form>
 
         <div class="text-2xl bg-red-300 font-mono mt-8 text-center" id="error-message">
