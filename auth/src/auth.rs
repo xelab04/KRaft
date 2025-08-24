@@ -122,7 +122,7 @@ pub async fn register(pool: web::Data<MySqlPool>, payload: web::Json<User>) -> H
         return HttpResponse::Conflict().json(json!({ "status": "error", "message": "User already exists with that email" }));
     }
 
-    let same_users: i64 = sqlx::query_scalar("SELECT COUNT(*) FROM users WHERE user_name = (?)")
+    let same_users: i64 = sqlx::query_scalar("SELECT COUNT(*) FROM users WHERE username = (?)")
         .bind(user)
         .fetch_one(pool.get_ref())
         .await
