@@ -30,6 +30,6 @@ spec:
       volumes:
       - name: kraft-db
         persistentVolumeClaim:
-          claimName: kaft-db
+          claimName: kraft-db
 
 status: {}
