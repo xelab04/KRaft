@@ -57,7 +57,7 @@ pub async fn login(pool: web::Data<MySqlPool>, payload: web::Json<User>) -> Http
     }
 
     let user_data = sqlx::query_as::<_, User>(
-        "SELECT user_id, email, password as user_password FROM users WHERE email = (?)"
+        "SELECT user_id, username, email, password as user_password FROM users WHERE email = (?)"
         )
         .bind(email)
         .fetch_all(pool.get_ref())
