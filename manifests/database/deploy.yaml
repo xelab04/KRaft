@@ -32,15 +32,27 @@ spec:
         env:
         - name: MARIADB_ROOT_PASSWORD
           valueFrom:
-            configMapKeyRef:
-              name: global-config
+            secretKeyRef:
+              name: database-secrets
               key: DB_ROOT_PASSWORD
 
         - name: MARIADB_DATABASE
           valueFrom:
-            configMapKeyRef:
-              name: global-config
+            secretKeyRef:
+              name: database-secrets
               key: DB_DATABASE
+
+        - name: MARIADB_USER
+          valueFrom:
+            secretKeyRef:
+              name: database-secrets
+              key: DB_USER
+
+        - name: MARIADB_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: database-secrets
+              key: DB_PASSWORD
 
       volumes:
       - name: kraft-db

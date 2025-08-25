@@ -11,6 +11,8 @@ use sqlx::FromRow;
 use serde_json;
 use log::{info};
 
+use jsonwebtoken::{decode, DecodingKey, Validation, Algorithm};
+
 use crate::jwt;
 
 #[derive(serde::Serialize, serde::Deserialize, Debug, FromRow, Clone)]
@@ -26,6 +28,13 @@ struct User {
 #[derive(Deserialize)]
 struct PasswordParams{
     user_password: String
+}
+
+#[derive(Debug, Deserialize, Serialize)]
+pub struct Claims {
+    pub sub: String,
+    pub exp: usize,
+    pub iat: usize,
 }
 
 #[actix_web::get("/auth/password")]
@@ -172,26 +181,47 @@ pub async fn register(pool: web::Data<MySqlPool>, payload: web::Json<User>) -> H
 #[actix_web::get("/auth/validate-jwt")]
 pub async fn validate_jwt(req: HttpRequest) -> HttpResponse {
 
+    let JWT_SECRET = std::env::var("JWT_SECRET")
+            .expect("JWT_SECRET must be set in environment variables");
 
-    let cookie_auth_token: Option<String> = req
-        .cookie("auth_token") // Get the cookie by name
-        .map(|cookie| cookie.value().to_string()); // Extract its value as a String
+    // let auth_header = req
+    //     .headers()
+    //     .get("Authorization")
+    //     .and_then(|h| h.to_str().ok())
+    //     .unwrap_or("");
 
-    let jwt_token = if let Some(token) = cookie_auth_token {
-        token
-    } else {
-        return HttpResponse::Unauthorized().finish();
-    };
+    let cookie_token = req
+        .cookie("auth_token")
+        .map(|cookie| cookie.value().to_string())
+        .unwrap_or(String::from(""));
 
-    if jwt::validate_jwt(&jwt_token) {
-        return HttpResponse::Ok().json(json!({
-            "success": true,
-            "message": format!("JWT found and extracted: {}", jwt_token),
-        }))
+    if cookie_token.is_empty() {
+        return HttpResponse::Unauthorized().json(json!({
+            "status": "error",
+            "message": "Token not found.",
+        }));
     }
 
-    return HttpResponse::Unauthorized().json(json!({
-        "success": false,
-        "message": "Authorization header missing or malformed. Expected 'Bearer <token>'.".to_string(),
-    }));
+    let res = decode::<Claims>(
+        &cookie_token,
+        &DecodingKey::from_secret(JWT_SECRET.as_bytes()),
+        &Validation::new(Algorithm::HS256),
+    );
+
+    match res {
+        Ok(data) => {
+            let token_data = data.claims;
+            return HttpResponse::Ok().json(json!({
+                "status": "success",
+                "message": format!("User ID: {}", token_data.sub),
+            }));
+        }
+        Err(_) => {
+            return HttpResponse::Unauthorized().json(json!({
+                "status": "error",
+                "message": "Invalid token."
+            }));
+        }
+    }
+
 }

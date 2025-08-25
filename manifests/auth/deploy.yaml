@@ -31,4 +31,6 @@ spec:
             name: betacode
         - secretRef:
             name: jwtsecret
+        - secretRef:
+            name: database-secrets
 status: {}
