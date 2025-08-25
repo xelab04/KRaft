@@ -22,6 +22,7 @@ struct User {
     email: String,
     #[serde(rename = "password")]
     user_password: String,
+    #[sqlx(skip)]
     betacode: Option<String>
 }
 
@@ -104,7 +105,9 @@ pub async fn login(pool: web::Data<MySqlPool>, payload: web::Json<User>) -> Http
 
             let environment = std::env::var("ENVIRONMENT").unwrap_or_else(|_| "prod".to_string());
             if environment == "prod" {
-                return HttpResponse::Ok().json(json!({"status":"success", "jwt":jwt_token}));
+                return HttpResponse::Ok()
+                    .cookie(cookie)
+                    .json(json!({ "status": "success", "message": "success" }))
             }
 
             HttpResponse::Ok()
