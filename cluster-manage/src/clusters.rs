@@ -5,9 +5,9 @@ use serde::{Deserialize, Serialize};
 use sqlx;
 use sqlx::prelude::FromRow;
 use sqlx::MySqlPool;
+use serde_json::json;
 
 use std::process::Command;
-
 
 use crate::jwt;
 use crate::validatename;
@@ -40,7 +40,7 @@ pub async fn create(
         Err(e) => {
             println!("Error: {:?}", e);
             if config.environment == "prod" {
-                return HttpResponse::Unauthorized().json("Unauthorized");
+                return HttpResponse::Unauthorized().json(json!({"status": "error", "message": "Unauthorized"}));
             }
         }
     };

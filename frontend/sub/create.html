@@ -22,8 +22,8 @@
         })
         .then(response => response.json())
         .then(data => {
-          if (data.error) {
-            document.getElementById('error-message').textContent = data.error;
+          if (data.status == "error") {
+            document.getElementById('error-message').textContent = data.message;
           } else {
             document.getElementById('error-message').textContent = 'Success!';
             return true;
