@@ -79,6 +79,25 @@
                 loading: true,
                 error: null,
 
+                userCheck() {
+                  fetch('/auth/validate-jwt', {
+                    method: 'GET',
+                  })
+                  .then(response => response.json())
+                  .then(data => {
+                    console.log("Data:", data);
+                    if (data.status == "error") {
+                      // redirect to login page
+                      window.location.href = `/sub/login.html`;
+                    } else {
+                      return true;
+                    }
+                  })
+                  .catch(error => {
+                    console.log('An error occurred somewhere between here and the server.');
+                  });
+                },
+
                 async getClusters() {
                     try {
                         this.loading = true;
@@ -103,7 +122,8 @@
                 },
 
                 init() {
-                    this.getClusters();
+                  this.userCheck()
+                  this.getClusters();
                 }
             }
         }

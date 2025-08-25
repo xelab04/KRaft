@@ -36,8 +36,30 @@
           console.error('Error:', error);
         });
         return false;
-
       }
+
+      function userCheck() {
+        fetch('/auth/validate-jwt', {
+          method: 'GET',
+        })
+        .then(response => response.json())
+        .then(data => {
+          console.log("Data:", data);
+          if (data.status == "error") {
+            document.getElementById('error-message').textContent = data.message;
+            // redirect to login page
+            window.location.href = `/sub/login.html`;
+          } else {
+            document.getElementById('error-message').textContent = 'Success!';
+            return true;
+          }
+        })
+        .catch(error => {
+          document.getElementById('error-message').textContent = 'An error occurred somewhere between here and the server.';
+        });
+      }
+
+      userCheck();
     </script>
 
 </head>
