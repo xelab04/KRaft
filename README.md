@@ -5,6 +5,8 @@ Have **you** ever wanted to run a workshop on Kubernetes? Or just run a lab some
 
 Well, KRaft is for you.
 
+![Image showing homepage of Kraft, with white text black background with options create cluster, view clusters, manage endpoint, and register/login](./homepage.png)
+
 ## What is KRaft?
 KRaft provides a very opinionated but fully-contained platform which runs on top of a host Kubernetes cluster, and spins up virtual clusters for each person who wants one. You can use this for workshops and training sessions. Or you can try it out as "cloud service provider" for you and your friends to share resources over a lab.
 
