@@ -1,7 +1,7 @@
 import utils
 from pprint import pprint
 
-def get_node_capacity(api_instance):
+def get_node_compute_capacity(api_instance):
     nodes = api_instance.list_node(watch=False)
 
     total_cpu_capacity = sum([utils.convert_cpu(node.status.capacity.get('cpu', '0')) for node in nodes.items])
