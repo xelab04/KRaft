@@ -1,0 +1,26 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  creationTimestamp: null
+  labels:
+    app: kraft-resource-manage
+  name: kraft-resource-manage
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: kraft-resource-manage
+  strategy: {}
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        app: kraft-resource-manage
+    spec:
+      containers:
+      - image: registry.alexbissessur.dev/kraft-resource-manage:latest
+        name: kraft-resource-manage
+        ports:
+        - containerPort: 80
+        resources: {}
+status: {}

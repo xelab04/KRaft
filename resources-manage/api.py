@@ -10,7 +10,7 @@ app = Flask(__name__)
 
 
 # For the cluster view page
-@app.route('/get/resources/<namespace>', methods=['GET'])
+@app.route('/resources/<namespace>', methods=['GET'])
 def get_resources(namespace):
     config.load_kube_config()
     api_instance = client.CoreV1Api()
@@ -28,7 +28,7 @@ def get_resources(namespace):
     }
 
 # For the homepage to see cluster resource usage
-@app.route('/get/cluster/resources', methods=["GET"])
+@app.route('/resources/cluster', methods=["GET"])
 def get_cluster_resources():
     config.load_kube_config()
     api_instance = client.CoreV1Api()
