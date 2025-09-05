@@ -27,7 +27,7 @@ spec:
         resources: {}
         volumeMounts:
         - name: kraft-db
-          mountPath: /var/lib/mariadb
+          mountPath: /var/lib/mysql
 
         env:
         - name: MARIADB_ROOT_PASSWORD
