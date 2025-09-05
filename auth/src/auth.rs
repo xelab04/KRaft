@@ -173,7 +173,26 @@ pub async fn register(pool: web::Data<MySqlPool>, payload: web::Json<User>) -> H
     // In the future, have email verification
 
     match r {
-        Ok(_) => {return HttpResponse::Ok().json(json!({ "status": "success" }))}
+        Ok(_) => {
+            // if user created succesfully, generate cookie
+
+            let user_id: i64 = sqlx::query_scalar("SELECT user_id FROM users WHERE username = ?")
+                .bind(user)
+                .fetch_one(pool.get_ref())
+                .await
+                .unwrap();
+
+            let jwt_token = jwt::create_jwt(user_id.to_string());
+
+            let cookie = Cookie::build("auth_token", &jwt_token)
+                .path("/")
+                .http_only(true)
+                .secure(true)
+                .same_site(SameSite::Lax)
+                .finish();
+
+            return HttpResponse::Ok().cookie(cookie).json(json!({ "status": "success" }));
+        }
         Err(e) => {
             println!("Error inserting user: {}", e);
             return HttpResponse::InternalServerError().finish();}
