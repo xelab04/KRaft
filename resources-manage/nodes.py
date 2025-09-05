@@ -38,9 +38,7 @@ def get_node_use(custom_api):
         "total_memory": total_memory
     }
 
-def get_allocatable_node_storage(api_instance, custom_api):
-    returned_list_of_nodes = api_instance.list_node(watch=False)
-
+def get_node_storage_longhorn(custom_api):
     try:
         longhorn_nodes = custom_api.list_cluster_custom_object(
             group="longhorn.io",
@@ -63,7 +61,14 @@ def get_allocatable_node_storage(api_instance, custom_api):
 
     except Exception as e:
         print(f"Error getting total storage: {e}")
+        return None
 
+def get_allocatable_node_storage(api_instance, custom_api):
+    returned_list_of_nodes = api_instance.list_node(watch=False)
+
+    total_allocatable_storage = get_node_storage_longhorn(custom_api)
+    if total_allocatable_storage:
+        return total_allocatable_storage
 
     total_allocatable_storage = sum([utils.convert_storage(node.status.allocatable['ephemeral-storage']) for node in returned_list_of_nodes.items])
 
