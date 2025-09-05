@@ -4,6 +4,7 @@ metadata:
   creationTimestamp: null
   labels:
     app: kraft-resource-manage
+    project: kraft
   name: kraft-resource-manage
 spec:
   replicas: 1

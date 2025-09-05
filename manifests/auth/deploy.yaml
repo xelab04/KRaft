@@ -4,6 +4,7 @@ metadata:
   creationTimestamp: null
   labels:
     app: kraft-auth
+    project: kraft
   name: kraft-auth
 spec:
   replicas: 1
