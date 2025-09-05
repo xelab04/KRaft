@@ -126,12 +126,13 @@ pub async fn get_kubeconfig(
             }
         }
     };
-    let cluster_name = format!("{}-{}", user_id, raw_cluster_name);
+    // raw_cluster_name is 3-meow
+    // so userid-clustername
 
     // check user_id and cluster_name in database
     let cluster_count_belonging_to_user: i64 = sqlx::query_scalar("SELECT COUNT(*) FROM clusters WHERE user_id = ? AND cluster_name = ?")
         .bind(&user_id)
-        .bind(&cluster_name)
+        .bind(&raw_cluster_name)
         .fetch_one(pool.get_ref())
         .await
         .expect("Failed to fetch cluster count");
@@ -143,12 +144,12 @@ pub async fn get_kubeconfig(
     Command::new("k3kcli")
         .arg("kubeconfig")
         .arg("generate")
-        .arg(format!("--namespace=k3k-{}", cluster_name))
-        .arg(format!("--name={}", cluster_name))
+        .arg(format!("--namespace=k3k-{}", raw_cluster_name))
+        .arg(format!("--name={}", raw_cluster_name))
         .output()
         .expect("k3kcli command failed");
 
-    let filename = format!("k3k-{}-{}.yaml", cluster_name, cluster_name);
+    let filename = format!("k3k-{}-{}.yaml", raw_cluster_name, raw_cluster_name);
 
     return HttpResponse::Ok()
         .content_type("application/octet-stream")
