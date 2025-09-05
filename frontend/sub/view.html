@@ -40,7 +40,7 @@
                             <button class="hover:bg-gray-500 underline">
                                 Delete
                             </button>
-                            <button class="hover:bg-gray-500 underline">
+                            <button class="hover:bg-gray-500 underline" onclick="kubeconfig(cluster.name)">
                                 Kubeconfig
                             </button>
                         </td>
@@ -126,6 +126,12 @@
                   this.getClusters();
                 }
             }
+        }
+
+        function kubeconfig(cluster_name) {
+          fetch('/api/get/kubeconfig/' + cluster_name, {
+            method: 'GET'
+          })
         }
     </script>
 </body>

@@ -104,6 +104,7 @@ pub async fn create(
 #[get("/api/get/kubeconfig/{cluster_name}")]
 pub async fn get_kubeconfig(
     req: HttpRequest,
+    pool: web::Data<MySqlPool>,
     cluster_name: web::Path<String>,
     config: web::Data<AppConfig>,
 ) -> HttpResponse {
@@ -125,8 +126,19 @@ pub async fn get_kubeconfig(
             }
         }
     };
-
     let cluster_name = format!("{}-{}", user_id, raw_cluster_name);
+
+    // check user_id and cluster_name in database
+    let cluster_count_belonging_to_user: i64 = sqlx::query_scalar("SELECT COUNT(*) FROM clusters WHERE user_id = ? AND cluster_name = ?")
+        .bind(&user_id)
+        .bind(&cluster_name)
+        .fetch_one(pool.get_ref())
+        .await
+        .expect("Failed to fetch cluster count");
+
+    if cluster_count_belonging_to_user == 0 {
+        return HttpResponse::NotFound().json("Cluster not found");
+    }
 
     Command::new("k3kcli")
         .arg("kubeconfig")
@@ -136,7 +148,14 @@ pub async fn get_kubeconfig(
         .output()
         .expect("k3kcli command failed");
 
-    return HttpResponse::Ok().json("Kubeconfig generated successfully");
+    let filename = format!("k3k-{}-{}.yaml", cluster_name, cluster_name);
+
+    return HttpResponse::Ok()
+        .content_type("application/octet-stream")
+        .append_header(("Content-Disposition", format!("attachment; filename=\"{}\"", filename)))
+        .body("success".to_string());
+
+    // return HttpResponse::Ok().json("Kubeconfig generated successfully");
 }
 
 #[get("/api/get/clusters")]
