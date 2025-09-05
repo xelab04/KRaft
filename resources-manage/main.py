@@ -45,7 +45,8 @@ def get_cluster_resources():
     used_cpu = node_use["total_cpu"]
     used_memory = node_use["total_memory"]
 
-    node_capacity = nodes.get_node_capacity(api_instance)
+    # node
+    node_capacity = nodes.get_node_compute_capacity(api_instance)
     total_cpu = node_capacity["total_cpu"]
     total_memory = node_capacity["total_memory"]
 
@@ -64,7 +65,6 @@ def get_cluster_resources():
             "claimed": used_memory
         }
     })
-
 
 
 if __name__ == '__main__':
