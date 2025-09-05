@@ -40,7 +40,7 @@
                             <button class="hover:bg-gray-500 underline">
                                 Delete
                             </button>
-                            <button class="hover:bg-gray-500 underline" onclick="kubeconfig(cluster.name)">
+                            <button class="hover:bg-gray-500 underline" @click="kubeconfig(cluster.name)">
                                 Kubeconfig
                             </button>
                         </td>
@@ -78,6 +78,16 @@
                 clusters: [],
                 loading: true,
                 error: null,
+
+                kubeconfig(clusterName) {
+                    // Create a link to trigger the download
+                    const link = document.createElement('a');
+                    link.href = '/api/get/kubeconfig/' + clusterName;
+                    link.download = clusterName + '-kubeconfig.yaml';
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                },
 
                 userCheck() {
                   fetch('/auth/validate-jwt', {
@@ -126,12 +136,6 @@
                   this.getClusters();
                 }
             }
-        }
-
-        function kubeconfig(cluster_name) {
-          fetch('/api/get/kubeconfig/' + cluster_name, {
-            method: 'GET'
-          })
         }
     </script>
 </body>
