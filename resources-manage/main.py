@@ -1,54 +1,71 @@
 from kubernetes import client, config
 from flask import Flask, send_file, jsonify
+from pprint import pprint
+
+import pods
+import nodes
+import storage
 
 app = Flask(__name__)
 
 
-def convert_cpu(cpu):
-    if cpu.endswith("m"):
-        cpu = int(cpu.strip("m"))
-    else:
-        try:
-            cpu = int(cpu) * 1000
-        except ValueError:
-            raise ValueError("Invalid CPU value")
-    return cpu
-
-def convert_memory(mem):
-    if mem.endswith("Mi"):
-        mem = int(mem.strip("Mi"))
-    elif mem.endswith("Gi"):
-        # multiplying by 1024 is ugly
-        mem = int(mem.strip("Gi")) * 1024
-    else:
-        raise ValueError("Invalid memory value")
-    return mem
-
+# For the cluster view page
 @app.route('/get/resources/<namespace>', methods=['GET'])
 def get_resources(namespace):
     config.load_kube_config()
     api_instance = client.CoreV1Api()
+    custom_api = client.CustomObjectsApi()
 
-    ret = api_instance.list_namespaced_pod(namespace=namespace, watch=False)
+    compute = pods.get_pod_use(api_instance, custom_api, namespace)
 
-    total_cpu, total_memory = 0, 0
+    # One issue here is that the storage isn't multiplied by number of replicas
+    sto = storage.get_pvc_claimed_storage(api_instance, namespace)
 
-    for pod in ret.items:
-        for container in pod.spec.containers:
-            cpu, memory = 0, 0
-            if(container.resources.requests):
-                if container.resources.requests.get('cpu'):
-                    cpu = convert_cpu(container.resources.requests['cpu'])
-                if container.resources.requests.get('memory'):
-                    memory = convert_memory(container.resources.requests['memory'])
-
-            total_cpu += cpu
-            total_memory += memory
+    total_cpu, total_memory = compute["total_cpu"], compute["total_memory"]
 
     return {
         "cpu": total_cpu,
-        "memory": total_memory
+        "memory": total_memory,
+        "storage": sto
     }
+
+# For the homepage to see cluster resource usage
+@app.route('/get/cluster/resources', methods=["GET"])
+def get_cluster_resources():
+    config.load_kube_config()
+    api_instance = client.CoreV1Api()
+    custom_api = client.CustomObjectsApi()
+
+    # storage
+    pvc_claimed_storage = storage.get_pv_claimed_storage(api_instance)
+    allocatable_node_storage = nodes.get_allocatable_node_storage(api_instance)
+
+    # compute
+    node_use = nodes.get_node_use(custom_api)
+    used_cpu = node_use["total_cpu"]
+    used_memory = node_use["total_memory"]
+
+    node_capacity = nodes.get_node_capacity(api_instance)
+    total_cpu = node_capacity["total_cpu"]
+    total_memory = node_capacity["total_memory"]
+
+    return jsonify({
+        "status": "success",
+        "storage": {
+            "claimed": pvc_claimed_storage,
+            "allocatable": allocatable_node_storage
+        },
+        "cpu": {
+            "total": total_cpu,
+            "claimed": used_cpu
+        },
+        "memory": {
+            "total": total_memory,
+            "claimed": used_memory
+        }
+    })
+
+
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)
