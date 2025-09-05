@@ -5,10 +5,50 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>KRaft</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      function update_resource_usage() {
+        // fetch("/get/cluster/resources", {
+        fetch("http://127.0.0.1:5000/get/cluster/resources", {
+          method: 'GET',
+        })
+        .then(response => response.json())
+        .then(data => {
+          cpu_percentage = data.cpu.claimed / data.cpu.total * 100;
+          ram_percentage = data.memory.claimed / data.memory.total * 100;
+
+          disk_use_percentage = data.storage.claimed/data.storage.allocatable * 100;
+
+          // console.log(data);
+
+          const cpuBar = document.querySelector('.cpu-usage-bar');
+          if (cpuBar) {
+            cpuBar.style.width = cpu_percentage + '%';
+          }
+
+          const ramBar = document.querySelector('.ram-usage-bar');
+          if (ramBar) {
+            ramBar.style.width = ram_percentage + '%';
+          }
+
+          const diskUsageBar = document.querySelector('.disk-usage-bar');
+          if (diskUsageBar) {
+            diskUsageBar.style.width = disk_use_percentage + '%';
+          }
+
+        })
+        .catch(error => {
+          console.error('Error fetching resource usage:', error);
+        });
+
+        return "meow";
+      }
+
+      update_resource_usage();
+    </script>
 </head>
 <body class="bg-black h-screen w-screen flex flex-col items-center justify-center m-0 p-0">
-    <div class=" p-8 rounded-md shadow-lg max-w-2xl w-full mx-4 outline-white-500 h-[60vh] outline">
-        <!-- bg-zinc-800 -->
+    <div class=" p-8 rounded-md shadow-lg max-w-2xl w-full mx-4 h-[60vh]">
+        <!-- bg-zinc-800 outline-white-500 outline -->
         <div class="flex items-center mb-4">
             <h1 class="text-white font-mono text-3xl">KRaft</h1>
             <h3 class="text-white font-mono text-sm ml-2 self-end mb-1">by Alex</h3>
@@ -19,6 +59,29 @@
             <a href="#" class="text-2xl underline block mt-6">> Manage endpoints</a>
             <a href="./sub/login.html" class="text-2xl underline block mt-6">> Login/Register</a>
         </div>
+
+        <div class="width-full mt-6 h-8 relative">
+            <div class="bg-gray-100 h-8 relative">
+                <div class="absolute top-0 left-0 h-8 bg-gray-500 cpu-usage-bar"  style="width: 0%;" id="cpu_use"></div>
+                <div class="absolute top-0 right-4 h-8 font-mono">CPU</div>
+            </div>
+        </div>
+
+        <div class="width-full mt-3 h-8 relative">
+            <div class="bg-gray-100 h-8 relative">
+                <div class="absolute top-0 left-0 h-8 bg-gray-500 ram-usage-bar"></div>
+                <div class="absolute top-0 right-4 h-8 font-mono">RAM</div>
+            </div>
+        </div>
+
+        <div class="width-full mt-3 h-8 relative">
+            <div class="bg-gray-100 h-8 relative">
+                <div class="absolute top-0 left-0 h-8 bg-gray-500 disk-usage-bar"></div>
+                <div class="absolute top-0 left-0 h-8 bg-gray-500 disk-reserve-bar"></div>
+                <div class="absolute top-0 right-4 h-8 font-mono">DISK</div>
+            </div>
+        </div>
+
     </div>
 
     <!-- 88x31 image at the bottom -->
