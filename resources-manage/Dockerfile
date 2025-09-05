@@ -10,6 +10,8 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . .
 
+RUN mv api.py main.py
+
 # Expose the port
 EXPOSE 5000
 

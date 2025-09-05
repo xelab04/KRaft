@@ -17,8 +17,6 @@ def get_resources(namespace):
     custom_api = client.CustomObjectsApi()
 
     compute = pods.get_pod_use(api_instance, custom_api, namespace)
-
-    # One issue here is that the storage isn't multiplied by number of replicas
     sto = storage.get_pvc_claimed_storage(api_instance, namespace)
 
     total_cpu, total_memory = compute["total_cpu"], compute["total_memory"]
@@ -66,6 +64,9 @@ def get_cluster_resources():
         }
     })
 
+
+# note to self, you probably want to cache these
+# or you will be hitting the k8s api a bit frequently teehee
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)
