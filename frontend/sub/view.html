@@ -101,7 +101,7 @@
                 async getClusters() {
                     try {
                         this.loading = true;
-                        const response = await fetch('https://kraft.alexbissessur.dev/api/get/clusters');
+                        const response = await fetch('/api/get/clusters');
 
                         if (!response.ok) {
                             throw new Error(`HTTP error! status: ${response.status}`);

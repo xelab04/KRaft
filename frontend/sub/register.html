@@ -34,9 +34,9 @@
 
           } else {
             document.getElementById('error-message').textContent = 'Success!';
-            return false;
-            // redirect to home
-            // window.location.href = `/`;
+            delay(2000).then(() => {
+              window.location.href = `/`;
+            });
           }
         })
         .catch(error => {
