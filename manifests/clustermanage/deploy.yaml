@@ -4,6 +4,7 @@ metadata:
   creationTimestamp: null
   labels:
     app: kraft-cluster-manage
+    project: kraft
   name: kraft-cluster-manage
 spec:
   replicas: 1
