@@ -37,8 +37,8 @@ def get_cluster_resources():
     custom_api = client.CustomObjectsApi()
 
     # storage
-    pvc_claimed_storage = storage.get_pv_claimed_storage(api_instance)
-    allocatable_node_storage = nodes.get_allocatable_node_storage(api_instance)
+    pvc_claimed_storage = storage.get_pv_claimed_storage(api_instance, custom_api)
+    allocatable_node_storage = nodes.get_allocatable_node_storage(api_instance, custom_api)
 
     # compute
     node_use = nodes.get_node_use(custom_api)
