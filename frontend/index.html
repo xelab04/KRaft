@@ -8,7 +8,7 @@
     <script>
       function update_resource_usage() {
         // fetch("/get/cluster/resources", {
-        fetch("http://127.0.0.1:5000/get/cluster/resources", {
+        fetch("/resources/cluster", {
           method: 'GET',
         })
         .then(response => response.json())
