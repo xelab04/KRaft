@@ -1,3 +1,7 @@
+CREATE DATABASE kraft;
+
+USE kraft;
+
 CREATE TABLE users (
     user_id int NOT NULL AUTO_INCREMENT,
     username varchar(255) NOT NULL,
@@ -15,4 +19,6 @@ CREATE TABLE clusters (
     FOREIGN KEY (user_id) REFERENCES users(user_id)
 );
 
-INSERT INTO users VALUES (0, "alex", "alexbissessur@gmail.com", "password");
+INSERT INTO users VALUES (1, "alex", "alexbissessur@gmail.com", "password");
+
+INSERT INTO clusters VALUES (1, "test", "kraft.alexb.dev", 1);
