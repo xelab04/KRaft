@@ -9,7 +9,13 @@
     <script>
       function submitForm() {
         const name = document.getElementById('cluster_name').value;
-        const cidr = document.getElementById('cidr').value;
+        let cidr = document.getElementById('cidr').value;
+        cidr = cidr.replace(/\s/g, "");
+
+        let cidr_array = []
+        if (cidr != "") {
+          cidr_array = cidr.split(',');
+        }
 
         console.log("meow");
 
@@ -18,7 +24,7 @@
           headers: {
             'Content-Type': 'application/json'
           },
-          body: JSON.stringify({ name, cidr })
+          body: JSON.stringify({ name, cidr_array })
         })
         .then(response => response.json())
         .then(data => {
