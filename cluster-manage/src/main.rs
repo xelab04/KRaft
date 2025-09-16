@@ -9,6 +9,7 @@ mod clusters;
 mod db_connect;
 mod validatename;
 mod jwt;
+mod tlssan;
 
 #[derive(Clone)]
 pub struct AppConfig {
