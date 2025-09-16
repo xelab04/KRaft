@@ -18,6 +18,8 @@ spec:
       labels:
         app: kraft-cluster-manage
     spec:
+      serviceAccountName: kraftsa
+      automountServiceAccountToken: true
       containers:
       - image: registry.alexbissessur.dev/kraft-cluster-manage:latest
         name: kraft-cluster-manage
@@ -33,12 +35,12 @@ spec:
         - secretRef:
             name: database-secrets
 
-        volumeMounts:
-        - name: kubeconfig-volume
-          mountPath: /root/.kube/
-          # subPath: config
-      volumes:
-      - name: kubeconfig-volume
-        secret:
-          secretName: kubeconfig
+      #   volumeMounts:
+      #   - name: kubeconfig-volume
+      #     mountPath: /root/.kube/
+      #     # subPath: config
+      # volumes:
+      # - name: kubeconfig-volume
+      #   secret:
+      #     secretName: kubeconfig
 status: {}
