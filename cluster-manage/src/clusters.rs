@@ -55,16 +55,38 @@ pub async fn create(
 
     let cluster_name = format!("{}-{}", user_id, cluster.name);
 
+    // generate random string for whatever.kraft.alexb.dev
+    let mut endpoint_string: String;
+    loop {
+        endpoint_string = format!("{}-{}", random_word::get(Lang::En), random_word::get(Lang::En));
+
+        let count_with_same_endpoint: i64 = sqlx::query_scalar("SELECT COUNT(*) FROM clusters WHERE cluster_endpoint = (?)")
+            .bind(&endpoint_string)
+            .fetch_one(pool.get_ref())
+            .await
+            .unwrap();
+
+        if count_with_same_endpoint == 0 {
+            break
+        }
+    }
+
     // check cluster cidr
-    let mut tlssan_list = Vec::<String>::new();
+    let mut server_arg_string = String::new();
+    let mut server_args = String::new();
+
     if let Some(value) = cluster.tlssan {
-        tlssan_list = Vec::from(value);
+        let tlssan_list = Vec::from(value);
         for tlssan in tlssan_list.iter() {
+            server_args.push_str(&format!(" --tls-san {}", tlssan));
             if !tlssan::validate_tlssan(tlssan.clone()).await.is_ok() {
                 return HttpResponse::BadRequest().json("Invalid CIDR format");
             }
         }
     }
+    server_args.push_str(&format!("--tls-san {}.kraft.alexbissessur.dev ", endpoint_string));
+    server_arg_string = format!("--server-args='{}'", server_args);
+    println!("{}", server_arg_string);
 
     // --server-args "--tls-san test1.alexbissessur.dev --tls-san test2.alexbissessur.dev"
 
@@ -83,32 +105,16 @@ pub async fn create(
         return HttpResponse::BadRequest().json("Cluster with the same name already exists");
     }
 
-    let mut endpoint_string: String;
-    loop {
-        endpoint_string = format!("{}-{}", random_word::get(Lang::En), random_word::get(Lang::En));
-
-        let count_with_same_endpoint: i64 = sqlx::query_scalar("SELECT COUNT(*) FROM clusters WHERE cluster_endpoint = (?)")
-            .bind(&endpoint_string)
-            .fetch_one(pool.get_ref())
-            .await
-            .unwrap();
-
-        if count_with_same_endpoint == 0 {
-            break
-        }
-    }
-
     // #[PROD]
-    // call function to create cluster
-    // theoretically just do k3k create <cluster_name>
+    // println!("{}", cluster_name);
+    // println!("{}", endpoint_string);
+    // println!("{}", server_arg_string);
 
-    println!("{}", cluster_name);
-
-    let mut cluster_create_command = Command::new("k3kcli")
+    Command::new("k3kcli")
         .arg("cluster")
         .arg("create")
+        .arg(&server_arg_string)
         .arg(&cluster_name)
-        .arg(&server_args)
         .spawn()
         .expect("k3kcli command failed");
 
