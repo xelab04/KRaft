@@ -1,0 +1,8 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: kraftrole
+rules:
+- apiGroups: ["k3k.io"]
+  resources: ["clusters"]
+  verbs: ["get", "watch", "list", "delete", "edit", "create", "patch"]
