@@ -67,6 +67,7 @@ def cluster_usage(cluster_name):
     cluster_ns = "k3k-" + cluster_name
 
     #config.load_kube_config()
+    config.load_incluster_config()
     api_instance = client.CoreV1Api()
     custom_api = client.CustomObjectsApi()
 

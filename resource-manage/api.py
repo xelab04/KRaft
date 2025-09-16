@@ -13,6 +13,7 @@ app = Flask(__name__)
 @app.route('/resources/<namespace>', methods=['GET'])
 def get_resources(namespace):
     #config.load_kube_config()
+    config.load_incluster_config()
     api_instance = client.CoreV1Api()
     custom_api = client.CustomObjectsApi()
 
@@ -31,6 +32,7 @@ def get_resources(namespace):
 @app.route('/resources/cluster', methods=["GET"])
 def get_cluster_resources():
     #config.load_kube_config()
+    config.load_incluster_config()
     api_instance = client.CoreV1Api()
     custom_api = client.CustomObjectsApi()
 
