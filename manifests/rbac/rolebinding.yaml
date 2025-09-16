@@ -5,7 +5,6 @@ metadata:
 subjects:
 - kind: ServiceAccount
   name: kraftsa
-  apiGroup: rbac.authorization.k8s.io
   namespace: kraft
 roleRef:
   kind: ClusterRole
