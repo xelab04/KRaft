@@ -9,12 +9,12 @@
     <script>
       function submitForm() {
         const name = document.getElementById('cluster_name').value;
-        let cidr = document.getElementById('cidr').value;
-        cidr = cidr.replace(/\s/g, "");
+        let tlssan = document.getElementById('tlssan').value;
+        tlssan = tlssan.replace(/\s/g, "");
 
-        let cidr_array = []
-        if (cidr != "") {
-          cidr_array = cidr.split(',');
+        let tlssan_array = []
+        if (tlssan != "") {
+          tlssan_array = tlssan.split(',');
         }
 
         console.log("meow");
@@ -24,7 +24,7 @@
           headers: {
             'Content-Type': 'application/json'
           },
-          body: JSON.stringify({ name, cidr_array })
+          body: JSON.stringify({ name, tlssan_array })
         })
         .then(response => response.json())
         .then(data => {
@@ -84,8 +84,8 @@
             <label for="cluster_name">Cluster name*:</label><br>
             <input class="text-gray-800" type="text" id="cluster_name" name="cluster_name" required><br>
 
-            <label for="cidr">CIDR (comma-separated)</label><br>
-            <input class="text-gray-800" type="text" id="cidr" name="cidr">
+            <label for="tlssan">TLS-SAN (comma-separated)</label><br>
+            <input class="text-gray-800" type="text" id="tlssan" name="tlssan">
 
             <input type="submit" value="Submit">
         </form>
