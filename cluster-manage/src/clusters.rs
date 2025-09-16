@@ -12,6 +12,7 @@ use std::process::Command;
 use crate::jwt;
 use crate::validatename;
 use crate::AppConfig;
+use crate::tlssan;
 
 use random_word::Lang;
 
@@ -22,12 +23,19 @@ pub struct Cluster {
     endpoint: Option<String>
 }
 
+#[derive(Serialize, Deserialize, FromRow)]
+pub struct ClusterCreateForm {
+    id: Option<i64>,
+    name: String,
+    tlssan: Option<Vec<String>>
+}
+
 #[post("/api/create/clusters")]
 pub async fn create(
     req: HttpRequest,
     pool: web::Data<MySqlPool>,
     config: web::Data<AppConfig>,
-    Json(cluster): Json<Cluster>,
+    Json(cluster): Json<ClusterCreateForm>,
 ) -> HttpResponse {
     let jwt = jwt::extract_user_id_from_jwt(&req);
 
@@ -46,6 +54,19 @@ pub async fn create(
     };
 
     let cluster_name = format!("{}-{}", user_id, cluster.name);
+
+    // check cluster cidr
+    let mut tlssan_list = Vec::<String>::new();
+    if let Some(value) = cluster.tlssan {
+        tlssan_list = Vec::from(value);
+        for tlssan in tlssan_list.iter() {
+            if !tlssan::validate_tlssan(tlssan.clone()).await.is_ok() {
+                return HttpResponse::BadRequest().json("Invalid CIDR format");
+            }
+        }
+    }
+
+    // --server-args "--tls-san test1.alexbissessur.dev --tls-san test2.alexbissessur.dev"
 
     if !validatename::namevalid(&cluster_name) {
         return HttpResponse::BadRequest().json("Invalid Name");
@@ -83,10 +104,11 @@ pub async fn create(
 
     println!("{}", cluster_name);
 
-    Command::new("k3kcli")
+    let mut cluster_create_command = Command::new("k3kcli")
         .arg("cluster")
         .arg("create")
         .arg(&cluster_name)
+        .arg(&server_args)
         .spawn()
         .expect("k3kcli command failed");
 
