@@ -12,6 +12,7 @@ use std::process::Command;
 use crate::jwt;
 use crate::validatename;
 use crate::AppConfig;
+use crate::tlssan;
 
 use random_word::Lang;
 
@@ -22,12 +23,19 @@ pub struct Cluster {
     endpoint: Option<String>
 }
 
+#[derive(Serialize, Deserialize, FromRow)]
+pub struct ClusterCreateForm {
+    id: Option<i64>,
+    name: String,
+    tlssan: Option<Vec<String>>
+}
+
 #[post("/api/create/clusters")]
 pub async fn create(
     req: HttpRequest,
     pool: web::Data<MySqlPool>,
     config: web::Data<AppConfig>,
-    Json(cluster): Json<Cluster>,
+    Json(cluster): Json<ClusterCreateForm>,
 ) -> HttpResponse {
     let jwt = jwt::extract_user_id_from_jwt(&req);
 
@@ -47,21 +55,7 @@ pub async fn create(
 
     let cluster_name = format!("{}-{}", user_id, cluster.name);
 
-    if !validatename::namevalid(&cluster_name) {
-        return HttpResponse::BadRequest().json("Invalid Name");
-    }
-
-    // check for other clusters of the same name
-    let count_same_name: i64 = sqlx::query_scalar("SELECT COUNT(*) FROM clusters WHERE cluster_name = ?")
-        .bind(&cluster_name)
-        .fetch_one(pool.get_ref())
-        .await
-        .unwrap();
-
-    if count_same_name != 0 {
-        return HttpResponse::BadRequest().json("Cluster with the same name already exists");
-    }
-
+    // generate random string for whatever.kraft.alexb.dev
     let mut endpoint_string: String;
     loop {
         endpoint_string = format!("{}-{}", random_word::get(Lang::En), random_word::get(Lang::En));
@@ -77,15 +71,49 @@ pub async fn create(
         }
     }
 
-    // #[PROD]
-    // call function to create cluster
-    // theoretically just do k3k create <cluster_name>
+    // check cluster cidr
+    let mut server_arg_string = String::new();
+    let mut server_args = String::new();
 
-    println!("{}", cluster_name);
+    if let Some(value) = cluster.tlssan {
+        let tlssan_list = Vec::from(value);
+        for tlssan in tlssan_list.iter() {
+            server_args.push_str(&format!(" --tls-san {}", tlssan));
+            if !tlssan::validate_tlssan(tlssan.clone()).await.is_ok() {
+                return HttpResponse::BadRequest().json("Invalid CIDR format");
+            }
+        }
+    }
+    server_args.push_str(&format!("--tls-san {}.kraft.alexbissessur.dev ", endpoint_string));
+    server_arg_string = format!("--server-args='{}'", server_args);
+    println!("{}", server_arg_string);
+
+    // --server-args "--tls-san test1.alexbissessur.dev --tls-san test2.alexbissessur.dev"
+
+    if !validatename::namevalid(&cluster_name) {
+        return HttpResponse::BadRequest().json("Invalid Name");
+    }
+
+    // check for other clusters of the same name
+    let count_same_name: i64 = sqlx::query_scalar("SELECT COUNT(*) FROM clusters WHERE cluster_name = ?")
+        .bind(&cluster_name)
+        .fetch_one(pool.get_ref())
+        .await
+        .unwrap();
+
+    if count_same_name != 0 {
+        return HttpResponse::BadRequest().json("Cluster with the same name already exists");
+    }
+
+    // #[PROD]
+    // println!("{}", cluster_name);
+    // println!("{}", endpoint_string);
+    // println!("{}", server_arg_string);
 
     Command::new("k3kcli")
         .arg("cluster")
         .arg("create")
+        .arg(&server_arg_string)
         .arg(&cluster_name)
         .spawn()
         .expect("k3kcli command failed");
