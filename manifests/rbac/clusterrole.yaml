@@ -22,3 +22,7 @@ rules:
 - apiGroups: [""]
   resources: ["namespaces"]
   verbs: ["get","list", "create"]
+
+- apiGroups: [""]
+  resources: ["secrets"]
+  verbs: ["get","list", "create"]
