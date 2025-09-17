@@ -6,12 +6,19 @@ rules:
 - apiGroups: ["k3k.io"]
   resources: ["clusters"]
   verbs: ["get", "watch", "list", "delete", "edit", "create", "patch"]
+
 - apiGroups: [""]
   resources: ["persistentvolumes", "persistentvolumeclaims", "pods", "nodes"]
   verbs: ["get","list"]
+
 - apiGroups: ["longhorn.io"]
   resources: ["nodes"]
   verbs: ["get","list"]
+
 - apiGroups: ["metrics.k8s.io"]
   resources: ["nodes", pods]
+  verbs: ["get","list"]
+
+- apiGroups: [""]
+  resources: ["namespaces"]
   verbs: ["get","list"]
