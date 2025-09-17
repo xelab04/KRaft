@@ -129,8 +129,8 @@ pub async fn create(
     return HttpResponse::Ok().json("Cluster created successfully");
 }
 
-#[delete("/api/delete/clusters/{cluster_name}")]
-pub async fn delete(
+#[delete("/api/delete/cluster/{cluster_name}")]
+pub async fn clusterdelete(
     req: HttpRequest,
     pool: web::Data<MySqlPool>,
     cluster_name: web::Path<String>,
@@ -167,13 +167,13 @@ pub async fn delete(
         return HttpResponse::NotFound().json("Cluster not found");
     }
 
-    let namespace = format!("-n {}-{}", user_id, raw_cluster_name);
+    let namespace = format!("--namespace k3k-{}-{}", user_id, raw_cluster_name);
 
     Command::new("k3kcli")
         .arg("cluster")
         .arg("delete")
-        .arg(&raw_cluster_name)
         .arg(&namespace)
+        .arg(&raw_cluster_name)
         .spawn()
         .expect("k3kcli command failed");
 
