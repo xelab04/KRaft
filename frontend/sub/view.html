@@ -37,7 +37,7 @@
                             <button class="hover:bg-gray-500 underline">
                                 View
                             </button>
-                            <button class="hover:bg-gray-500 underline" @click="delete(cluster.name)">
+                            <button class="hover:bg-gray-500 underline" @click="clusterdelete(cluster.name)">
                                 Delete
                             </button>
                             <button class="hover:bg-gray-500 underline" @click="kubeconfig(cluster.name)">
@@ -94,14 +94,15 @@
                 },
 
                 // should probably have a verification :D
-                delete(clustername) {
+                clusterdelete(clustername) {
+                  console.log("Delete")
                   fetch('/api/delete/cluster/' + clustername, {
                     method: 'DELETE',
                   })
                   .then(response => response.json())
                   .then(data => {
                     console.log("Data:", data);
-                    if (data.status == "success") {
+                    if (data == "Success") {
                       location.reload();
                     }
                   })
