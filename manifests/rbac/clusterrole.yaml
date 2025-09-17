@@ -8,7 +8,12 @@ rules:
   verbs: ["get", "watch", "list", "delete", "edit", "create", "patch"]
 
 - apiGroups: [""]
-  resources: ["persistentvolumes", "persistentvolumeclaims", "pods", "nodes"]
+  resources: ["persistentvolumes", "persistentvolumeclaims", "pods"]
+  verbs: ["get","list", "delete"]
+  # hmmmmm, deleting perms aren't ideal...
+
+- apiGroups: [""]
+  resources: ["nodes"]
   verbs: ["get","list"]
 
 - apiGroups: ["longhorn.io"]
@@ -21,8 +26,8 @@ rules:
 
 - apiGroups: [""]
   resources: ["namespaces"]
-  verbs: ["get","list", "create"]
+  verbs: ["get","list", "create", "delete"]
 
 - apiGroups: [""]
-  resources: ["secrets"]
-  verbs: ["get","list", "create"]
+  resources: ["secrets", "ingress"]
+  verbs: ["get","list", "create", "delete"]
