@@ -37,7 +37,7 @@
                             <button class="hover:bg-gray-500 underline">
                                 View
                             </button>
-                            <button class="hover:bg-gray-500 underline">
+                            <button class="hover:bg-gray-500 underline" @click="delete(cluster.name)">
                                 Delete
                             </button>
                             <button class="hover:bg-gray-500 underline" @click="kubeconfig(cluster.name)">
@@ -64,6 +64,10 @@
 
         </table>
 
+        <div class="text-2xl bg-red-300 font-mono mt-8 text-center" id="error-message">
+            <!-- will be filled with error message -->
+        </div>
+
     </div>
 
 
@@ -87,6 +91,23 @@
                     document.body.appendChild(link);
                     link.click();
                     document.body.removeChild(link);
+                },
+
+                // should probably have a verification :D
+                delete(clustername) {
+                  fetch('/api/delete/cluster/' + clustername, {
+                    method: 'DELETE',
+                  })
+                  .then(response => response.json())
+                  .then(data => {
+                    console.log("Data:", data);
+                    if (data.status == "success") {
+                      location.reload();
+                    }
+                  })
+                  .catch(error => {
+                    document.getElementById('error-message').textContent = 'An error occurred, it is not your fault. Unless...';
+                  });
                 },
 
                 userCheck() {

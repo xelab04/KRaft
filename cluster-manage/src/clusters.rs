@@ -129,7 +129,7 @@ pub async fn create(
     return HttpResponse::Ok().json("Cluster created successfully");
 }
 
-#[delete("/api/delete/clusters")]
+#[delete("/api/delete/clusters/{cluster_name}")]
 pub async fn delete(
     req: HttpRequest,
     pool: web::Data<MySqlPool>,
