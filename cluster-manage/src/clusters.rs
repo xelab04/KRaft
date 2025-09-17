@@ -129,6 +129,71 @@ pub async fn create(
     return HttpResponse::Ok().json("Cluster created successfully");
 }
 
+#[delete("/api/delete/clusters")]
+pub async fn delete(
+    req: HttpRequest,
+    pool: web::Data<MySqlPool>,
+    cluster_name: web::Path<String>,
+    config: web::Data<AppConfig>,
+) -> HttpResponse{
+
+    let raw_cluster_name = cluster_name.into_inner();
+
+    let jwt = jwt::extract_user_id_from_jwt(&req);
+
+    let mut user_id: String = String::from("0");
+    match jwt {
+        Ok(id) => {
+            user_id = Some(id).unwrap();
+        }
+        Err(e) => {
+            println!("Error: {:?}", e);
+            // #[PROD]
+            if config.environment == "prod" {
+                return HttpResponse::Unauthorized().json("Unauthorized");
+            }
+        }
+    };
+
+    // check the user owns the cluster
+    let cluster_count_belonging_to_user: i64 = sqlx::query_scalar("SELECT COUNT(*) FROM clusters WHERE user_id = ? AND cluster_name = ?")
+        .bind(&user_id)
+        .bind(&raw_cluster_name)
+        .fetch_one(pool.get_ref())
+        .await
+        .expect("Failed to fetch cluster count");
+
+    if cluster_count_belonging_to_user == 0 {
+        return HttpResponse::NotFound().json("Cluster not found");
+    }
+
+    let namespace = format!("-n {}-{}", user_id, raw_cluster_name);
+
+    Command::new("k3kcli")
+        .arg("cluster")
+        .arg("delete")
+        .arg(&raw_cluster_name)
+        .arg(&namespace)
+        .spawn()
+        .expect("k3kcli command failed");
+
+    let r = sqlx::query("DELETE FROM clusters WHERE user_id = ? AND cluster_name = ?")
+        .bind(&user_id)
+        .bind(&raw_cluster_name)
+        .execute(pool.get_ref())
+        .await;
+
+    match r {
+        Ok(_) => {
+            HttpResponse::Ok().json("Success")
+        },
+        Err(e) => {
+            HttpResponse::InternalServerError().json(format!("Failed to delete cluster: {}", e))
+        }
+    }
+}
+
+
 #[get("/api/get/kubeconfig/{cluster_name}")]
 pub async fn get_kubeconfig(
     req: HttpRequest,
@@ -222,58 +287,4 @@ pub async fn list(
     HttpResponse::Ok()
         .content_type("application/json")
         .json(clusters)
-}
-
-
-#[delete("/api/delete/{cluster_name}")]
-pub async fn delete(
-    cluster_name: web::Path<String>,
-    req: HttpRequest,
-    pool: web::Data<MySqlPool>,
-    config: web::Data<AppConfig>
-) -> HttpResponse {
-    // let cluster_name = query.cluster_id;
-    let cluster_name = cluster_name.into_inner();
-
-    let jwt = jwt::extract_user_id_from_jwt(&req);
-
-    let user_id: String; // = String::from("-1");
-    match jwt {
-        Ok(id) => {
-            user_id = id //Some(id);
-        }
-        Err(e) => {
-            println!("Error: {:?}", e);
-            if config.environment == "prod" {
-                return HttpResponse::Unauthorized().json("Unauthorized")
-            }
-            else {
-                user_id = String::from("1");
-            }
-
-        }
-    };
-
-    // use id to get from postgres
-    // add onto this - return 404 if cluster doesn't exist
-    let cluster_owner: String = sqlx::query_scalar("SELECT user_id FROM clusters WHERE cluster_name = ?")
-        .bind(&cluster_name)
-        .fetch_one(pool.get_ref())
-        .await
-        .unwrap();
-
-    if cluster_owner != user_id {
-        return HttpResponse::Forbidden().json("This cluster is not yours.")
-    }
-
-    // call function to delete cluster
-    // theoretically just do k3k delete <cluster_name>
-
-    sqlx::query("DELETE FROM clusters WHERE cluster_name = ?")
-        .bind(&cluster_name)
-        .execute(pool.get_ref())
-        .await
-        .unwrap();
-
-    HttpResponse::Ok().json("Cluster deleted successfully")
 }
