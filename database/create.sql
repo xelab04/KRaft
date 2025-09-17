@@ -15,6 +15,8 @@ CREATE TABLE clusters (
     cluster_name varchar(255) NOT NULL,
     cluster_endpoint varchar(255) NOT NULL,
     user_id int NOT NULL,
+    created_at datetime DEFAULT CURRENT_TIMESTAMP,
+    promocode varchar(255) DEFAULT NULL,
     PRIMARY KEY (cluster_id),
     FOREIGN KEY (user_id) REFERENCES users(user_id)
 );

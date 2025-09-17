@@ -14,6 +14,7 @@ mod tlssan;
 #[derive(Clone)]
 pub struct AppConfig {
     pub environment: String,
+    pub promocode: Option<String>,
 }
 
 #[actix_rt::main]
@@ -21,8 +22,11 @@ async fn main() -> io::Result<()> {
     env::set_var("RUST_LOG", "actix_web=debug,actix_server=info");
 
     let environment = std::env::var("ENVIRONMENT").unwrap_or_else(|_| "prod".to_string());
+    let promocode: Option<String> = std::env::var("PROMOCODE").ok();
+
     let config = AppConfig {
         environment: environment.clone(),
+        promocode: promocode.clone(),
     };
     env_logger::init();
 

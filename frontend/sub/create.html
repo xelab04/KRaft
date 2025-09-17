@@ -24,7 +24,7 @@
           headers: {
             'Content-Type': 'application/json'
           },
-          body: JSON.stringify({ name, tlssan_array })
+          body: JSON.stringify({ name, tlssan_array, promocode })
         })
         .then(response => response.json())
         .then(data => {
@@ -86,6 +86,9 @@
 
             <label for="tlssan">TLS-SAN (comma-separated)</label><br>
             <input class="text-gray-800" type="text" id="tlssan" name="tlssan">
+
+            <label for="promocode">Promo Code</label><br>
+            <input class="text-gray-800" type="promocode" id="promocode" name="promocode">
 
             <input type="submit" value="Submit">
         </form>
