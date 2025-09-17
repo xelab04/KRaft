@@ -13,7 +13,7 @@ rules:
   # hmmmmm, deleting perms aren't ideal...
 
 - apiGroups: [""]
-  resources: ["nodes"]
+  resources: ["nodes", "services"]
   verbs: ["get","list"]
 
 - apiGroups: ["longhorn.io"]
