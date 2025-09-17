@@ -84,7 +84,7 @@ pub async fn create(
             }
         }
     }
-    server_args.push_str(&format!("--tls-san {}.kraft.alexbissessur.dev ", endpoint_string));
+    server_args.push_str(&format!("--tls-san={}.kraft.alexbissessur.dev ", endpoint_string));
     server_arg_string = format!("--server-args='{}'", server_args);
     println!("{}", server_arg_string);
 
@@ -167,7 +167,7 @@ pub async fn clusterdelete(
         return HttpResponse::NotFound().json("Cluster not found");
     }
 
-    let namespace = format!("--namespace k3k-{}-{}", user_id, raw_cluster_name);
+    let namespace = format!("--namespace=k3k-{}", raw_cluster_name);
 
     Command::new("k3kcli")
         .arg("cluster")
