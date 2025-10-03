@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KRaft</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-black h-screen w-screen flex flex-col items-center justify-center m-0 p-0">
+    <div class=" p-8 rounded-md shadow-lg max-w-2xl w-full mx-4 h-[60vh]">
+        <!-- bg-zinc-800 outline-white-500 outline -->
+        <div class="flex items-center mb-4">
+            <h1 class="text-white font-mono text-3xl">KRaft</h1>
+            <h3 class="text-white font-mono text-sm ml-2 self-end mb-1">by Alex</h3>
+        </div>
+        <div class="text-white font-mono flex flex-col mt-8 pb-4">
+            <a href="#" class="text-2xl underline block">> About</a>
+            <div class="text-xl">
+                How to use
+            </div>
+            <div class="font-bold mt-8">
+                1. Creating a cluster
+            </div>
+            <div>
+                Navigate to the cluster creation page. There, create a cluster with a name and TLS-SAN.
+                The cluster name is, unsurprisingly, required. For those not too knowledgeable about Kubernetes,
+                the TLS-SAN field is if you want to add a custom URL to access your cluster. A default URL will
+                be generated as random-word.kraft.alexbissessur.dev with all the DNS entries needed for you to access
+                your newly made cluster.
+            </div>
+
+            <div class="font-bold mt-4">
+                1.1 Using your own URL
+            </div>
+            <div>
+                This segment is only relevant if you populated the TLS-SAN field with a custom URL. In order to finish
+                configuring your custom entrypoint, you need to go to the cluster details page, and grab the randomly generated URL.
+                Then create a CNAME record for your domain, pointing to mine.
+            </div>
+
+            <div class="font-bold mt-4">
+                1.2 Using your cluster
+            </div>
+            <div>
+                It will take a few minutes for the cluster to be created, initialise, and be ready for use. Tragically I do not have
+                a status field to tell you about what stage the cluster is in. However, after waiting maybe 5 minutes, you can
+                try downloading your kubeconfig file from the cluster management page. This kubeconfig file gives you the credentials
+                and configuration needed to interact with your cluster.
+            </div>
+
+            <div class="font-bold mt-8">
+                2. Getting Kubectl
+            </div>
+            <div>
+                Everything you do on your cluster will involve kubectl, a command line tool which communicates with the kubernetes
+                API server. Kubectl is the only item you need to install locally, and you can refer to the guide <a href="https://kubernetes.io/docs/tasks/tools/" class="underline">here</a>.
+            </div>
+        </div>
+
+        <div class="text-white font-mono flex flex-col mt-8 text-right pb-8">
+            <a href="./2.html" class="text-2xl underline block">Next <</a>
+        </div>
+    </div>
+
+    <!-- 88x31 image at the bottom -->
+    <div class="absolute bottom-4">
+        <img src="assets/88x31.gif" alt="88x31 banner" width="88" height="31" />
+    </div>
+</body>
+</html>

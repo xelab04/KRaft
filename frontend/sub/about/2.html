@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KRaft</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-black h-screen w-screen flex flex-col items-center justify-center m-0 p-0">
+    <div class=" p-8 rounded-md shadow-lg max-w-2xl w-full mx-4 h-[60vh]">
+        <!-- bg-zinc-800 outline-white-500 outline -->
+        <div class="flex items-center mb-4">
+            <h1 class="text-white font-mono text-3xl">KRaft</h1>
+            <h3 class="text-white font-mono text-sm ml-2 self-end mb-1">by Alex</h3>
+        </div>
+        <div class="text-white font-mono flex flex-col mt-8 pb-4">
+            <a href="#" class="text-2xl underline block">> About</a>
+            <div class="text-xl">
+                How Kraft runs
+            </div>
+            <div class="font-bold mt-8">
+                1. K3k
+            </div>
+            <div>
+                Kraft is built on top of K3k, a Rancher project to run Kubernetes clusters inside Kubernetes. The more daring people
+                may call this KinK :3 K3k runs pods on the host cluster with the API server and Kubelets and isolates the different
+                clusters with namespaces, network policies, and more. For Kraft, I am running K3k in shared mode, which uses less
+                resoures at the cost of isolation - it means your guest cluster will inherit access to ingressclasses and storageclasses
+                which are present on the host.
+            </div>
+
+            <div class="font-bold mt-4">
+                2. Longhorn
+            </div>
+            <div>
+                Longhorn is a cloud native block storage solution for Kubernetes, is a Rancher project, also on the CNCF landscape as an
+                incubating project. In the current configuration, Longhorn will create volume replicas on the host nodes, meaning any
+                node could fail and the volume will still work fine. Also, I have both snapshot and backup schedules to Wasabi S3 so,
+                in case I decimate the host cluster by accident, all your data can be recovered. At the end of the day, all of this means
+                that your data is safe and is not at risk of being lost, particularly by hardware failures.
+            </div>
+
+            <div class="font-bold mt-4">
+                3. Ingress Classes
+            </div>
+            <div>
+                I won't tell you what's there at the time of writing, but by the time Kraft becomes ready, there will be both Traefik
+                and Longhorn storage classes available for the guest clusters. You get to choose the ingressclass when you create
+                your ingress resources.
+            </div>
+
+            <div class="font-bold mt-8">
+                4. Hardware
+            </div>
+            <div>
+                Again, not the present-day hardware. But eventually, Kraft will be running on 3 Talos VMs running on Proxmox. Talos has
+                been chosen for security given there's no shell or anything really. Reducing the attack surface makes my life easier
+                and should keep your clusters safer. Proxmox itself will be running on a single HP Proliant DL380 Gen8.
+                Limitations with the setup - no UPS so powercuts will cause issues. I also have a single physical server so, if it fails
+                or needs upgrading, Kraft will be down. And finally, it's running on a 200/50Mbps home connection so please don't
+                expect too much out of it.
+            </div>
+        </div>
+
+        <div class="text-white font-mono flex flex-col mt-8 text-right pb-8">
+            <a href="./3.html" class="text-2xl underline block">Next <</a>
+        </div>
+    </div>
+
+    <!-- 88x31 image at the bottom -->
+    <div class="absolute bottom-4">
+        <img src="assets/88x31.gif" alt="88x31 banner" width="88" height="31" />
+    </div>
+</body>
+</html>
