@@ -6,6 +6,8 @@ use sqlx;
 use sqlx::prelude::FromRow;
 use sqlx::MySqlPool;
 use serde_json::json;
+use k3k_rs;
+use kube::Client;
 
 use std::process::Command;
 
@@ -72,21 +74,22 @@ pub async fn create(
     }
 
     // check cluster cidr
-    let mut server_arg_string = String::new();
-    let mut server_args = String::new();
+    // let mut server_arg_string = String::new();
 
+    let mut validated_tlssan_list = Vec::new();
     if let Some(value) = cluster.tlssan {
         let tlssan_list = Vec::from(value);
         for tlssan in tlssan_list.iter() {
-            server_args.push_str(&format!(" --tls-san {}", tlssan));
+            validated_tlssan_list.push(tlssan.clone());
+
             if !tlssan::validate_tlssan(tlssan.clone()).await.is_ok() {
                 return HttpResponse::BadRequest().json("Invalid CIDR format");
             }
         }
     }
-    server_args.push_str(&format!("--tls-san={}.kraft.alexbissessur.dev ", endpoint_string));
-    server_arg_string = format!("--server-args='{}'", server_args);
-    println!("{}", server_arg_string);
+    // server_args.push_str(&format!("--tls-san={}.kraft.alexbissessur.dev ", endpoint_string));
+    // server_arg_string = format!("--server-args='{}'", server_args);
+    // println!("{}", server_arg_string);
 
     // --server-args "--tls-san test1.alexbissessur.dev --tls-san test2.alexbissessur.dev"
 
@@ -110,13 +113,62 @@ pub async fn create(
     // println!("{}", endpoint_string);
     // println!("{}", server_arg_string);
 
-    Command::new("k3kcli")
-        .arg("cluster")
-        .arg("create")
-        .arg(&server_arg_string)
-        .arg(&cluster_name)
-        .spawn()
-        .expect("k3kcli command failed");
+
+    let client = Client::try_default().await.unwrap();
+
+    let namespace = format!("k3k-{}", cluster_name);
+
+    let cluster_schema = k3k_rs::cluster::Cluster {
+        metadata: kube::core::ObjectMeta {
+            name: Some(cluster_name.clone()),
+            namespace: Some(namespace.clone()),
+            ..Default::default()
+        },
+        spec: k3k_rs::cluster::ClusterSpec {
+            persistence: Some(k3k_rs::cluster::PersistenceSpec {
+                r#type: Some("dynamic".to_string()),
+                storageClassName: None,
+                storageRequestSize: Some("2G".to_string()),
+            }),
+            tlsSANs: Some(validated_tlssan_list),
+            expose: Some(k3k_rs::cluster::ExposeSpec {
+                LoadBalancer: Some(k3k_rs::cluster::ExposeLoadBalancer {
+                    etcd_port: Some(2379),
+                    server_port: Some(443),
+                }),
+                NodePort: None,
+                Ingress: None,
+            }),
+            sync: Some(k3k_rs::cluster::SyncSpec{
+                ingresses: Some(k3k_rs::cluster::SyncResourceSpec {
+                    enabled: true,
+                    selector: None,
+                }),
+                ..Default::default()
+            }),
+            ..Default::default()
+        },
+        status: None,
+    };
+
+    let response = k3k_rs::cluster::create(&client, &namespace, &cluster_schema).await;
+
+    match response {
+        Err(e) => {println!("Error creating cluster {}: {}", cluster_schema.metadata.name.unwrap(), e); return HttpResponse::Ok().finish();}
+
+        Ok(response) => {
+            println!("Cluster created successfully");
+        }
+    }
+
+
+    // Command::new("k3kcli")
+    //     .arg("cluster")
+    //     .arg("create")
+    //     .arg(&server_arg_string)
+    //     .arg(&cluster_name)
+    //     .spawn()
+    //     .expect("k3kcli command failed");
 
     sqlx::query("INSERT INTO clusters (cluster_name, user_id, cluster_endpoint) VALUES (?, ?, ?)")
         .bind(&cluster_name)
@@ -169,13 +221,8 @@ pub async fn clusterdelete(
 
     let namespace = format!("--namespace=k3k-{}", raw_cluster_name);
 
-    Command::new("k3kcli")
-        .arg("cluster")
-        .arg("delete")
-        .arg(&namespace)
-        .arg(&raw_cluster_name)
-        .spawn()
-        .expect("k3kcli command failed");
+    let client = Client::try_default().await.unwrap();
+    k3k_rs::cluster::delete(&client, namespace.as_str(), raw_cluster_name.as_str()).await;
 
     let r = sqlx::query("DELETE FROM clusters WHERE user_id = ? AND cluster_name = ?")
         .bind(&user_id)
