@@ -7,6 +7,10 @@
     <script src="https://cdn.tailwindcss.com"></script>
 
     <script>
+      function sleep(ms) {
+          return new Promise(resolve => setTimeout(resolve, ms));
+      }
+
       function submitForm() {
         const name = document.getElementById('cluster_name').value;
         let tlssan = document.getElementById('tlssan').value;
@@ -28,13 +32,13 @@
         })
         .then(response => response.json())
         .then(data => {
+          console.log(data);
           if (data.status == "error") {
             document.getElementById('error-message').textContent = data.message;
           } else {
             document.getElementById('error-message').textContent = 'Success!';
-            return true;
-            // redirect to view all clusters
-            // window.location.href = `/view`;
+            sleep(2000);
+            window.location.href = `/`;
           }
         })
         .catch(error => {
