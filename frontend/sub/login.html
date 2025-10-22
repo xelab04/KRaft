@@ -27,7 +27,9 @@
             document.getElementById('error-message').textContent = data.error;
           } else {
             document.getElementById('error-message').textContent = 'Success!';
-            return false;
+            delay(2000).then(() => {
+              window.location.href = `/`;
+            });
             // redirect to home
             // window.location.href = `/`;
           }
