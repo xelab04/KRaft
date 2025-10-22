@@ -7,6 +7,10 @@
     <script src="https://cdn.tailwindcss.com"></script>
 
     <script>
+      function sleep(ms) {
+          return new Promise(resolve => setTimeout(resolve, ms));
+      }
+
       function submitForm() {
         // const username = document.getElementById('username').value;
         const email = document.getElementById('email').value;
@@ -27,9 +31,9 @@
             document.getElementById('error-message').textContent = data.error;
           } else {
             document.getElementById('error-message').textContent = 'Success!';
-            delay(2000).then(() => {
-              window.location.href = `/`;
-            });
+
+            sleep(2000);
+            window.location.href = `/`;
             // redirect to home
             // window.location.href = `/`;
           }

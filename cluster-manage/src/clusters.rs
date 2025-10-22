@@ -2,19 +2,23 @@ use actix_web::web;
 use actix_web::web::{Json, Path};
 use actix_web::{HttpRequest, HttpResponse};
 use serde::{Deserialize, Serialize};
+use serde_json::json;
+
 use sqlx;
 use sqlx::prelude::FromRow;
 use sqlx::MySqlPool;
-use serde_json::json;
 
-use std::process::Command;
+use k3k_rs;
+use kube::Client;
+
+use random_word::Lang;
+use tokio::fs;
 
 use crate::jwt;
 use crate::validatename;
 use crate::AppConfig;
 use crate::tlssan;
 
-use random_word::Lang;
 
 #[derive(Serialize, Deserialize, FromRow)]
 pub struct Cluster {
@@ -27,7 +31,7 @@ pub struct Cluster {
 pub struct ClusterCreateForm {
     id: Option<i64>,
     name: String,
-    tlssan: Option<Vec<String>>
+    tlssan_array: Option<Vec<String>>
 }
 
 #[post("/api/create/clusters")]
@@ -72,21 +76,30 @@ pub async fn create(
     }
 
     // check cluster cidr
-    let mut server_arg_string = String::new();
-    let mut server_args = String::new();
+    // let mut server_arg_string = String::new();
 
-    if let Some(value) = cluster.tlssan {
+    let mut validated_tlssan_list = Vec::new();
+    if let Some(value) = cluster.tlssan_array {
         let tlssan_list = Vec::from(value);
         for tlssan in tlssan_list.iter() {
-            server_args.push_str(&format!(" --tls-san {}", tlssan));
+            validated_tlssan_list.push(tlssan.clone());
+
             if !tlssan::validate_tlssan(tlssan.clone()).await.is_ok() {
-                return HttpResponse::BadRequest().json("Invalid CIDR format");
+                return HttpResponse::BadRequest().json("Invalid TLS-SAN format");
             }
         }
     }
-    server_args.push_str(&format!("--tls-san={}.kraft.alexbissessur.dev ", endpoint_string));
-    server_arg_string = format!("--server-args='{}'", server_args);
-    println!("{}", server_arg_string);
+
+    validated_tlssan_list.push(format!("{}.kraft.alexbissessur.dev ", endpoint_string));
+
+    println!("Length of tlssan list: {}", validated_tlssan_list.len());
+
+    // if validated_tlssan_list.len() == 0 {
+    //     validated_tlssan_list = None;
+    // }
+    // server_args.push_str(&format!("--tls-san={}.kraft.alexbissessur.dev ", endpoint_string));
+    // server_arg_string = format!("--server-args='{}'", server_args);
+    // println!("{}", server_arg_string);
 
     // --server-args "--tls-san test1.alexbissessur.dev --tls-san test2.alexbissessur.dev"
 
@@ -110,13 +123,66 @@ pub async fn create(
     // println!("{}", endpoint_string);
     // println!("{}", server_arg_string);
 
-    Command::new("k3kcli")
-        .arg("cluster")
-        .arg("create")
-        .arg(&server_arg_string)
-        .arg(&cluster_name)
-        .spawn()
-        .expect("k3kcli command failed");
+
+    for tlssan in &validated_tlssan_list {
+        println!("TLSSAN: {}", tlssan);
+    }
+
+    let client = Client::try_default().await.unwrap();
+
+    let namespace = format!("k3k-{}", cluster_name);
+
+    let cluster_schema = k3k_rs::cluster::Cluster {
+        metadata: kube::core::ObjectMeta {
+            name: Some(cluster_name.clone()),
+            namespace: Some(namespace.clone()),
+            ..Default::default()
+        },
+        spec: k3k_rs::cluster::ClusterSpec {
+            persistence: Some(k3k_rs::cluster::PersistenceSpec {
+                r#type: Some("dynamic".to_string()),
+                storageClassName: None,
+                storageRequestSize: Some("2G".to_string()),
+            }),
+            tlsSANs: Some(validated_tlssan_list),
+            expose: Some(k3k_rs::cluster::ExposeSpec {
+                LoadBalancer: Some(k3k_rs::cluster::ExposeLoadBalancer {
+                    etcd_port: Some(2379),
+                    server_port: Some(443),
+                }),
+                NodePort: None,
+                Ingress: None,
+            }),
+            sync: Some(k3k_rs::cluster::SyncSpec{
+                ingresses: Some(k3k_rs::cluster::SyncResourceSpec {
+                    enabled: true,
+                    selector: None,
+                }),
+                ..Default::default()
+            }),
+            ..Default::default()
+        },
+        status: None,
+    };
+
+    let response = k3k_rs::cluster::create(&client, &namespace, &cluster_schema).await;
+
+    match response {
+        Err(e) => {println!("Error creating cluster {}: {}", cluster_schema.metadata.name.unwrap(), e); return HttpResponse::BadGateway().json(e.to_string())}
+
+        Ok(response) => {
+            println!("Cluster created successfully");
+        }
+    }
+
+
+    // Command::new("k3kcli")
+    //     .arg("cluster")
+    //     .arg("create")
+    //     .arg(&server_arg_string)
+    //     .arg(&cluster_name)
+    //     .spawn()
+    //     .expect("k3kcli command failed");
 
     sqlx::query("INSERT INTO clusters (cluster_name, user_id, cluster_endpoint) VALUES (?, ?, ?)")
         .bind(&cluster_name)
@@ -169,13 +235,8 @@ pub async fn clusterdelete(
 
     let namespace = format!("--namespace=k3k-{}", raw_cluster_name);
 
-    Command::new("k3kcli")
-        .arg("cluster")
-        .arg("delete")
-        .arg(&namespace)
-        .arg(&raw_cluster_name)
-        .spawn()
-        .expect("k3kcli command failed");
+    let client = Client::try_default().await.unwrap();
+    k3k_rs::cluster::delete(&client, namespace.as_str(), raw_cluster_name.as_str()).await;
 
     let r = sqlx::query("DELETE FROM clusters WHERE user_id = ? AND cluster_name = ?")
         .bind(&user_id)
@@ -234,15 +295,12 @@ pub async fn get_kubeconfig(
         return HttpResponse::NotFound().json("Cluster not found");
     }
 
-    Command::new("k3kcli")
-        .arg("kubeconfig")
-        .arg("generate")
-        .arg(format!("--namespace=k3k-{}", raw_cluster_name))
-        .arg(format!("--name={}", raw_cluster_name))
-        .output()
-        .expect("k3kcli command failed");
+    let client = Client::try_default().await.unwrap();
+    let kconf = k3k_rs::kubeconfig::get(&client, raw_cluster_name.as_str(), None).await.unwrap();
 
-    let filename = format!("/k3k-{}-{}-kubeconfig.yaml", raw_cluster_name, raw_cluster_name);
+    let filename = "/kubeconfig.yaml";
+
+    fs::write(&filename, kconf).await.unwrap();
 
     match std::fs::read_to_string(&filename) {
         Ok(file_contents) => {
@@ -256,13 +314,6 @@ pub async fn get_kubeconfig(
             return HttpResponse::InternalServerError().json("Failed to read kubeconfig file");
         }
     }
-
-    // return HttpResponse::Ok()
-    //     .content_type("application/octet-stream")
-    //     .append_header(("Content-Disposition", format!("attachment; filename=\"{}\"", filename)))
-    //     .body("success".to_string());
-
-    // return HttpResponse::Ok().json("Kubeconfig generated successfully");
 }
 
 #[get("/api/get/clusters")]
