@@ -27,7 +27,7 @@ The application is made of a bunch of microservices, each taking care of some pa
 - **Database** - stores user details and the list of clusters.
 
 ### Incoming Features:
-- **Cloudflare Manage** - creates Cloudflare DNS records for the clusters running on the host.
+- **DNS/Ingress Management** - creates ingress routes for the clusters running on the host.
 - **Resource Manage** - allows me to, maybe in the future, bill users for cluster usage.
 - **Payment Processing?** - to make my friends contribute to my electricity bill.
 
