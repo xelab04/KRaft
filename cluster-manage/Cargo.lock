@@ -479,7 +479,9 @@ dependencies = [
  "schemars",
  "serde",
  "serde_json",
+ "serde_yaml",
  "sqlx",
+ "tokio",
 ]
 
 [[package]]

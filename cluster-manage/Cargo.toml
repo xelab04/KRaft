@@ -17,3 +17,5 @@ k3k-rs = { git = "https://github.com/xelab04/k3k-rs" }
 kube = { version = "2.0.1", features = ["runtime", "derive"] }
 k8s-openapi = { version = "0.26.0", features = ["latest", "schemars"] }
 schemars = { version = "1" }
+serde_yaml = "0.9.34"
+tokio = "1.48.0"
