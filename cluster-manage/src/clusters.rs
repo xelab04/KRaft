@@ -242,12 +242,25 @@ pub async fn get_kubeconfig(
         .output()
         .expect("k3kcli command failed");
 
-    let filename = format!("k3k-{}-{}.yaml", raw_cluster_name, raw_cluster_name);
+    let filename = format!("/k3k-{}-{}-kubeconfig.yaml", raw_cluster_name, raw_cluster_name);
 
-    return HttpResponse::Ok()
-        .content_type("application/octet-stream")
-        .append_header(("Content-Disposition", format!("attachment; filename=\"{}\"", filename)))
-        .body("success".to_string());
+    match std::fs::read_to_string(&filename) {
+        Ok(file_contents) => {
+            return HttpResponse::Ok()
+                .content_type("application/octet-stream")
+                .append_header(("Content-Disposition", format!("attachment; filename=\"{}\"", raw_cluster_name)))
+                .body(file_contents);
+        },
+        Err(e) => {
+            println!("Error reading kubeconfig file: {}", e);
+            return HttpResponse::InternalServerError().json("Failed to read kubeconfig file");
+        }
+    }
+
+    // return HttpResponse::Ok()
+    //     .content_type("application/octet-stream")
+    //     .append_header(("Content-Disposition", format!("attachment; filename=\"{}\"", filename)))
+    //     .body("success".to_string());
 
     // return HttpResponse::Ok().json("Kubeconfig generated successfully");
 }
