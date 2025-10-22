@@ -2,21 +2,24 @@ use actix_web::web;
 use actix_web::web::{Json, Path};
 use actix_web::{HttpRequest, HttpResponse};
 use serde::{Deserialize, Serialize};
+use serde_json::json;
+use serde_yaml;
+
 use sqlx;
 use sqlx::prelude::FromRow;
 use sqlx::MySqlPool;
-use serde_json::json;
+
 use k3k_rs;
 use kube::Client;
 
-use std::process::Command;
+use random_word::Lang;
+use tokio::fs;
 
 use crate::jwt;
 use crate::validatename;
 use crate::AppConfig;
 use crate::tlssan;
 
-use random_word::Lang;
 
 #[derive(Serialize, Deserialize, FromRow)]
 pub struct Cluster {
@@ -281,15 +284,25 @@ pub async fn get_kubeconfig(
         return HttpResponse::NotFound().json("Cluster not found");
     }
 
-    Command::new("k3kcli")
-        .arg("kubeconfig")
-        .arg("generate")
-        .arg(format!("--namespace=k3k-{}", raw_cluster_name))
-        .arg(format!("--name={}", raw_cluster_name))
-        .output()
-        .expect("k3kcli command failed");
+    let client = Client::try_default().await.unwrap();
 
-    let filename = format!("/k3k-{}-{}-kubeconfig.yaml", raw_cluster_name, raw_cluster_name);
+    let kconf = k3k_rs::kubeconfig::get(&client, raw_cluster_name.as_str(), None).await.unwrap();
+
+    let yaml = serde_yaml::to_string(&kconf).unwrap();
+
+    let filename = "/kubeconfig.yaml";
+
+    fs::write(&filename, yaml).await.unwrap();
+
+    // Command::new("k3kcli")
+    //     .arg("kubeconfig")
+    //     .arg("generate")
+    //     .arg(format!("--namespace=k3k-{}", raw_cluster_name))
+    //     .arg(format!("--name={}", raw_cluster_name))
+    //     .output()
+    //     .expect("k3kcli command failed");
+
+    // let filename = format!("/k3k-{}-{}-kubeconfig.yaml", raw_cluster_name, raw_cluster_name);
 
     match std::fs::read_to_string(&filename) {
         Ok(file_contents) => {
