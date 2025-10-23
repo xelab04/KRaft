@@ -1,16 +1,9 @@
-use actix_web::mime::JSON;
-use argon2::{Argon2, PasswordHasher, PasswordVerifier, password_hash::Salt};
-use argon2::{password_hash::{PasswordHash, SaltString, Error}};
-use actix_web::{web, HttpRequest, HttpResponse, http::header, cookie::Cookie, cookie::SameSite};
-use rand;
-use serde::{Serialize, Deserialize};
+use actix_web::{web, HttpRequest, HttpResponse};
 use serde_json::json;
 use sqlx::MySqlPool;
 use sqlx::FromRow;
 use serde_json;
 use log::{info};
-
-use jsonwebtoken::{decode, DecodingKey, Validation, Algorithm};
 
 use crate::jwt;
 
@@ -43,9 +36,7 @@ pub async fn details(
         }
         Err(e) => {
             println!("Error: {:?}", e);
-            if config.environment == "prod" {
-                return HttpResponse::Unauthorized().json(json!({"status": "error", "message": "Unauthorized"}));
-            }
+            return HttpResponse::Unauthorized().json(json!({"status": "error", "message": "Unauthorized"}));
         }
     };
 
@@ -54,7 +45,7 @@ pub async fn details(
     // get user details from database
     let user = sqlx::query_as::<_, User>("SELECT user_id, username, email, password as user_password FROM users WHERE user_id = (?)")
         .bind(user_id)
-        .fetch_one(&pool.as_ref())
+        .fetch_one(pool.as_ref())
         .await;
 
     // return user if valid
