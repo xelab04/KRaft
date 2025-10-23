@@ -48,7 +48,7 @@ pub struct Claims {
 pub async fn password(query: web::Query<PasswordParams>) -> HttpResponse {
 
     let password = &query.user_password;
-    let hash = hash_password(password);
+    let hash = hash_password(password.to_string());
 
     return HttpResponse::Ok().json(json!(
         {
@@ -60,7 +60,7 @@ pub async fn password(query: web::Query<PasswordParams>) -> HttpResponse {
 
 fn check_passwords_match(clear_pwd:String, hashed: String) -> bool {
 
-    let parsed_hash = match PasswordHash::new(hashed) {
+    let parsed_hash = match PasswordHash::new(hashed.as_str()) {
         Ok(hash) => hash,
         Err(e) => {
             return false;
@@ -100,26 +100,24 @@ pub async fn changepwd(
         }
         Err(e) => {
             println!("Error: {:?}", e);
-            if config.environment == "prod" {
-                return HttpResponse::Unauthorized().json(json!({"status": "error", "message": "Unauthorized"}));
-            }
+            return HttpResponse::Unauthorized().json(json!({"status": "error", "message": "Unauthorized"}));
         }
     };
 
     let user_password:String = sqlx::query_scalar("SELECT password FROM users WHERE user_id = (?)")
         .bind(user_id)
-        .fetch_one()
+        .fetch_one(pool.get_ref())
         .await
-        .unwrap()
+        .unwrap();
 
-    if check_passwords_match(clear_pwd=payload.current_password, hashed=user_password) {
+    if check_passwords_match(payload.current_password, user_password) {
 
         let new_hashed_password = hash_password(payload.new_password);
 
         sqlx::query("UPDATE users SET password = (?) WHERE user_id = (?)")
             .bind(new_hashed_password)
             .bind(user_id)
-            .execute()
+            .execute(pool.get_ref())
             .await
             .unwrap();
 
