@@ -26,19 +26,25 @@
           headers: {
             'Content-Type': 'application/json'
           },
-          body: { current_password: password, new_password: new_password }
+          body: JSON.stringify({ current_password: password, new_password: new_password })
         })
-        .then(response => response.json())
-        .then(data => {
-          if (data.status == "error") {
-            document.getElementById('error-message').textContent = data.message;
-          } else {
-            alert('Password changed successfully');
+        .then(async response => {
+          let data = {}
+          try {
+            data = await response.json();
+            document.getElementById('error-message').textContent = 'Password changed successfully';
           }
+          catch (error) {
+            console.log("error");
+            data = { message: await response.text() };
+          }
+
+          if (!response.ok) {
+            console.log(data);
+            document.getElementById('error-message').textContent = data.message
+          }
+
         })
-        .catch(error => {
-          document.getElementById('error-message').textContent = 'An error occurred somewhere between here and the server.';
-        });
       }
 
 
