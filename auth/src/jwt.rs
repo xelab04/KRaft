@@ -1,5 +1,7 @@
 use jsonwebtoken::{encode, Header, EncodingKey, errors::Error as JwtError};
-use jsonwebtoken::{decode, DecodingKey, Validation};
+use jsonwebtoken::{decode, DecodingKey, Validation, Algorithm, errors::ErrorKind};
+use serde::{Deserialize, Serialize};
+use actix_web::HttpRequest;
 use chrono::{Utc, Duration};
 use std::env;
 
@@ -9,6 +11,13 @@ struct JWT {
     roles: String,
     exp: usize,
     iat: usize
+}
+
+#[derive(Debug, Deserialize, Serialize)]
+pub struct Claims {
+    pub sub: String,
+    pub exp: usize,
+    pub iat: usize,
 }
 
 pub fn create_jwt(user_id: String) -> String {

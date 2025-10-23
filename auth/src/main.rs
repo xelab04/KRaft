@@ -30,6 +30,7 @@ async fn main() -> io::Result<()> {
             .service(auth::register)
             .service(auth::password)
             .service(auth::validate_jwt)
+            .service(auth::changepwd)
     })
         .bind("0.0.0.0:5000")?
         .run()
