@@ -64,7 +64,7 @@
           error: null,
 
           async userFetch() {
-            fetch('/user/details')
+            fetch('/auth/user/details')
               .then(response => response.json())
               .then(data => {
                 console.log("User Data:", data);
@@ -76,8 +76,8 @@
                 this.error = error.message;
 
                 this.user = {
-                  "username":"alex",
-                  "email":"alexbissessur@gmail.com"
+                  "username":"dummyuser",
+                  "email":"dummy@user.com"
                 };
 
                 console.log(this.user);
