@@ -60,7 +60,7 @@ pub async fn password(query: web::Query<PasswordParams>) -> HttpResponse {
 
 fn check_passwords_match(clear_pwd:String, hashed: String) -> bool {
 
-    let parsed_hash = match PasswordHash::new(hashed.as_str()) {
+    let parsed_hash = match PasswordHash::new(&hashed) {
         Ok(hash) => hash,
         Err(e) => {
             return false;
@@ -228,12 +228,12 @@ pub async fn register(pool: web::Data<MySqlPool>, payload: web::Json<User>) -> H
 
 
     // alex you idiot, you forgot to hash the password TwT
-    let password_hash = hash_password(user_password).to_string();
+    let password_hash = hash_password(user_password.to_string());
 
     let r = sqlx::query("INSERT INTO users (username, email, password) VALUES (?, ?, ?)")
         .bind(user)
         .bind(email)
-        .bind(password_hash.to_string())
+        .bind(password_hash)
         .execute(pool.get_ref())
         .await;
 
