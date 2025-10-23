@@ -20,7 +20,7 @@ struct User {
 }
 
 
-#[actix_web::get("/user/details")]
+#[actix_web::get("/auth/user/details")]
 pub async fn details(
     req: HttpRequest,
     pool: web::Data<MySqlPool>,
