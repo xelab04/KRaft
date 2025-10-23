@@ -57,7 +57,6 @@ pub async fn password(query: web::Query<PasswordParams>) -> HttpResponse {
     ))
 }
 
-
 fn check_passwords_match(clear_pwd:&String, hashed: &String) -> bool {
 
     let parsed_hash = match PasswordHash::new(hashed) {

@@ -7,6 +7,41 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/alpinejs" defer></script>
     <script>
+      function resetPassword(event) {
+        event.preventDefault();
+
+        const password = document.getElementById('password').value;
+        const new_password = document.getElementById('new_password').value;
+        const confirm_password = document.getElementById('confirm_password').value;
+
+        console.log({password, new_password, confirm_password});
+
+        if (new_password != confirm_password) {
+          document.getElementById('error-message').textContent = "Passwords do not match";
+          return false;
+        }
+
+        fetch ('/auth/changepassword', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: { current_password: password, new_password: new_password }
+        })
+        .then(response => response.json())
+        .then(data => {
+          if (data.status == "error") {
+            document.getElementById('error-message').textContent = data.message;
+          } else {
+            alert('Password changed successfully');
+          }
+        })
+        .catch(error => {
+          document.getElementById('error-message').textContent = 'An error occurred somewhere between here and the server.';
+        });
+      }
+
+
       function userCheck() {
         fetch('/auth/validate-jwt', {
           method: 'GET',
@@ -47,6 +82,30 @@
 
         <div class="text-white font-mono mt-2 text-xl">
           username: <span class="text-lg" x-text="user.username"></span>
+        </div>
+
+        <div class="text-white font-mono flex flex-col mt-8">
+            <a href="#" class="text-2xl underline block">> Password</a>
+        </div>
+
+        <form class="text-white text-xl font-mono flex flex-col mt-8" onsubmit="return resetPassword(event);">
+            <label for="password">Password :</label><br>
+            <input class="text-gray-800" type="password" id="password" name="password" required><br>
+
+            <label for="new_password">New Password :</label><br>
+            <input class="text-gray-800" type="password" id="new_password" name="new_password" required>
+
+            <label for="confirm_password">Confirm Password :</label><br>
+            <input class="text-gray-800" type="password" id="confirm_password" name="confirm_password" required>
+
+            <input type="submit" value="Submit">
+        </form>
+
+        <div class="text-2xl bg-red-300 font-mono mt-8 text-center" id="error-message">
+        </div>
+
+        <div class="text-white font-mono flex flex-col mt-8">
+            <a href="#" class="text-2xl underline block">> Delete Account</a>
         </div>
 
     </div>
@@ -91,9 +150,6 @@
 
         }
       }
-
-
-
     </script>
 
 </body>
