@@ -25,23 +25,54 @@
           },
           body: JSON.stringify({ email, password })
         })
-        .then(response => response.json())
-        .then(data => {
-          if (data.error) {
-            document.getElementById('error-message').textContent = data.error;
-          } else {
-            document.getElementById('error-message').textContent = 'Success!';
+        .then(async response => {
+          let data = {}
+          try {
+            data = await response.clone().json();
 
-            sleep(2000);
-            window.location.href = `/`;
-            // redirect to home
-            // window.location.href = `/`;
+            if (!data.error){
+              document.getElementById('error-message').textContent = 'Success!';
+              sleep(2000);
+              window.location.href = `/`;
+            }
+          }
+          catch (error) {
+            console.log("error");
+            data = { message: await response.text() };
+          }
+
+          if (!response.ok) {
+            console.log(data);
+            document.getElementById('error-message').textContent = data.message
           }
         })
-        .catch(error => {
-          document.getElementById('error-message').textContent = 'An error occurred somewhere between here and the server.';
-          console.error('Error:', error);
-        });
+
+
+
+        // fetch('https://kraft.alexbissessur.dev/auth/login', {
+        //   method: 'POST',
+        //   headers: {
+        //     'Content-Type': 'application/json'
+        //   },
+        //   body: JSON.stringify({ email, password })
+        // })
+        // .then(response => response.json())
+        // .then(data => {
+        //   if (data.error) {
+        //     document.getElementById('error-message').textContent = data.error;
+        //   } else {
+        //     document.getElementById('error-message').textContent = 'Success!';
+
+        //     sleep(2000);
+        //     window.location.href = `/`;
+        //     // redirect to home
+        //     // window.location.href = `/`;
+        //   }
+        // })
+        // .catch(error => {
+        //   document.getElementById('error-message').textContent = 'An error occurred somewhere between here and the server.';
+        //   console.error('Error:', error);
+        // });
         return false;
 
       }

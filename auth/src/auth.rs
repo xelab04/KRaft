@@ -186,7 +186,7 @@ pub async fn login(pool: web::Data<MySqlPool>, payload: web::Json<User>) -> Http
                 .json(json!({ "status": "success" }))
 
         }
-        Err(_) => {return HttpResponse::Forbidden().finish();}
+        Err(_) => {return HttpResponse::Forbidden().json(json!({ "status": "success", "message": "Incorrect email/password" }));}
     }
 
 }
