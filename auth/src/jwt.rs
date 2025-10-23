@@ -1,5 +1,7 @@
 use jsonwebtoken::{encode, Header, EncodingKey, errors::Error as JwtError};
-use jsonwebtoken::{decode, DecodingKey, Validation};
+use jsonwebtoken::{decode, DecodingKey, Validation, Algorithm, errors::ErrorKind};
+use serde::{Deserialize, Serialize};
+use actix_web::HttpRequest;
 use chrono::{Utc, Duration};
 use std::env;
 
@@ -9,6 +11,13 @@ struct JWT {
     roles: String,
     exp: usize,
     iat: usize
+}
+
+#[derive(Debug, Deserialize, Serialize)]
+pub struct Claims {
+    pub sub: String,
+    pub exp: usize,
+    pub iat: usize,
 }
 
 pub fn create_jwt(user_id: String) -> String {
@@ -56,4 +65,32 @@ pub fn validate_jwt(jwt: &String) -> bool {
         Ok(_) => {return true;}
         Err(_) => {return false;}
     }
+}
+
+pub fn extract_user_id_from_jwt(req: &HttpRequest) -> Result<String, JwtError> {
+    let JWT_SECRET = std::env::var("JWT_SECRET")
+            .expect("JWT_SECRET must be set in environment variables");
+
+    let auth_header = req
+        .headers()
+        .get("Authorization")
+        .and_then(|h| h.to_str().ok())
+        .unwrap_or("");
+
+    let cookie_token = req
+        .cookie("auth_token")
+        .map(|cookie| cookie.value().to_string())
+        .unwrap_or(String::from(""));
+
+    if cookie_token.is_empty() {
+        return Err(JwtError::from(ErrorKind::InvalidToken));
+    }
+
+    let token_data = decode::<Claims>(
+        &cookie_token,
+        &DecodingKey::from_secret(JWT_SECRET.as_bytes()),
+        &Validation::new(Algorithm::HS256),
+    )?;
+
+    Ok(token_data.claims.sub)
 }
