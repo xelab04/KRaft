@@ -26,6 +26,12 @@ struct User {
     betacode: Option<String>
 }
 
+#[derive(serde::Serialize, serde::Deserialize, Debug, FromRow, Clone)]
+struct PasswordChange {
+    current_password: String,
+    new_password: String
+}
+
 #[derive(Deserialize)]
 struct PasswordParams{
     user_password: String
@@ -42,18 +48,86 @@ pub struct Claims {
 pub async fn password(query: web::Query<PasswordParams>) -> HttpResponse {
 
     let password = &query.user_password;
+    let hash = hash_password(password);
 
+    return HttpResponse::Ok().json(json!(
+        {
+            "password": hash
+        }
+    ))
+}
+
+
+fn check_passwords_match(clear_pwd:String, hashed: String) -> bool {
+
+    let parsed_hash = match PasswordHash::new(hashed) {
+        Ok(hash) => hash,
+        Err(e) => {
+            return false;
+        }
+    };
+
+    match Argon2::default().verify_password(clear_pwd.as_bytes(), &parsed_hash) {
+        Ok(_) => { return true; }
+        Err(_) => { return false; }
+    }
+}
+
+fn hash_password(clear_pwd: String) -> String {
     let salt_str = &SaltString::generate(&mut rand::rngs::OsRng);
     let salt: Salt = salt_str.try_into().unwrap();
 
     let argon2 = Argon2::default();
-    let hash = argon2.hash_password(password.as_bytes(), salt).unwrap();
+    let password_hash = argon2.hash_password(clear_pwd.as_bytes(), salt).unwrap();
 
-    return HttpResponse::Ok().json(json!(
-        {
-            "password": hash.to_string()
+    return password_hash.to_string();
+}
+
+#[actix_web::post("/auth/changepassword")]
+pub async fn changepwd(
+    pool: web::Data<MySqlPool>,
+    payload: web::Json<PasswordChange>,
+    req: HttpRequest,
+) -> HttpResponse {
+
+    // get user id from request
+    let jwt = jwt::extract_user_id_from_jwt(&req);
+
+    let mut user_id: String = String::from("0");
+    match jwt {
+        Ok(id) => {
+            user_id = Some(id).unwrap();
         }
-    ))
+        Err(e) => {
+            println!("Error: {:?}", e);
+            if config.environment == "prod" {
+                return HttpResponse::Unauthorized().json(json!({"status": "error", "message": "Unauthorized"}));
+            }
+        }
+    };
+
+    let user_password:String = sqlx::query_scalar("SELECT password FROM users WHERE user_id = (?)")
+        .bind(user_id)
+        .fetch_one()
+        .await
+        .unwrap()
+
+    if check_passwords_match(clear_pwd=payload.current_password, hashed=user_password) {
+
+        let new_hashed_password = hash_password(payload.new_password);
+
+        sqlx::query("UPDATE users SET password = (?) WHERE user_id = (?)")
+            .bind(new_hashed_password)
+            .bind(user_id)
+            .execute()
+            .await
+            .unwrap();
+
+        HttpResponse::Ok()
+            .json(json!({ "status": "success" }))
+    } else {
+        return HttpResponse::Forbidden().json(json!({"message": "Invalid password"}));
+    }
 
 }
 
@@ -156,12 +230,7 @@ pub async fn register(pool: web::Data<MySqlPool>, payload: web::Json<User>) -> H
 
 
     // alex you idiot, you forgot to hash the password TwT
-
-    let salt_str = &SaltString::generate(&mut rand::rngs::OsRng);
-    let salt: Salt = salt_str.try_into().unwrap();
-
-    let argon2 = Argon2::default();
-    let password_hash = argon2.hash_password(user_password.as_bytes(), salt).unwrap();
+    let password_hash = hash_password(user_password).to_string();
 
     let r = sqlx::query("INSERT INTO users (username, email, password) VALUES (?, ?, ?)")
         .bind(user)
