@@ -9,6 +9,7 @@ use actix_web::{middleware, web, App, HttpServer};
 mod auth;
 mod db_connect;
 mod jwt;
+mod user;
 
 #[actix_rt::main]
 async fn main() -> io::Result<()> {
@@ -31,6 +32,7 @@ async fn main() -> io::Result<()> {
             .service(auth::password)
             .service(auth::validate_jwt)
             .service(auth::changepwd)
+            .service(user::details)
     })
         .bind("0.0.0.0:5000")?
         .run()
