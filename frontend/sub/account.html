@@ -47,6 +47,10 @@
         })
       }
 
+      function deleteAccount() {
+        document.getElementById('delete-message').textContent = 'This feature is not implemented yet.';
+      }
+
 
       function userCheck() {
         fetch('/auth/validate-jwt', {
@@ -112,6 +116,12 @@
 
         <div class="text-white font-mono flex flex-col mt-8">
             <a href="#" class="text-2xl underline block">> Delete Account</a>
+            <div class="text-lg bg-red-500 text-center">WARNING: This deletes all your clusters, all your data, and your entire account. There is no turning back.</div>
+
+            <button onclick="deleteAccount()" class="hover:bg-red-600 mt-4">Delete</button>
+
+            <div class="text-2xl bg-red-400 font-mono mt-8 text-center" id="delete-message">
+            </div>
         </div>
 
     </div>
