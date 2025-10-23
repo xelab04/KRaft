@@ -48,7 +48,7 @@ pub struct Claims {
 pub async fn password(query: web::Query<PasswordParams>) -> HttpResponse {
 
     let password = &query.user_password;
-    let hash = hash_password(password.to_string());
+    let hash = hash_password(password);
 
     return HttpResponse::Ok().json(json!(
         {
@@ -58,9 +58,9 @@ pub async fn password(query: web::Query<PasswordParams>) -> HttpResponse {
 }
 
 
-fn check_passwords_match(clear_pwd:String, hashed: String) -> bool {
+fn check_passwords_match(clear_pwd:&String, hashed: &String) -> bool {
 
-    let parsed_hash = match PasswordHash::new(hashed.as_str()) {
+    let parsed_hash = match PasswordHash::new(hashed) {
         Ok(hash) => hash,
         Err(e) => {
             return false;
@@ -73,7 +73,7 @@ fn check_passwords_match(clear_pwd:String, hashed: String) -> bool {
     }
 }
 
-fn hash_password(clear_pwd: String) -> String {
+fn hash_password(clear_pwd: &String) -> String {
     let salt_str = &SaltString::generate(&mut rand::rngs::OsRng);
     let salt: Salt = salt_str.try_into().unwrap();
 
@@ -105,18 +105,18 @@ pub async fn changepwd(
     };
 
     let user_password:String = sqlx::query_scalar("SELECT password FROM users WHERE user_id = (?)")
-        .bind(user_id)
+        .bind(&user_id)
         .fetch_one(pool.get_ref())
         .await
         .unwrap();
 
-    if check_passwords_match(payload.current_password, user_password) {
+    if check_passwords_match(&payload.current_password, &user_password) {
 
-        let new_hashed_password = hash_password(payload.new_password);
+        let new_hashed_password = hash_password(&payload.new_password);
 
         sqlx::query("UPDATE users SET password = (?) WHERE user_id = (?)")
             .bind(new_hashed_password)
-            .bind(user_id)
+            .bind(&user_id)
             .execute(pool.get_ref())
             .await
             .unwrap();
@@ -228,12 +228,12 @@ pub async fn register(pool: web::Data<MySqlPool>, payload: web::Json<User>) -> H
 
 
     // alex you idiot, you forgot to hash the password TwT
-    let password_hash = hash_password(user_password).to_string();
+    let password_hash = hash_password(&user_password.to_string());
 
     let r = sqlx::query("INSERT INTO users (username, email, password) VALUES (?, ?, ?)")
         .bind(user)
         .bind(email)
-        .bind(password_hash.to_string())
+        .bind(password_hash)
         .execute(pool.get_ref())
         .await;
 
