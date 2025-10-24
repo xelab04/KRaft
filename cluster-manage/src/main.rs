@@ -10,6 +10,7 @@ mod db_connect;
 mod validatename;
 mod jwt;
 mod tlssan;
+mod ingress;
 
 #[derive(Clone)]
 pub struct AppConfig {
