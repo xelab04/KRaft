@@ -1,3 +1,5 @@
+use std::collections::BTreeMap;
+
 use actix_web::web;
 use actix_web::web::{Json, Path};
 use actix_web::{HttpRequest, HttpResponse};
@@ -18,6 +20,7 @@ use crate::jwt;
 use crate::validatename;
 use crate::AppConfig;
 use crate::tlssan;
+use crate::ingress;
 
 
 #[derive(Serialize, Deserialize, FromRow)]
@@ -75,14 +78,12 @@ pub async fn create(
         }
     }
 
-    // check cluster cidr
-    // let mut server_arg_string = String::new();
-
+    // validate all TLS SANs
     let mut validated_tlssan_list = Vec::new();
     if let Some(value) = cluster.tlssan_array {
         let tlssan_list = Vec::from(value);
         for tlssan in tlssan_list.iter() {
-            validated_tlssan_list.push(tlssan.clone());
+            validated_tlssan_list.push(tlssan.trim().to_string());
 
             if !tlssan::validate_tlssan(tlssan.clone()).await.is_ok() {
                 return HttpResponse::BadRequest().json("Invalid TLS-SAN format");
@@ -92,16 +93,6 @@ pub async fn create(
 
     validated_tlssan_list.push(format!("{}.kraft.alexbissessur.dev ", endpoint_string));
 
-    println!("Length of tlssan list: {}", validated_tlssan_list.len());
-
-    // if validated_tlssan_list.len() == 0 {
-    //     validated_tlssan_list = None;
-    // }
-    // server_args.push_str(&format!("--tls-san={}.kraft.alexbissessur.dev ", endpoint_string));
-    // server_arg_string = format!("--server-args='{}'", server_args);
-    // println!("{}", server_arg_string);
-
-    // --server-args "--tls-san test1.alexbissessur.dev --tls-san test2.alexbissessur.dev"
 
     if !validatename::namevalid(&cluster_name) {
         return HttpResponse::BadRequest().json("Invalid Name");
@@ -116,16 +107,6 @@ pub async fn create(
 
     if count_same_name != 0 {
         return HttpResponse::BadRequest().json("Cluster with the same name already exists");
-    }
-
-    // #[PROD]
-    // println!("{}", cluster_name);
-    // println!("{}", endpoint_string);
-    // println!("{}", server_arg_string);
-
-
-    for tlssan in &validated_tlssan_list {
-        println!("TLSSAN: {}", tlssan);
     }
 
     let client = Client::try_default().await.unwrap();
@@ -144,14 +125,11 @@ pub async fn create(
                 storageClassName: None,
                 storageRequestSize: Some("2G".to_string()),
             }),
-            tlsSANs: Some(validated_tlssan_list),
+            tlsSANs: Some(validated_tlssan_list.clone()),
             expose: Some(k3k_rs::cluster::ExposeSpec {
-                LoadBalancer: Some(k3k_rs::cluster::ExposeLoadBalancer {
-                    etcd_port: Some(2379),
-                    server_port: Some(443),
-                }),
+                LoadBalancer: None,
                 NodePort: None,
-                Ingress: None,
+                Ingress: None
             }),
             sync: Some(k3k_rs::cluster::SyncSpec{
                 ingresses: Some(k3k_rs::cluster::SyncResourceSpec {
@@ -173,6 +151,11 @@ pub async fn create(
         Ok(response) => {
             println!("Cluster created successfully");
         }
+    }
+
+
+    for tlssan in &validated_tlssan_list {
+        ingress::traefik(&client, &cluster_name, &namespace, tlssan).await;
     }
 
 
