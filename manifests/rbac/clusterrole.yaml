@@ -7,6 +7,10 @@ rules:
   resources: ["clusters"]
   verbs: ["get", "watch", "list", "delete", "edit", "create", "patch"]
 
+- apiGroups: ["traefik.io"]
+  resources: ["ingressroutetcps"]
+  verbs: ["create", "delete", "list", "watch"]
+
 - apiGroups: [""]
   resources: ["persistentvolumes", "persistentvolumeclaims", "pods"]
   verbs: ["get","list", "delete"]
