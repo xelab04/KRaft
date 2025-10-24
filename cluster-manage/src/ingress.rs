@@ -19,7 +19,7 @@ pub async fn traefik(client: &Client, cluster_name: &String, namespace: &String,
         "apiVersion": "traefik.io/v1alpha1",
         "kind": "IngressRouteTCP",
         "metadata": {
-            "name": format!("api-svr-{}-{}",cluster_name,n),
+            "name": format!("api-svr-{}-{}-rt",cluster_name,n),
             "namespace": namespace
         },
         "spec": {
