@@ -5,7 +5,7 @@ use kube::{
 };
 use serde_json::json;
 
-pub async fn traefik(client: &Client, cluster_name: &String, namespace: &String, host: &str) -> bool {
+pub async fn traefik(client: &Client, cluster_name: &String, namespace: &String, host: &str, n: usize) -> bool {
 
     // define CRD type
     let gvk = GroupVersionKind::gvk("traefik.io", "v1alpha1", "IngressRouteTCP");
@@ -19,7 +19,7 @@ pub async fn traefik(client: &Client, cluster_name: &String, namespace: &String,
         "apiVersion": "traefik.io/v1alpha1",
         "kind": "IngressRouteTCP",
         "metadata": {
-            "name": format!("api-svr-{}",cluster_name),
+            "name": format!("api-svr-{}-{}",cluster_name,n),
             "namespace": namespace
         },
         "spec": {

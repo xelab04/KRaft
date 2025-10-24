@@ -154,8 +154,8 @@ pub async fn create(
     }
 
 
-    for tlssan in &validated_tlssan_list {
-        ingress::traefik(&client, &cluster_name, &namespace, tlssan).await;
+    for (i, tlssan) in validated_tlssan_list.iter().enumerate() {
+        ingress::traefik(&client, &cluster_name, &namespace, tlssan, i).await;
     }
 
 
@@ -219,7 +219,7 @@ pub async fn clusterdelete(
     let namespace = format!("--namespace=k3k-{}", raw_cluster_name);
 
     let client = Client::try_default().await.unwrap();
-    k3k_rs::cluster::delete(&client, namespace.as_str(), raw_cluster_name.as_str()).await;
+    k3k_rs::cluster::delete(&client, namespace.as_str(), raw_cluster_name.as_str()).await.unwrap();
 
     let r = sqlx::query("DELETE FROM clusters WHERE user_id = ? AND cluster_name = ?")
         .bind(&user_id)
