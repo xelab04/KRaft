@@ -32,3 +32,16 @@ docker:
 
 	# cd cloudflare-manage && docker build . -t registry.alexbissessur.dev/kraft-cloudflare-manage
 	# docker push registry.alexbissessur.dev/kraft-cloudflare-manage
+
+prod:
+	cd frontend && docker build . -t xelab04/kraft-frontend:1.0
+	docker push xelab04/kraft-frontend:1.0
+
+	cd auth && docker build . -t xelab04/kraft-auth:1.0
+	docker push xelab04/kraft-auth:1.0
+
+	cd cluster-manage && docker build . -t xelab04/kraft-cluster-manage:1.0
+	docker push xelab04/kraft-cluster-manage:1.0
+
+	cd resource-manage && docker build . -t xelab04/kraft-resource-manage:1.0
+	docker push xelab04/kraft-resource-manage:1.0
