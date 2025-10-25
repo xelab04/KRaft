@@ -1,0 +1,12 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: kraft-rolebinding
+subjects:
+- kind: ServiceAccount
+  name: kraftsa
+  namespace: kraft
+roleRef:
+  kind: ClusterRole
+  name: kraftrole
+  apiGroup: rbac.authorization.k8s.io

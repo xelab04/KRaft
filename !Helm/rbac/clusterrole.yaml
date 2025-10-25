@@ -1,0 +1,37 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: kraftrole
+rules:
+- apiGroups: ["k3k.io"]
+  resources: ["clusters"]
+  verbs: ["get", "watch", "list", "delete", "edit", "create", "patch"]
+
+- apiGroups: ["traefik.io"]
+  resources: ["ingressroutetcps"]
+  verbs: ["create", "delete", "list", "watch"]
+
+- apiGroups: [""]
+  resources: ["persistentvolumes", "persistentvolumeclaims", "pods"]
+  verbs: ["get","list", "delete"]
+  # hmmmmm, deleting perms aren't ideal...
+
+- apiGroups: [""]
+  resources: ["nodes", "services"]
+  verbs: ["get","list"]
+
+- apiGroups: ["longhorn.io"]
+  resources: ["nodes"]
+  verbs: ["get","list"]
+
+- apiGroups: ["metrics.k8s.io"]
+  resources: ["nodes", pods]
+  verbs: ["get","list"]
+
+- apiGroups: [""]
+  resources: ["namespaces"]
+  verbs: ["get","list", "create", "delete"]
+
+- apiGroups: [""]
+  resources: ["secrets", "ingress"]
+  verbs: ["get","list", "create", "delete"]
