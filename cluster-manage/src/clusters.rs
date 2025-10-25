@@ -211,6 +211,8 @@ pub async fn clusterdelete(
     let client = Client::try_default().await.unwrap();
     k3k_rs::cluster::delete(&client, namespace.as_str(), raw_cluster_name.as_str()).await.unwrap();
 
+    k3k_rs::namespace::delete(&client, namespace.as_str()).await.unwrap();
+
     let r = sqlx::query("DELETE FROM clusters WHERE user_id = ? AND cluster_name = ?")
         .bind(&user_id)
         .bind(&raw_cluster_name)
