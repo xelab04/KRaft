@@ -54,7 +54,7 @@ pub async fn create(
         }
         Err(e) => {
             println!("Error: {:?}", e);
-            if config.environment == "prod" {
+            if config.environment == "PROD" {
                 return HttpResponse::Unauthorized().json(json!({"status": "error", "message": "Unauthorized"}));
             }
         }
@@ -91,7 +91,7 @@ pub async fn create(
         }
     }
 
-    validated_tlssan_list.push(format!("{}.kraft.alexbissessur.dev ", endpoint_string));
+    validated_tlssan_list.push(format!("{}.{} ", endpoint_string, config.host));
 
 
     if !validatename::namevalid(&cluster_name) {
@@ -198,7 +198,7 @@ pub async fn clusterdelete(
         Err(e) => {
             println!("Error: {:?}", e);
             // #[PROD]
-            if config.environment == "prod" {
+            if config.environment == "PROD" {
                 return HttpResponse::Unauthorized().json("Unauthorized");
             }
         }
@@ -258,7 +258,7 @@ pub async fn get_kubeconfig(
         Err(e) => {
             println!("Error: {:?}", e);
             // #[PROD]
-            if config.environment == "prod" {
+            if config.environment == "PROD" {
                 return HttpResponse::Unauthorized().json("Unauthorized");
             }
         }
@@ -315,7 +315,7 @@ pub async fn list(
         Err(e) => {
             println!("Error: {:?}", e);
 
-            if config.environment == "prod" {
+            if config.environment == "PROD" {
                 return HttpResponse::Unauthorized().json("Unauthorized")
             }
             // return HttpResponse::Unauthorized().json("Unauthorized")
