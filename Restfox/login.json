@@ -1,0 +1,18 @@
+{
+    "_type": "request",
+    "method": "POST",
+    "body": {
+        "mimeType": "application/json",
+        "text": "{\n    \"password\": \"bleh\",\n    \"email\":\"bleh@mail.com\"\n}"
+    },
+    "url": "http://127.0.0.1:5000/auth/login",
+    "sortOrder": 1,
+    "parameters": [],
+    "pathParameters": [],
+    "headers": [
+        {
+            "name": "Content-Type",
+            "value": "application/json"
+        }
+    ]
+}
