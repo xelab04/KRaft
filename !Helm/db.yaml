@@ -1,0 +1,12 @@
+apiVersion: v1
+data:
+  DB_DATABASE:
+  DB_HOST:
+  DB_PASSWORD:
+  DB_ROOT_PASSWORD:
+  DB_PORT:
+  DB_USER:
+kind: Secret
+metadata:
+  creationTimestamp: null
+  name: database-secrets
