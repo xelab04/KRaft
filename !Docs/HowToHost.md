@@ -9,6 +9,7 @@ This is the documentation for hosting KRaft on your own cluster. I have made the
 - Have Longhorn installed. Using another storageclass is possible, though this will interfere with the resource graph on the home screen.
 - Have a single ingressClass - Traefik. KRaft will share the same ingressClass with the guest clusters. Nginx Ingress does not [support multi-tenancy](https://kubernetes.github.io/ingress-nginx/faq/#multi-tenant-kubernetes).
 - Have a public IP pointed to the ingress's service.
+- Have k3k installed. Refer to the K3k repo [here](https://github.com/rancher/k3k/).
 
 ## Database
 KRaft uses a simple database for storing users and cluster data. I have yet to add an initcontainer to setup the database, though the script can be found in the database service directory.
