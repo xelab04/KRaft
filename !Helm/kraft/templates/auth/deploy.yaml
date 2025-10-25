@@ -19,7 +19,7 @@ spec:
         app: kraft-auth
     spec:
       containers:
-      - image: xelab04/kraft-auth:latest
+      - image: "xelab04/kraft-auth:{{ .Chart.AppVersion }}"
         name: kraft-auth
         ports:
         - containerPort: 5000

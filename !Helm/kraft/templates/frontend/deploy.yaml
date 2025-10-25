@@ -19,7 +19,7 @@ spec:
         app: kraft-frontend
     spec:
       containers:
-      - image: xelab04/kraft-frontend:latest
+      - image: "xelab04/kraft-frontend:{{ .Chart.AppVersion }}"
         name: kraft-frontend
         ports:
         - containerPort: 80
