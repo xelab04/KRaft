@@ -174,8 +174,8 @@ pub async fn login(pool: web::Data<MySqlPool>, payload: web::Json<User>) -> Http
                 .same_site(SameSite::Lax)
                 .finish();
 
-            let environment = std::env::var("ENVIRONMENT").unwrap_or_else(|_| "prod".to_string());
-            if environment == "prod" {
+            let environment = std::env::var("ENVIRONMENT").unwrap_or_else(|_| "PROD".to_string());
+            if environment == "PROD" {
                 return HttpResponse::Ok()
                     .cookie(cookie)
                     .json(json!({ "status": "success", "message": "success" }))

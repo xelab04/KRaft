@@ -15,15 +15,18 @@ mod ingress;
 #[derive(Clone)]
 pub struct AppConfig {
     pub environment: String,
+    pub host: String,
 }
 
 #[actix_rt::main]
 async fn main() -> io::Result<()> {
     env::set_var("RUST_LOG", "actix_web=debug,actix_server=info");
 
-    let environment = std::env::var("ENVIRONMENT").unwrap_or_else(|_| "prod".to_string());
+    let environment = std::env::var("ENVIRONMENT").unwrap_or_else(|_| "PROD".to_string());
+    let host = std::env::var("HOST").unwrap_or_else(|_| "kraft.alexbissessur.dev".to_string());
     let config = AppConfig {
         environment: environment.clone(),
+        host: host.clone(),
     };
     env_logger::init();
 
