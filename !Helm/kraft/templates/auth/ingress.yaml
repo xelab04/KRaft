@@ -1,0 +1,21 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  creationTimestamp: null
+  name: kraft-auth
+  annotations:
+    traefik.ingress.kubernetes.io/router.priority: "200"
+spec:
+  rules:
+  - host: {{ .Values.host }}
+    http:
+      paths:
+      - backend:
+          service:
+            name: kraft-auth
+            port:
+              number: 5000
+        path: /auth/
+        pathType: Prefix
+status:
+  loadBalancer: {}

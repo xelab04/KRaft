@@ -1,0 +1,61 @@
+{{- if .Values.hosted.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  creationTimestamp: null
+  labels:
+    app: kraft-db
+  name: kraft-db
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: kraft-db
+  strategy: {}
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        app: kraft-db
+    spec:
+      containers:
+      - image: registry.opensuse.org/opensuse/mariadb:11.8
+        name: mariadb
+        ports:
+        - containerPort: 3306
+        resources: {}
+        volumeMounts:
+        - name: kraft-db
+          mountPath: /var/lib/mysql
+
+        env:
+        - name: MARIADB_ROOT_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: database-secrets
+              key: DB_ROOT_PASSWORD
+
+        - name: MARIADB_DATABASE
+          valueFrom:
+            secretKeyRef:
+              name: database-secrets
+              key: DB_DATABASE
+
+        - name: MARIADB_USER
+          valueFrom:
+            secretKeyRef:
+              name: database-secrets
+              key: DB_USER
+
+        - name: MARIADB_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: database-secrets
+              key: DB_PASSWORD
+
+      volumes:
+      - name: kraft-db
+        persistentVolumeClaim:
+          claimName: kraft-db
+
+{{- end}}

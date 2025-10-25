@@ -1,0 +1,12 @@
+apiVersion: v1
+data:
+  DB_DATABASE: {{.Values.database.database | b64enc | quote}}
+  DB_HOST: {{.Values.database.host | b64enc | quote}}
+  DB_PASSWORD: {{.Values.database.password | b64enc | quote}}
+  DB_ROOT_PASSWORD: {{.Values.database.rootPassword | b64enc | quote}}
+  DB_PORT: {{.Values.database.port | b64enc | quote}}
+  DB_USER: {{.Values.database.user | b64enc | quote}}
+kind: Secret
+metadata:
+  creationTimestamp: null
+  name: database-secrets
