@@ -206,7 +206,7 @@ pub async fn clusterdelete(
         return HttpResponse::NotFound().json("Cluster not found");
     }
 
-    let namespace = format!("--namespace=k3k-{}", raw_cluster_name);
+    let namespace = format!("k3k-{}", raw_cluster_name);
 
     let client = Client::try_default().await.unwrap();
     k3k_rs::cluster::delete(&client, namespace.as_str(), raw_cluster_name.as_str()).await.unwrap();
