@@ -5,7 +5,7 @@ Have **you** ever wanted to run a workshop on Kubernetes? Or just run a lab some
 
 Well, KRaft is for you.
 
-![Image showing homepage of Kraft, with white text black background with options create cluster, view clusters, manage endpoint, and register/login](./homepage.png)
+![Image showing homepage of Kraft, with white text black background with options create cluster, view clusters, manage endpoint, and register/login](./!Docs/homepage.png)
 
 ## What is KRaft?
 KRaft provides a very opinionated but fully-contained platform which runs on top of a host Kubernetes cluster, and spins up virtual clusters for each person who wants one. You can use this for workshops and training sessions. Or you can try it out as "cloud service provider" for you and your friends to share resources over a lab.
@@ -25,9 +25,9 @@ The application is made of a bunch of microservices, each taking care of some pa
 - **Auth** - takes care of everything for login and registration.
 - **Frontend** - the pretty UI you interact with, with the power of plain HTML.
 - **Database** - stores user details and the list of clusters.
+- **DNS/Ingress Management** - creates ingress routes for the clusters running on the host.
 
 ### Incoming Features:
-- **DNS/Ingress Management** - creates ingress routes for the clusters running on the host.
 - **Resource Manage** - allows me to, maybe in the future, bill users for cluster usage.
 - **Payment Processing?** - to make my friends contribute to my electricity bill.
 
@@ -38,16 +38,10 @@ Just check the issues page and let me know if you'll take one on. Though, if you
 One limitation on all contributions - I will automatically reject any PRs with code written (mainly?) by LLMs and forward you to [justforfunnoreally.dev](https://justforfunnoreally.dev/) because you evidently need to learn to have fun with programming again.
 
 ## How to Host This?
-You can totally host this on your own Kubernetes cluster! Though in development, I totally skipped on making this distributable, so you'll have to wait on yours-truly to make this easier.
+You can totally host this on your own Kubernetes cluster!
 
-1. Clone repo
-2. Build all the services (refer to Makefile)
-3. Edit the domain (I hardcoded kraft.alexbissessur.dev, oops)
-4. Check the manifests folder and follow the steps there
-5. Deploy with your choice of CI/CD
-6. Enjoy for an hour
-7. Fill my GH issues with ideas and problems
-
+Refer to the documentation specifically on hosting KRaft [here](./!Docs/HowToHost.md).
+Otherwise, you can totally just take the manifests in the manifests folder, and change to [my Docker images](https://hub.docker.com/repositories/xelab04) and kubectl apply them.
 
 ## The story of why this exists
 > this is just me yapping, TLDR is that the previous version of this mess was an even more disastrous mess.

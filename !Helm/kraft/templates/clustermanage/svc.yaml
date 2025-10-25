@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: Service
+metadata:
+  creationTimestamp: null
+  labels:
+    app: kraft-cluster-manage
+  name: kraft-cluster-manage
+spec:
+  ports:
+  - port: 5000
+    protocol: TCP
+    targetPort: 5000
+  selector:
+    app: kraft-cluster-manage
+status:
+  loadBalancer: {}

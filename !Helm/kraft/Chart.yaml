@@ -1,0 +1,8 @@
+apiVersion: v2
+
+name: kraft
+description: A Helm chart for KRaft
+
+type: application
+version: 0.1.0
+appVersion: "1.0"

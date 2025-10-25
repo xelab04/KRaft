@@ -1,0 +1,37 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  creationTimestamp: null
+  labels:
+    app: kraft-auth
+    project: kraft
+  name: kraft-auth
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: kraft-auth
+  strategy: {}
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        app: kraft-auth
+    spec:
+      containers:
+      - image: "xelab04/kraft-auth:{{ .Chart.AppVersion }}"
+        name: kraft-auth
+        ports:
+        - containerPort: 5000
+        resources: {}
+
+        envFrom:
+        - configMapRef:
+            name: global-config
+        - secretRef:
+            name: betacode
+        - secretRef:
+            name: jwtsecret
+        - secretRef:
+            name: database-secrets
+status: {}

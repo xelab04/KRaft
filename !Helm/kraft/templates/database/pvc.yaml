@@ -1,0 +1,12 @@
+{{- if .Values.hosted.enabled }}
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: kraft-db
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: {{ .Values.hosted.size }}
+{{- end }}
