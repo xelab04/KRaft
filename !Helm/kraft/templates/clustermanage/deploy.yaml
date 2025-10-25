@@ -21,7 +21,7 @@ spec:
       serviceAccountName: kraftsa
       automountServiceAccountToken: true
       containers:
-      - image: xelab04/kraft-cluster-manage:latest
+      - image: "xelab04/kraft-cluster-manage:{{ .Chart.AppVersion }}"
         name: kraft-cluster-manage
         ports:
         - containerPort: 5000
