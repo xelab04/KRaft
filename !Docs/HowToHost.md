@@ -20,7 +20,7 @@ Everything regarding Helm is in the !Helm folder. You should be able to deploy i
 Let me brief you on the values file.
 
 | Value  | Possible Values | Purpose |
-| ------------- | ------------- |
+| ------------- | ------------- | ------------- |
 | betaCode  | string | Registration requires a beta code. You can leave this as an empty string.  |
 | environment  | PROD / LOCAL | If not set to PROD, this disables some of the authentication features. You should leave this to PROD.  |
 | host | string | The hostname of the KRaft instance. It is used for ingresses, as well as for exposing guest control planes. |
