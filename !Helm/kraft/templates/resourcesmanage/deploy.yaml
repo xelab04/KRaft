@@ -26,12 +26,4 @@ spec:
         ports:
         - containerPort: 5000
         resources: {}
-
-      #   volumeMounts:
-      #   - name: kubeconfig-volume
-      #     mountPath: /root/.kube/
-      # volumes:
-      # - name: kubeconfig-volume
-      #   secret:
-      #     secretName: kubeconfig
 status: {}
