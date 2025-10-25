@@ -91,7 +91,7 @@ pub async fn create(
         }
     }
 
-    validated_tlssan_list.push(format!("{}.kraft.alexbissessur.dev ", endpoint_string));
+    validated_tlssan_list.push(format!("{}.{} ", endpoint_string, config.host));
 
 
     if !validatename::namevalid(&cluster_name) {
