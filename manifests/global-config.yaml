@@ -7,7 +7,7 @@ data:
   CF_ZONE_ID: 'your_zone_id'
 
   # Hey so this is important because local skips a lot of the authentication
-  ENVIRONMENT: 'prod'
+  ENVIRONMENT: 'PROD'
   HOST: 'kraft.alexbissessur.dev'
   # JWT_SECRET: 'something-goes-here'
 kind: ConfigMap
