@@ -153,20 +153,6 @@ pub async fn create(
         }
     }
 
-
-    for (i, tlssan) in validated_tlssan_list.iter().enumerate() {
-        ingress::traefik(&client, &cluster_name, &namespace, tlssan, i).await;
-    }
-
-
-    // Command::new("k3kcli")
-    //     .arg("cluster")
-    //     .arg("create")
-    //     .arg(&server_arg_string)
-    //     .arg(&cluster_name)
-    //     .spawn()
-    //     .expect("k3kcli command failed");
-
     sqlx::query("INSERT INTO clusters (cluster_name, user_id, cluster_endpoint) VALUES (?, ?, ?)")
         .bind(&cluster_name)
         .bind(user_id)
@@ -174,6 +160,10 @@ pub async fn create(
         .execute(pool.get_ref())
         .await
         .unwrap();
+
+    for (i, tlssan) in validated_tlssan_list.iter().enumerate() {
+        ingress::traefik(&client, &cluster_name, &namespace, tlssan, i).await;
+    }
 
     return HttpResponse::Ok().json("Cluster created successfully");
 }
