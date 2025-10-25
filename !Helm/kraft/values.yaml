@@ -6,7 +6,7 @@ host: "kraft.alexbissessur.dev"
 
 database:
   database: "kraft"
-  host: "kraft-db"
+  host: "kraft-db" # this points to the hosted db by default
   password: dontuseme
   rootPassword: changeme
   port: 3306
@@ -15,3 +15,4 @@ database:
   hosted:
     enabled: true
     image: registry.opensuse.org/opensuse/mariadb:11.8
+    size: "4Gi"
