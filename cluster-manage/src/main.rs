@@ -11,6 +11,7 @@ mod validatename;
 mod jwt;
 mod tlssan;
 mod ingress;
+mod logs;
 
 #[derive(Clone)]
 pub struct AppConfig {
@@ -42,6 +43,7 @@ async fn main() -> io::Result<()> {
             .service(clusters::create)
             .service(clusters::clusterdelete)
             .service(clusters::get_kubeconfig)
+            .service(logs::getlogs)
     })
     .bind("0.0.0.0:5000")?
     .run()

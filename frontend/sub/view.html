@@ -9,7 +9,7 @@
 </head>
 <body class="bg-black h-screen w-screen flex flex-col items-center justify-center m-0 p-0"
       x-data="clusterManager()">
-    <div class="p-8 rounded-md shadow-lg max-w-2xl w-full mx-4 outline-white-500 h-[60vh] outline">
+    <div class="p-8 rounded-md shadow-lg max-w-2xl w-full mx-4 outline-white-500 h-[60vh]">
         <!-- bg-zinc-800 -->
         <div class="flex items-center mb-4">
             <a href="/"><h1 class="text-white font-mono text-3xl">KRaft</h1></a>
@@ -34,14 +34,8 @@
                         <td class="px-4 py-2 border border-gray-500" x-text="cluster.name"></td>
                         <td class="px-4 py-2 border border-gray-500" x-text="cluster.endpoint"></td>
                         <td class="px-4 py-2 border border-gray-500">
-                            <button class="hover:bg-gray-500 underline">
-                                View
-                            </button>
-                            <button class="hover:bg-gray-500 underline" @click="clusterdelete(cluster.name)">
-                                Delete
-                            </button>
-                            <button class="hover:bg-gray-500 underline" @click="kubeconfig(cluster.name)">
-                                Kubeconfig
+                            <button class="hover:bg-gray-500 underline" @click="toggleViewCluster(cluster)">
+                                Expand
                             </button>
                         </td>
                     </tr>
@@ -64,6 +58,49 @@
 
         </table>
 
+        <div class="text-lg text-white" x-show="viewCluster">
+            <div class="text-xl block font-mono flex flex-col mt-8">Cluster Name</div>
+            <div class="px-6" x-text="viewCluster.name">
+            </div>
+            <div class="text-xl block font-mono flex flex-col mt-4">API Server Endpoint</div>
+            <div class="px-6" x-text="viewCluster.endpoint">
+            </div>
+
+            <div class="text-xl block font-mono flex flex-col mt-4">Kubeconfig</div>
+            <button class="hover:bg-gray-500 underline px-6" @click="kubeconfig(viewCluster.name)">
+                Download
+            </button>
+
+            <div class="text-xl block font-mono flex flex-col mt-4">Delete Cluster</div>
+            <button class="hover:bg-gray-500 underline px-6" @click="clusterdelete(viewCluster.name)">
+                Delete
+            </button>
+
+            <div class="text-xl block font-mono flex flex-col mt-4">Cluster Logs</div>
+            <button class="hover:bg-gray-500 underline px-6" @click="getLogs(viewCluster.name, 'server')">
+                Server
+            </button>
+            <button class="hover:bg-gray-500 underline px-6" @click="getLogs(viewCluster.name, 'agent')">
+                Agents
+            </button>
+
+            <button class="hover:bg-gray-500 underline px-6 text-md" @click="getLogs(viewCluster.name, null)" x-show="logType">
+                refresh
+            </button>
+
+            <button class="hover:bg-gray-500 underline px-6 text-md" @click="copyLogs()" x-show="logType">
+                copy
+            </button>
+
+            <div class="mb-8 py-8">
+                <div
+                class="text-sm bg-gray-900 text-gray-100 font-mono p-3 rounded-md w-full max-w-4xl h-64 overflow-y-auto whitespace-pre-wrap"
+                x-show="clusterLogs"
+                x-text="clusterLogs"
+                ></div>
+            </div>
+        </div>
+
         <div class="text-2xl bg-red-300 font-mono mt-8 text-center" id="error-message">
             <!-- will be filled with error message -->
         </div>
@@ -72,7 +109,7 @@
 
 
     <!-- 88x31 image at the bottom -->
-    <div class="absolute bottom-4">
+    <div class="absolute bottom-4 hidden">
         <img src="assets/88x31.gif" alt="88x31 banner" width="88" height="31" />
     </div>
 
@@ -82,6 +119,9 @@
                 clusters: [],
                 loading: true,
                 error: null,
+                viewCluster: null,
+                clusterLogs: null,
+                logType: null,
 
                 kubeconfig(clusterName) {
                     // Create a link to trigger the download
@@ -151,6 +191,49 @@
                     } finally {
                         this.loading = false;
                     }
+                },
+
+                copyLogs() {
+                  navigator.clipboard.writeText(this.clusterLogs);
+                },
+
+                async getLogs(clusterName, logType) {
+                  if (logType == null) {
+                    logType = this.logType;
+                    if (logType == null) { return; }
+                  } else {
+                    this.logType = logType;
+                  }
+
+                  try {
+                      const response = await fetch(`/api/logs?logtype=${logType}&name=${clusterName}`, {
+                        method: "GET",
+                      });
+
+                      if (!response.ok) {
+                          throw new Error(`status: ${response.status}`);
+                      }
+
+                      const data = await response.json();
+
+                      console.log(data);
+
+                      this.clusterLogs = data;
+                  } catch (error) {
+                      console.error('Error fetching logs:', error);
+                  }
+                },
+
+                toggleViewCluster(currentCluster) {
+                  if (this.viewCluster == null) {
+                    this.viewCluster = currentCluster;
+                    return;
+                  } else if (currentCluster.id === this.viewCluster.id) {
+                    this.viewCluster = null;
+                    // if clicking on the same button
+                  } else {
+                    this.viewCluster = currentCluster;
+                  }
                 },
 
                 init() {
