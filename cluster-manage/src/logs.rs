@@ -44,6 +44,8 @@ pub async fn getlogs(
 
     let logtype = &query.logtype;
 
+    let client = Client::try_default().await.unwrap();
+
     // assume that for testing purposes the User's ID is 0
     let mut user_id: String = String::from("0");
     match jwt {
@@ -59,11 +61,11 @@ pub async fn getlogs(
     };
 
     // check user owns that cluster
-    let cluster_id_from_db: i64 = sqlx::query_scalar!("SELECT id FROM clusters WHERE user_id = ? AND cluster_name = ?")
+    let cluster_id_from_db: Result<i64, sqlx::Error> = sqlx::query_scalar("SELECT id FROM clusters WHERE user_id = ? AND cluster_name = ?")
         .bind(user_id)
         .bind(cluster_name)
-        .fetch_one(&*pool)
-        .await
+        .fetch_one(pool.get_ref())
+        .await;
 
     let mut cluster_id;
     match cluster_id_from_db {
@@ -71,18 +73,19 @@ pub async fn getlogs(
             cluster_id = id;
         }
         Err(sqlx::Error::RowNotFound) => {
-            HttpResponse::NotFound().json(json!({"status": "error", "message": "Cluster not found"}))
+            return HttpResponse::NotFound().json(json!({"status": "error", "message": "Cluster not found"}));
         }
         Err(e) => {
-            HttpResponse::InternalServerError().json(json!({"status": "error", "message": "Failed to check cluster"}))
+            return HttpResponse::InternalServerError().json(json!({"status": "error", "message": "Failed to check cluster"}));
         }
     }
 
     // default to server
+    let logs_returned;
     if logtype == "agent" {
-        let logs_returned = k3k_rs::logs::agent(&client, &cluster_name, &namespace).await
+        logs_returned = k3k_rs::logs::agent(&client, &cluster_name, &namespace).await;
     } else {
-        let logs_returned = k3k_rs::logs::server(&client, &cluster_name, &namespace).await
+        logs_returned = k3k_rs::logs::server(&client, &cluster_name, &namespace).await;
     }
 
     match logs_returned {
