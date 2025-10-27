@@ -51,7 +51,7 @@ pub async fn getlogs(
     };
 
     // check user owns that cluster
-    let cluster_id_from_db: Result<i64, sqlx::Error> = sqlx::query_scalar("SELECT id FROM clusters WHERE user_id = ? AND cluster_name = ?")
+    let cluster_id_from_db: Result<i64, sqlx::Error> = sqlx::query_scalar("SELECT cluster_id FROM clusters WHERE user_id = ? AND cluster_name = ?")
         .bind(user_id)
         .bind(cluster_name)
         .fetch_one(pool.get_ref())
@@ -66,7 +66,7 @@ pub async fn getlogs(
             return HttpResponse::NotFound().json(json!({"status": "error", "message": "Cluster not found"}));
         }
         Err(e) => {
-            return HttpResponse::InternalServerError().json(json!({"status": "error", "message": "Failed to check cluster"}));
+            return HttpResponse::InternalServerError().json(json!({"status": "error", "message": format!("Failed to check cluster: {}", e)}));
         }
     }
 
@@ -83,6 +83,7 @@ pub async fn getlogs(
             HttpResponse::Ok().json(json!({"status": "success", "logs": logs}))
         }
         Err(e) => {
+            println!("Failed to fetch logs: {}", e);
             HttpResponse::InternalServerError().json(json!({"status": "error", "message": "Failed to fetch logs"}))
         }
     }

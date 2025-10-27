@@ -206,7 +206,7 @@
                   }
 
                   try {
-                      const response = await fetch(`/api/logs?logtype=${logType}&name=${clusterName}`, {
+                      const response = await fetch(`/api/logs?logtype=${logType}&full_cluster_name=${clusterName}`, {
                         method: "GET",
                       });
 
@@ -218,7 +218,9 @@
 
                       console.log(data);
 
-                      this.clusterLogs = data;
+                      const separator = '\n\n' + '#'.repeat(10) + '\n\n';
+
+                      this.clusterLogs = data.logs.join(separator);
                   } catch (error) {
                       console.error('Error fetching logs:', error);
                   }
