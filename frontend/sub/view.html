@@ -84,8 +84,12 @@
                 Agents
             </button>
 
-            <button class="hover:bg-gray-500 underline px-6 text-md" @click="getLogs(viewCluster.name, null)">
+            <button class="hover:bg-gray-500 underline px-6 text-md" @click="getLogs(viewCluster.name, null)" x-show="logType">
                 refresh
+            </button>
+
+            <button class="hover:bg-gray-500 underline px-6 text-md" @click="copyLogs()" x-show="logType">
+                copy
             </button>
 
             <div
@@ -185,6 +189,10 @@
                     } finally {
                         this.loading = false;
                     }
+                },
+
+                copyLogs() {
+                  navigator.clipboard.writeText(this.clusterLogs);
                 },
 
                 async getLogs(clusterName, logType) {
