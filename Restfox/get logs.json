@@ -1,0 +1,23 @@
+{
+    "_type": "request",
+    "method": "GET",
+    "body": {
+        "mimeType": "application/json",
+        "text": "{\n    \"name\": \"k3k-meow\"\n}"
+    },
+    "url": "http://127.0.0.1:5000/api/logs?logtype=server",
+    "sortOrder": 6,
+    "parameters": [
+        {
+            "name": "logtype",
+            "value": "server"
+        }
+    ],
+    "pathParameters": [],
+    "headers": [
+        {
+            "name": "Content-Type",
+            "value": "application/json"
+        }
+    ]
+}
