@@ -23,15 +23,10 @@ use crate::AppConfig;
 use crate::tlssan;
 use crate::ingress;
 
-
-#[derive(Serialize, Deserialize, FromRow)]
-pub struct Cluster {
-    name: String
-}
-
 #[derive(Serialize, Deserialize)]
 pub struct LogsType {
-    logtype: String
+    logtype: String,
+    full_cluster_name: String
 }
 
 #[get("/api/logs")]
@@ -39,12 +34,12 @@ pub async fn getlogs(
     req: HttpRequest,
     pool: web::Data<MySqlPool>,
     config: web::Data<AppConfig>,
-    Json(cluster): Json<ClusterCreateForm>,
     query: web::Query<LogsType>
 ) -> HttpResponse {
 
     let jwt = jwt::extract_user_id_from_jwt(&req);
-    let cluster_name = format!("{}-{}", user_id, cluster.name);
+    // let cluster_name = format!("{}-{}", user_id, &query.name);
+    let cluster_name = &query.full_cluster_name;
     let namespace = format!("k3k-{}", cluster_name);
 
     let logtype = &query.logtype;
