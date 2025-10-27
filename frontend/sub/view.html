@@ -75,6 +75,24 @@
             <button class="hover:bg-gray-500 underline px-6" @click="clusterdelete(viewCluster.name)">
                 Delete
             </button>
+
+            <div class="text-xl block font-mono flex flex-col mt-4">Cluster Logs</div>
+            <button class="hover:bg-gray-500 underline px-6" @click="getLogs(viewCluster.name, 'server')">
+                Server
+            </button>
+            <button class="hover:bg-gray-500 underline px-6" @click="getLogs(viewCluster.name, 'agent')">
+                Agents
+            </button>
+
+            <button class="hover:bg-gray-500 underline px-6 text-md" @click="getLogs(viewCluster.name, null)">
+                refresh
+            </button>
+
+            <div
+              class="text-sm bg-gray-900 text-gray-100 font-mono p-3 rounded-md w-full max-w-4xl h-64 overflow-y-auto whitespace-pre-wrap mb-8 py-8"
+              x-show="clusterLogs"
+              x-text="clusterLogs"
+            ></div>
         </div>
 
         <div class="text-2xl bg-red-300 font-mono mt-8 text-center" id="error-message">
@@ -85,7 +103,7 @@
 
 
     <!-- 88x31 image at the bottom -->
-    <div class="absolute bottom-4">
+    <div class="absolute bottom-4 hidden">
         <img src="assets/88x31.gif" alt="88x31 banner" width="88" height="31" />
     </div>
 
@@ -96,6 +114,8 @@
                 loading: true,
                 error: null,
                 viewCluster: null,
+                clusterLogs: null,
+                logType: null,
 
                 kubeconfig(clusterName) {
                     // Create a link to trigger the download
@@ -165,6 +185,33 @@
                     } finally {
                         this.loading = false;
                     }
+                },
+
+                async getLogs(clusterName, logType) {
+                  if (logType == null) {
+                    logType = this.logType;
+                    if (logType == null) { return; }
+                  } else {
+                    this.logType = logType;
+                  }
+
+                  try {
+                      const response = await fetch(`/api/logs?logtype=${logType}&name=${clusterName}`, {
+                        method: "GET",
+                      });
+
+                      if (!response.ok) {
+                          throw new Error(`status: ${response.status}`);
+                      }
+
+                      const data = await response.json();
+
+                      console.log(data);
+
+                      this.clusterLogs = data;
+                  } catch (error) {
+                      console.error('Error fetching logs:', error);
+                  }
                 },
 
                 toggleViewCluster(currentCluster) {
