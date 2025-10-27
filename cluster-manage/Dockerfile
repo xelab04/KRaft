@@ -1,4 +1,4 @@
-FROM registry.suse.com/bci/rust:1.85 AS build
+FROM registry.suse.com/bci/rust:1.90 AS build
 
 WORKDIR /app
 
