@@ -25,13 +25,13 @@ rules:
   verbs: ["get","list"]
 
 - apiGroups: ["metrics.k8s.io"]
-  resources: ["nodes", pods]
+  resources: ["nodes", "pods"]
   verbs: ["get","list"]
 
 - apiGroups: [""]
-  resources: ["namespaces"]
+  resources: ["namespaces", "secrets", "ingress"]
   verbs: ["get","list", "create", "delete"]
 
 - apiGroups: [""]
-  resources: ["secrets", "ingress"]
-  verbs: ["get","list", "create", "delete"]
+  resources: ["pods/log"]
+  verbs: ["get","list"]
