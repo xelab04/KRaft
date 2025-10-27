@@ -35,7 +35,7 @@ pub struct LogsType {
 }
 
 #[get("/api/logs")]
-pub async fn serverlogs(
+pub async fn getlogs(
     req: HttpRequest,
     pool: web::Data<MySqlPool>,
     config: web::Data<AppConfig>,
