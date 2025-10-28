@@ -73,9 +73,9 @@ pub async fn getlogs(
     // default to server
     let logs_returned;
     if logtype == "agent" {
-        logs_returned = k3k_rs::logs::agent(&client, &cluster_name, &namespace).await;
+        logs_returned = k3k_rs::logs::agent(&client, &cluster_name, &namespace, 10).await;
     } else {
-        logs_returned = k3k_rs::logs::server(&client, &cluster_name, &namespace).await;
+        logs_returned = k3k_rs::logs::server(&client, &cluster_name, &namespace, 50).await;
     }
 
     match logs_returned {
