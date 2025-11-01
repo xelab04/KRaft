@@ -19,3 +19,4 @@ k8s-openapi = { version = "0.26.0", features = ["latest", "schemars"] }
 schemars = { version = "1" }
 tokio = "1.48.0"
 reqwest = "0.12.24"
+chrono = "0.4.42"
