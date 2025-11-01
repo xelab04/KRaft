@@ -3,7 +3,15 @@ extern crate actix_web;
 
 use std::{env, io};
 
-use actix_web::{middleware, web, App, HttpServer};
+use actix_web::{
+    HttpServer, Error, App,
+    body::MessageBody,
+    dev::{ServiceRequest, ServiceResponse},
+    middleware::{self, from_fn, Next},
+    web
+};
+use actix_web::{cookie::Cookie, cookie::SameSite};
+use actix_web::cookie::time::Duration;
 
 mod clusters;
 mod db_connect;
@@ -18,6 +26,34 @@ pub struct AppConfig {
     pub environment: String,
     pub host: String,
 }
+
+pub async fn update_cookie_middleware<B>(
+    req: ServiceRequest,
+    next: Next<B>,
+) -> Result<ServiceResponse<B>, Error>
+where
+    B: MessageBody + 'static,
+{
+    // pre-processing
+    let user_id = jwt::extract_user_id_from_jwt(&req.request());
+
+    let mut response = next.call(req).await.unwrap();
+
+    // post-processing
+    match user_id {
+        Ok(uid) => {
+            let jwt_token = jwt::create_jwt(uid);
+
+            let cookie = jwt::create_cookie(&jwt_token);
+
+            response.response_mut().add_cookie(&cookie).ok();
+        }
+        Err(_) => {}
+    };
+
+    Ok(response)
+}
+
 
 #[actix_rt::main]
 async fn main() -> io::Result<()> {
@@ -39,6 +75,7 @@ async fn main() -> io::Result<()> {
             .app_data(web::Data::new(db_pool.clone()))
             .app_data(web::Data::new(config.clone()))
             .wrap(middleware::Logger::default())
+            .wrap(from_fn(update_cookie_middleware))
             .service(clusters::list)
             .service(clusters::create)
             .service(clusters::clusterdelete)
