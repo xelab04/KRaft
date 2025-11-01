@@ -1,7 +1,9 @@
+use actix_web::cookie::Cookie;
+use actix_web::{web, HttpRequest, cookie::SameSite};
+use actix_web::cookie::time;
 use jsonwebtoken::{encode, Header, EncodingKey, errors::Error as JwtError};
 use jsonwebtoken::{decode, DecodingKey, Validation, Algorithm, errors::ErrorKind};
 use serde::{Deserialize, Serialize};
-use actix_web::HttpRequest;
 use chrono::{Utc, Duration};
 use std::env;
 
@@ -48,6 +50,18 @@ pub fn create_jwt(user_id: String) -> String {
 }
 
 
+pub fn create_cookie(jwt_token: &String) -> Cookie {
+    let cookie = Cookie::build("auth_token", jwt_token)
+        .path("/")
+        .http_only(true)
+        .secure(true)
+        .same_site(SameSite::Strict)
+        .max_age(time::Duration::seconds(3600))
+        .finish();
+
+    cookie
+}
+
 pub fn validate_jwt(jwt: &String) -> bool {
 
     let jwt_secret = env::var("JWT_SECRET")
@@ -80,10 +94,14 @@ pub fn extract_user_id_from_jwt(req: &HttpRequest) -> Result<String, JwtError> {
         return Err(JwtError::from(ErrorKind::InvalidToken));
     }
 
+
+    let mut validation = Validation::new(Algorithm::HS256);
+    validation.validate_exp = true;
+    // present by default, but whatever
     let token_data = decode::<Claims>(
         &cookie_token,
         &DecodingKey::from_secret(JWT_SECRET.as_bytes()),
-        &Validation::new(Algorithm::HS256),
+        &validation,
     )?;
 
     Ok(token_data.claims.sub)
