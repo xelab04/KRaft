@@ -168,13 +168,7 @@ pub async fn login(pool: web::Data<MySqlPool>, payload: web::Json<User>) -> Http
 
     match Argon2::default().verify_password(user_password.as_bytes(), &parsed_hash) {
         Ok(_) => {
-            let cookie = Cookie::build("auth_token", &jwt_token)
-                .path("/")
-                .http_only(true)
-                .secure(true)
-                .same_site(SameSite::Strict)
-                .max_age(Duration::seconds(3600))
-                .finish();
+            let cookie = jwt::create_cookie(&jwt_token);
 
             let environment = std::env::var("ENVIRONMENT").unwrap_or_else(|_| "PROD".to_string());
             if environment == "PROD" {

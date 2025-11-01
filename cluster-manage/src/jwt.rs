@@ -56,7 +56,7 @@ pub fn create_cookie(jwt_token: &String) -> Cookie {
         .http_only(true)
         .secure(true)
         .same_site(SameSite::Strict)
-        .max_age(time::Duration::seconds(3600))
+        .max_age(time::Duration::seconds(300))
         .finish();
 
     cookie
