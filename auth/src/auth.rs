@@ -2,6 +2,7 @@ use actix_web::mime::JSON;
 use argon2::{Argon2, PasswordHasher, PasswordVerifier, password_hash::Salt};
 use argon2::{password_hash::{PasswordHash, SaltString, Error}};
 use actix_web::{web, HttpRequest, HttpResponse, http::header, cookie::Cookie, cookie::SameSite};
+use actix_web::cookie::time::Duration;
 use rand;
 // use actix_web::web::{Json, Path};
 use serde::{Serialize, Deserialize};
@@ -171,7 +172,8 @@ pub async fn login(pool: web::Data<MySqlPool>, payload: web::Json<User>) -> Http
                 .path("/")
                 .http_only(true)
                 .secure(true)
-                .same_site(SameSite::Lax)
+                .same_site(SameSite::Strict)
+                .max_age(Duration::seconds(3600))
                 .finish();
 
             let environment = std::env::var("ENVIRONMENT").unwrap_or_else(|_| "PROD".to_string());
@@ -302,6 +304,29 @@ pub async fn validate_jwt(req: HttpRequest) -> HttpResponse {
             return HttpResponse::Ok().json(json!({
                 "status": "success",
                 "message": format!("User ID: {}", token_data.sub),
+            }));
+        }
+        Err(_) => {
+            return HttpResponse::Unauthorized().json(json!({
+                "status": "error",
+                "message": "Invalid token."
+            }));
+        }
+    }
+
+}
+
+
+#[actix_web::get("/auth/get-userid")]
+pub async fn get_user_id(req: HttpRequest) -> HttpResponse {
+
+    let user_id = jwt::extract_user_id_from_jwt(&req);
+
+    match user_id {
+        Ok(id) => {
+            return HttpResponse::Ok().json(json!({
+                "status": "success",
+                "message": format!("User ID: {}", id),
             }));
         }
         Err(_) => {
