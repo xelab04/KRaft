@@ -31,6 +31,7 @@ async fn main() -> io::Result<()> {
             .service(auth::register)
             .service(auth::password)
             .service(auth::validate_jwt)
+            .service(auth::get_user_id)
             .service(auth::changepwd)
             .service(user::details)
     })

@@ -71,12 +71,6 @@ pub fn extract_user_id_from_jwt(req: &HttpRequest) -> Result<String, JwtError> {
     let JWT_SECRET = std::env::var("JWT_SECRET")
             .expect("JWT_SECRET must be set in environment variables");
 
-    let auth_header = req
-        .headers()
-        .get("Authorization")
-        .and_then(|h| h.to_str().ok())
-        .unwrap_or("");
-
     let cookie_token = req
         .cookie("auth_token")
         .map(|cookie| cookie.value().to_string())

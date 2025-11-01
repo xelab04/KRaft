@@ -1,6 +1,7 @@
 use jsonwebtoken::{decode, DecodingKey, Validation, Algorithm, errors::Error as JwtError, errors::ErrorKind};
 use actix_web::{HttpRequest};
 use serde::{Deserialize, Serialize};
+use reqwest;
 
 
 // const JWT_SECRET: &str = "your-shared-secret"; // same as in Python service
@@ -15,6 +16,13 @@ pub struct Claims {
 }
 
 pub fn extract_user_id_from_jwt(req: &HttpRequest) -> Result<String, JwtError> {
+
+    // let body = reqwest::get("https://www.rust-lang.org")
+    //     .await?
+    //     .text()
+    //     .await?;
+
+
     let JWT_SECRET = std::env::var("JWT_SECRET")
             .expect("JWT_SECRET must be set in environment variables");
 
