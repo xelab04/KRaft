@@ -4,12 +4,51 @@ extern crate actix_web;
 use std::{env, io};
 use log::{info, error};
 
-use actix_web::{middleware, web, App, HttpServer};
+// use actix_web::{middleware, web, App, HttpServer};
+
+use actix_web::{
+    HttpServer, Error, App,
+    body::MessageBody,
+    dev::{ServiceRequest, ServiceResponse},
+    middleware::{self, from_fn, Next},
+    web
+};
 
 mod auth;
 mod db_connect;
 mod jwt;
 mod user;
+
+
+pub async fn update_cookie_middleware<B>(
+    req: ServiceRequest,
+    next: Next<B>,
+) -> Result<ServiceResponse<B>, Error>
+where
+    B: MessageBody + 'static,
+{
+    // pre-processing
+    let user_id = jwt::extract_user_id_from_jwt(&req.request());
+
+    let mut response = next.call(req).await.unwrap();
+
+    // post-processing
+    match user_id {
+        // if logged in (and thus holds token), refresh token
+        Ok(uid) => {
+            let jwt_token = jwt::create_jwt(uid);
+
+            let cookie = jwt::create_cookie(&jwt_token);
+
+            response.response_mut().add_cookie(&cookie).ok();
+        }
+        // if no uid, ex login/reg, don't add a cookie, right?
+        Err(_) => {}
+    };
+
+    Ok(response)
+}
+
 
 #[actix_rt::main]
 async fn main() -> io::Result<()> {
@@ -27,6 +66,7 @@ async fn main() -> io::Result<()> {
         App::new()
             .app_data(web::Data::new(db_pool.clone()))
             .wrap(middleware::Logger::default())
+            .wrap(from_fn(update_cookie_middleware))
             .service(auth::login)
             .service(auth::register)
             .service(auth::password)
