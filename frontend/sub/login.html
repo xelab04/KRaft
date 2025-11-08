@@ -11,68 +11,46 @@
           return new Promise(resolve => setTimeout(resolve, ms));
       }
 
-      function submitForm() {
+      async function submitForm(event) {
+        if (event) event.preventDefault();
         // const username = document.getElementById('username').value;
         const email = document.getElementById('email').value;
         const password = document.getElementById('password').value;
 
         console.log("meow");
 
-        fetch('/auth/login', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({ email, password })
-        })
-        .then(async response => {
-          let data = {}
-          try {
-            data = await response.clone().json();
+        try {
+          const response = await fetch('/auth/login', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ email, password })
+          })
 
-            if (!data.error){
-              document.getElementById('error-message').textContent = 'Success!';
-              sleep(2000);
-              window.location.href = `/`;
-            }
-          }
-          catch (error) {
-            console.log("error");
+          let data;
+          try {
+              data = await response.clone().json();
+          } catch {
             data = { message: await response.text() };
           }
 
-          if (!response.ok) {
+          if (response.ok){
+            document.getElementById('error-message').textContent = 'Success!';
+            await sleep(2000);
+            console.log("redirecting");
+            window.location.href = `/`;
+          }
+          else {
             console.log(data);
             document.getElementById('error-message').textContent = data.message
           }
-        })
+        }
+        catch (err){
+            console.error("CATCHING ERROR", err);
+            document.getElementById('error-message').textContent = 'An error occurred';
+        }
 
-
-
-        // fetch('https://kraft.alexbissessur.dev/auth/login', {
-        //   method: 'POST',
-        //   headers: {
-        //     'Content-Type': 'application/json'
-        //   },
-        //   body: JSON.stringify({ email, password })
-        // })
-        // .then(response => response.json())
-        // .then(data => {
-        //   if (data.error) {
-        //     document.getElementById('error-message').textContent = data.error;
-        //   } else {
-        //     document.getElementById('error-message').textContent = 'Success!';
-
-        //     sleep(2000);
-        //     window.location.href = `/`;
-        //     // redirect to home
-        //     // window.location.href = `/`;
-        //   }
-        // })
-        // .catch(error => {
-        //   document.getElementById('error-message').textContent = 'An error occurred somewhere between here and the server.';
-        //   console.error('Error:', error);
-        // });
         return false;
 
       }
@@ -90,7 +68,7 @@
             <a href="#" class="text-2xl underline block">> Login</a>
         </div>
         <!-- login form -->
-        <form class="text-white text-xl font-mono flex flex-col mt-8" onsubmit="return submitForm();">
+        <form class="text-white text-xl font-mono flex flex-col mt-8" onsubmit="return submitForm(event);">
             <label for="email">Email :</label><br>
             <input class="text-gray-800" type="text" id="email" name="email" required><br>
 

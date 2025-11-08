@@ -148,7 +148,7 @@ pub async fn login(pool: web::Data<MySqlPool>, payload: web::Json<User>) -> Http
         .unwrap();
 
     if user_data.len() == 0 {
-        return HttpResponse::Unauthorized().finish();
+        return HttpResponse::Unauthorized().json(json!({ "status": "failure", "message": "Incorrect email/password" }));
     }
 
     let found_user = &user_data[0];
@@ -182,7 +182,7 @@ pub async fn login(pool: web::Data<MySqlPool>, payload: web::Json<User>) -> Http
                 .json(json!({ "status": "success" }))
 
         }
-        Err(_) => {return HttpResponse::Forbidden().json(json!({ "status": "success", "message": "Incorrect email/password" }));}
+        Err(_) => {return HttpResponse::Forbidden().json(json!({ "status": "failure", "message": "Incorrect email/password" }));}
     }
 
 }
