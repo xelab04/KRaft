@@ -3,10 +3,10 @@
     "method": "POST",
     "body": {
         "mimeType": "application/json",
-        "text": "{\n    \"name\": \"bleh\",\n    \"tlssan\": [\"bleh.alex\"]\n}"
+        "text": "{\n    \"password\": \"bleh\",\n    \"email\":\"alexbissessur@gmail.com\"\n}"
     },
-    "url": "http://127.0.0.1:5000/api/create/clusters",
-    "sortOrder": 6,
+    "url": "http://kraft.alexbissessur.dev/auth/login",
+    "sortOrder": 2,
     "parameters": [],
     "pathParameters": [],
     "headers": [
