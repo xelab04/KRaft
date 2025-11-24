@@ -2,7 +2,7 @@ betaCode: kraftbyalex
 
 environment: "PROD"
 
-host: "kraft.alexbissessur.dev"
+host: "kraftcloud.dev"
 
 database:
   database: "kraft"

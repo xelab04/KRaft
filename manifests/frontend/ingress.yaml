@@ -7,7 +7,7 @@ metadata:
     traefik.ingress.kubernetes.io/router.priority: "100"
 spec:
   rules:
-  - host: kraft.alexbissessur.dev
+  - host: kraftcloud.dev
     http:
       paths:
       - backend:

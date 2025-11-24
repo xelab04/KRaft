@@ -8,7 +8,7 @@ data:
 
   # Hey so this is important because local skips a lot of the authentication
   ENVIRONMENT: 'PROD'
-  HOST: 'kraft.alexbissessur.dev'
+  HOST: 'kraftcloud.dev'
   # JWT_SECRET: 'something-goes-here'
 kind: ConfigMap
 metadata:

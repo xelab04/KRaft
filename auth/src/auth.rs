@@ -78,7 +78,7 @@ fn hash_password(clear_pwd: &String) -> String {
     let salt: Salt = salt_str.try_into().unwrap();
 
     let argon2 = Argon2::default();
-    let password_hash = argon2.hash_password(clear_pwd.as_bytes(), salt).unwrap();
+    let password_hash = argon2.hash_password(clear_pwd.as_bytes(), salt).expect("Error hashing password.");
 
     return password_hash.to_string();
 }
