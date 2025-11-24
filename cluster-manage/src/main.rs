@@ -62,7 +62,7 @@ async fn main() -> io::Result<()> {
     env::set_var("RUST_LOG", "actix_web=debug,actix_server=info");
 
     let environment = std::env::var("ENVIRONMENT").unwrap_or_else(|_| "PROD".to_string());
-    let host = std::env::var("HOST").unwrap_or_else(|_| "kraft.alexbissessur.dev".to_string());
+    let host = std::env::var("HOST").unwrap_or_else(|_| "kraftcloud.dev".to_string());
     let config = AppConfig {
         environment: environment.clone(),
         host: host.clone(),
