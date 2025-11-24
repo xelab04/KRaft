@@ -13,6 +13,8 @@ use actix_web::{
 use actix_web::{cookie::Cookie, cookie::SameSite};
 use actix_web::cookie::time::Duration;
 
+use kube::Client;
+
 mod clusters;
 mod db_connect;
 mod validatename;
@@ -69,11 +71,13 @@ async fn main() -> io::Result<()> {
 
     // Will panic here if the db is unreachable :P
     let db_pool = db_connect::get_db_pool().await.unwrap();
+    let client = Client::try_default().await.unwrap();
 
     HttpServer::new(move || {
         App::new()
             .app_data(web::Data::new(db_pool.clone()))
             .app_data(web::Data::new(config.clone()))
+            .app_data(web::Data::new(client.clone()))
             .wrap(middleware::Logger::default())
             .wrap(from_fn(update_cookie_middleware))
             .service(clusters::list)
