@@ -272,7 +272,11 @@ pub async fn get_kubeconfig(
     }
 
     // let client = Client::try_default().await.unwrap();
-    let kconf = k3k_rs::kubeconfig::get(&kubeclient, raw_cluster_name.as_str(), None).await.unwrap();
+    let kconf;
+    match k3k_rs::kubeconfig::get(&kubeclient, raw_cluster_name.as_str(), None).await {
+        Ok(kubeconfig) => { kconf = kubeconfig }
+        Err(e) => { return HttpResponse::Processing().json("Kubeconfig not found, wait a minute and try again.")}
+    }
 
     let filename = "/kubeconfig.yaml";
 
