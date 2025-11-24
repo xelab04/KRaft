@@ -92,7 +92,7 @@ pub async fn create(
         }
     }
 
-    validated_tlssan_list.push(format!("{}.{} ", endpoint_string, config.host));
+    validated_tlssan_list.push(format!("{}.{}", endpoint_string, config.host));
 
 
     if !validatename::namevalid(&cluster_name) {
