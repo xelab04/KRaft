@@ -5,6 +5,8 @@ metadata:
   name: kraft-frontend
   annotations:
     traefik.ingress.kubernetes.io/router.priority: "100"
+    cert-manager.io/cluster-issuer: issuer
+    kubernetes.io/ingress.class: traefik
 spec:
   rules:
   - host: kraftcloud.dev
@@ -17,5 +19,10 @@ spec:
               number: 80
         path: /
         pathType: Prefix
+  tls:
+    - secretName: kraft-tls
+      hosts:
+        - kraftcloud.dev
+
 status:
   loadBalancer: {}
