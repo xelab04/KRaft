@@ -5,7 +5,7 @@ metadata:
   name: kraft-frontend
   annotations:
     traefik.ingress.kubernetes.io/router.priority: "100"
-    # cert-manager.io/cluster-issuer: issuer
+    cert-manager.io/cluster-issuer: issuer
     kubernetes.io/ingress.class: traefik
 spec:
   rules:
