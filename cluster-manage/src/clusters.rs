@@ -41,6 +41,7 @@ pub struct ClusterCreateForm {
 pub async fn create(
     req: HttpRequest,
     pool: web::Data<MySqlPool>,
+    kubeclient: web::Data<Client>,
     config: web::Data<AppConfig>,
     Json(cluster): Json<ClusterCreateForm>,
 ) -> HttpResponse {
@@ -109,8 +110,6 @@ pub async fn create(
         return HttpResponse::BadRequest().json("Cluster with the same name already exists");
     }
 
-    let client = Client::try_default().await.unwrap();
-
     let namespace = format!("k3k-{}", cluster_name);
 
     let cluster_schema = k3k_rs::cluster::Cluster {
@@ -143,7 +142,7 @@ pub async fn create(
         status: None,
     };
 
-    let response = k3k_rs::cluster::create(&client, &namespace, &cluster_schema).await;
+    let response = k3k_rs::cluster::create(&kubeclient, &namespace, &cluster_schema).await;
 
     match response {
         Err(e) => {println!("Error creating cluster {}: {}", cluster_schema.metadata.name.unwrap(), e); return HttpResponse::BadGateway().json(e.to_string())}
@@ -162,7 +161,7 @@ pub async fn create(
         .unwrap();
 
     for (i, tlssan) in validated_tlssan_list.iter().enumerate() {
-        ingress::traefik(&client, &cluster_name, &namespace, tlssan, i).await;
+        ingress::traefik(&kubeclient, &cluster_name, &namespace, tlssan, i).await;
     }
 
     return HttpResponse::Ok().json("Cluster created successfully");
@@ -173,6 +172,7 @@ pub async fn clusterdelete(
     req: HttpRequest,
     pool: web::Data<MySqlPool>,
     cluster_name: web::Path<String>,
+    kubeclient: web::Data<Client>,
     config: web::Data<AppConfig>,
 ) -> HttpResponse{
 
@@ -208,10 +208,10 @@ pub async fn clusterdelete(
 
     let namespace = format!("k3k-{}", raw_cluster_name);
 
-    let client = Client::try_default().await.unwrap();
-    k3k_rs::cluster::delete(&client, namespace.as_str(), raw_cluster_name.as_str()).await.unwrap();
+    // let client = Client::try_default().await.unwrap();
+    k3k_rs::cluster::delete(&kubeclient, namespace.as_str(), raw_cluster_name.as_str()).await.unwrap();
 
-    k3k_rs::namespace::delete(&client, namespace.as_str()).await.unwrap();
+    k3k_rs::namespace::delete(&kubeclient, namespace.as_str()).await.unwrap();
 
     let r = sqlx::query("DELETE FROM clusters WHERE user_id = ? AND cluster_name = ?")
         .bind(&user_id)
@@ -235,6 +235,7 @@ pub async fn get_kubeconfig(
     req: HttpRequest,
     pool: web::Data<MySqlPool>,
     cluster_name: web::Path<String>,
+    kubeclient: web::Data<Client>,
     config: web::Data<AppConfig>,
 ) -> HttpResponse {
 
@@ -270,8 +271,8 @@ pub async fn get_kubeconfig(
         return HttpResponse::NotFound().json("Cluster not found");
     }
 
-    let client = Client::try_default().await.unwrap();
-    let kconf = k3k_rs::kubeconfig::get(&client, raw_cluster_name.as_str(), None).await.unwrap();
+    // let client = Client::try_default().await.unwrap();
+    let kconf = k3k_rs::kubeconfig::get(&kubeclient, raw_cluster_name.as_str(), None).await.unwrap();
 
     let filename = "/kubeconfig.yaml";
 
