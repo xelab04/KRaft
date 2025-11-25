@@ -7,7 +7,7 @@ spec:
   defaultNodeSelector:
     kubernetes.io/arch: amd64
     nodepool: main
-  defaultPriorityClass: default
+  # defaultPriorityClass: default
   disableNetworkPolicy: false
   podSecurityAdmissionLevel: restricted
   limit:
