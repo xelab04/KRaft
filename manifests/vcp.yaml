@@ -1,4 +1,4 @@
-apiVersion: k3k.io/v1alpha1
+apiVersion: k3k.io/v1beta1
 kind: VirtualClusterPolicy
 metadata:
   name: kraft-vpc
@@ -19,14 +19,14 @@ spec:
         cpu: 50m
         memory: 200m
       type: Container
-  
+
   quota:
     hard:
       cpu: 350m
       memory: 1G
       requests.storage: 2G
       # requests:
-        
+
   sync:
     configmaps:
       enabled: true

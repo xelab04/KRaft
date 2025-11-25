@@ -12,6 +12,8 @@ use sqlx::MySqlPool;
 
 use k3k_rs;
 use kube::Client;
+use k8s_openapi::api::core::v1::Namespace;
+use k8s_openapi::apimachinery::pkg::apis::meta::v1::ObjectMeta;
 
 use random_word::Lang;
 use tokio::fs;
@@ -49,6 +51,8 @@ pub async fn create(
     let jwt = jwt::extract_user_id_from_jwt(&req);
 
     // assume that for testing purposes the User's ID is 0
+    // USER ID MANAGEMENT AND VALIDATION
+    //
     let mut user_id: String = String::from("0");
     match jwt {
         Ok(id) => {
@@ -143,6 +147,29 @@ pub async fn create(
         status: None,
     };
 
+    //
+    // CREATE NAMESPACE
+    //
+
+    if k3k_rs::namespace::exists(&kubeclient, &namespace).await.unwrap() {
+        println!("Namespace already exists: {}", namespace);
+    } else {
+        println!("Namespace does not exist: {}", namespace);
+
+        let namespace_schema = Namespace {
+            metadata: ObjectMeta {
+                name: Some(namespace.to_string()),
+                labels: Some(BTreeMap::from([
+                    ("policy.k3k.io/policy-name".to_string(), "kraft-vpc".to_string())
+                ])),
+                ..Default::default()
+            },
+            ..Default::default()
+        };
+
+        k3k_rs::namespace::create(&kubeclient, &namespace_schema).await.unwrap();
+    }
+
     let response = k3k_rs::cluster::create(&kubeclient, &namespace, &cluster_schema).await;
 
     match response {
@@ -164,7 +191,7 @@ pub async fn create(
     for (i, tlssan) in validated_tlssan_list.iter().enumerate() {
         ingress::traefik(&kubeclient, &cluster_name, &namespace, tlssan, i).await;
     }
-    
+
     // vcp::create_default_vcp(&kubeclient, &cluster_name, &namespace).await;
 
     return HttpResponse::Ok().json("Cluster created successfully");
