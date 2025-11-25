@@ -6,7 +6,7 @@
         "text": "{\n    \"name\": \"k3k-meow\"\n}"
     },
     "url": "http://127.0.0.1:5000/api/logs?logtype=server",
-    "sortOrder": 7,
+    "sortOrder": 8,
     "parameters": [
         {
             "name": "logtype",

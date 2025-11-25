@@ -165,7 +165,7 @@ pub async fn create(
         ingress::traefik(&kubeclient, &cluster_name, &namespace, tlssan, i).await;
     }
     
-    vcp::create_default_vcp(&kubeclient, &cluster_name, &namespace);
+    // vcp::create_default_vcp(&kubeclient, &cluster_name, &namespace).await;
 
     return HttpResponse::Ok().json("Cluster created successfully");
 }
