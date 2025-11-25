@@ -192,15 +192,19 @@ pub async fn register(pool: web::Data<MySqlPool>, payload: web::Json<User>) -> H
     let user = &payload.username;
     let email = &payload.email;
     let user_password = &payload.user_password;
-    let betacode = &payload.betacode.as_ref().map_or("", |s| s.as_str());
+    let default = &"".to_string();
+    let betacode = &payload.betacode.as_ref().map_or(default, |s| s); //.as_ref().map_or("", |s| s.as_str());
 
+    let betacode_enabled: bool = !std::env::var("BETACODE").unwrap_or("".to_string()).is_empty();
 
-    let valid_beta_code = std::env::var("BETACODE").unwrap_or("".to_string());
-
-    // if beta code is not valid
-    // and actual beta code is not empty
-    if *betacode != valid_beta_code.as_str() && valid_beta_code != "" {
-        return HttpResponse::Forbidden().json(json!({ "status": "error", "message": "Invalid beta code" }));
+    if betacode_enabled {
+        let all_beta_codes: Vec<String> = sqlx::query_scalar("SELECT betacode FROM betacode WHERE enabled = TRUE")
+            .fetch_all(pool.get_ref())
+            .await
+            .unwrap();
+        if ! all_beta_codes.contains(betacode) {
+            return HttpResponse::Forbidden().json(json!({ "status": "error", "message": "Invalid beta code" }));
+        }
     }
 
     let same_users: i64 = sqlx::query_scalar("SELECT COUNT(*) FROM users WHERE email = (?)")
@@ -225,10 +229,11 @@ pub async fn register(pool: web::Data<MySqlPool>, payload: web::Json<User>) -> H
     // alex you idiot, you forgot to hash the password TwT
     let password_hash = hash_password(&user_password.to_string());
 
-    let r = sqlx::query("INSERT INTO users (username, email, password) VALUES (?, ?, ?)")
+    let r = sqlx::query("INSERT INTO users (username, email, password, betacode) VALUES (?, ?, ?, ?)")
         .bind(user)
         .bind(email)
         .bind(password_hash)
+        .bind(betacode)
         .execute(pool.get_ref())
         .await;
 

@@ -3,10 +3,10 @@
     "method": "POST",
     "body": {
         "mimeType": "application/json",
-        "text": "{\n    \"password\": \"bleh\",\n    \"email\":\"bleh@mail.com\"\n}"
+        "text": "{\n    \"username\": \"test\",\n    \"email\": \"test@email.com\",\n    \"password\": \"badpassword\",\n    \"betacode\": \"bleh\"\n}"
     },
-    "url": "http://127.0.0.1:5000/auth/login",
-    "sortOrder": 2,
+    "url": "https://kraft.alexbissessur.dev/auth/register",
+    "sortOrder": 0,
     "parameters": [],
     "pathParameters": [],
     "headers": [

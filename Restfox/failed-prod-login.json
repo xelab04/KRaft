@@ -6,7 +6,7 @@
         "text": "{\n    \"password\": \"bleh\",\n    \"email\":\"alexbissessur@gmail.com\"\n}"
     },
     "url": "http://kraft.alexbissessur.dev/auth/login",
-    "sortOrder": 2,
+    "sortOrder": 3,
     "parameters": [],
     "pathParameters": [],
     "headers": [
