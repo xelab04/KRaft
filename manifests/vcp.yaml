@@ -11,11 +11,11 @@ spec:
   limit:
     limits:
     - default:
-        cpu: 100m
-        memory: 300Mi
+        cpu: 200m
+        memory: 500Mi
       defaultRequest:
-        cpu: 50m
-        memory: 200Mi
+        cpu: 100m
+        memory: 400Mi
       type: Container
 
   quota:
