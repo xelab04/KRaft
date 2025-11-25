@@ -21,6 +21,7 @@ use crate::validatename;
 use crate::AppConfig;
 use crate::tlssan;
 use crate::ingress;
+use crate::vcp;
 
 
 #[derive(Serialize, Deserialize, FromRow)]
@@ -163,6 +164,8 @@ pub async fn create(
     for (i, tlssan) in validated_tlssan_list.iter().enumerate() {
         ingress::traefik(&kubeclient, &cluster_name, &namespace, tlssan, i).await;
     }
+    
+    vcp::create_default_vcp(&kubeclient, &cluster_name, &namespace);
 
     return HttpResponse::Ok().json("Cluster created successfully");
 }

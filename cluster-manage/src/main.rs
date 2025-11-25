@@ -22,6 +22,7 @@ mod jwt;
 mod tlssan;
 mod ingress;
 mod logs;
+mod vcp;
 
 #[derive(Clone)]
 pub struct AppConfig {
