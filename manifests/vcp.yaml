@@ -9,7 +9,7 @@ spec:
     nodepool: main
   # defaultPriorityClass: default
   disableNetworkPolicy: false
-  podSecurityAdmissionLevel: restricted
+  podSecurityAdmissionLevel: baseline
   limit:
     limits:
     - default:
