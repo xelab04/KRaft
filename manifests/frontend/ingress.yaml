@@ -9,7 +9,7 @@ metadata:
     kubernetes.io/ingress.class: traefik
 spec:
   rules:
-  - host: kraftcloud.dev
+  - host: kraft.alexbissessur.dev
     http:
       paths:
       - backend:
