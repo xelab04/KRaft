@@ -1599,7 +1599,7 @@ dependencies = [
 [[package]]
 name = "k3k-rs"
 version = "0.1.0"
-source = "git+https://github.com/xelab04/k3k-rs#f9726007983e3b7e1b891fdbc19b90d40cdc6634"
+source = "git+https://github.com/xelab04/k3k-rs#11af24bb94ed0409530d053d788c2833837adb11"
 dependencies = [
  "anyhow",
  "k8s-openapi",
