@@ -1,0 +1,48 @@
+apiVersion: k3k.io/v1alpha1
+kind: VirtualClusterPolicy
+metadata:
+  name: kraft-vpc
+spec:
+  allowedMode: shared
+  defaultNodeSelector:
+    kubernetes.io/arch: amd64
+    nodepool: main
+  defaultPriorityClass: default
+  disableNetworkPolicy: false
+  podSecurityAdmissionLevel: restricted
+  limit:
+    limits:
+    - default:
+        cpu: 50m
+        memory: 200m
+      defaultRequest:
+        cpu: 50m
+        memory: 200m
+      type: Container
+  
+  quota:
+    hard:
+      cpu: 350m
+      memory: 1G
+      requests.storage: 2G
+      # requests:
+        
+  sync:
+    configmaps:
+      enabled: true
+      selector: null
+    ingresses:
+      enabled: true
+      selector: null
+    persistentVolumeClaims:
+      enabled: true
+      selector: null
+    priorityClasses:
+      enabled: false
+      selector: null
+    secrets:
+      enabled: true
+      selector: null
+    services:
+      enabled: true
+      selector: null
