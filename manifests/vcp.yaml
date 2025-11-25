@@ -12,17 +12,17 @@ spec:
     limits:
     - default:
         cpu: 50m
-        memory: 200m
+        memory: 300Mi
       defaultRequest:
         cpu: 50m
-        memory: 200m
+        memory: 200Mi
       type: Container
 
   quota:
     hard:
       cpu: 350m
-      memory: 1G
-      requests.storage: 2G
+      memory: 1Gi
+      requests.storage: 2Gi
       # requests:
 
   sync:
