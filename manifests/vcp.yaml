@@ -26,7 +26,7 @@ spec:
       # requests:
 
   sync:
-    configmaps:
+    configMaps:
       enabled: true
       selector: null
     ingresses:
