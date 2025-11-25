@@ -4,9 +4,7 @@ metadata:
   name: kraft-vpc
 spec:
   allowedMode: shared
-  defaultNodeSelector:
-    kubernetes.io/arch: amd64
-    nodepool: main
+  defaultNodeSelector: {}
   # defaultPriorityClass: default
   disableNetworkPolicy: false
   podSecurityAdmissionLevel: baseline
