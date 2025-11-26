@@ -5,6 +5,7 @@ metadata:
 spec:
   entryPoints:
     - websecure
+    - web
   routes:
   - match: Host(`kraftcloud.dev`) && Path(`/api`)
     kind: Rule
