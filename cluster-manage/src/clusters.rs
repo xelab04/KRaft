@@ -137,8 +137,8 @@ pub async fn create(
                 Ingress: None
             }),
             serverLimit: Some(BTreeMap::from([
-                ("cpu".to_string(), IntOrString::String("150m".to_string())),
-                ("memory".to_string(), IntOrString::String("400Mi".to_string()))
+                ("cpu".to_string(), IntOrString::String("200m".to_string())),
+                ("memory".to_string(), IntOrString::String("500Mi".to_string()))
             ])),
             workerLimit: Some(BTreeMap::from([
                 ("cpu".to_string(), IntOrString::String("30m".to_string())),
