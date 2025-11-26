@@ -3,6 +3,7 @@ use std::collections::BTreeMap;
 use actix_web::web;
 use actix_web::web::{Json, Path};
 use actix_web::{HttpRequest, HttpResponse};
+use k8s_openapi::apimachinery::pkg::util::intstr::IntOrString;
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 
@@ -135,6 +136,14 @@ pub async fn create(
                 NodePort: None,
                 Ingress: None
             }),
+            serverLimit: Some(BTreeMap::from([
+                ("cpu".to_string(), IntOrString::String("150m".to_string())),
+                ("memory".to_string(), IntOrString::String("400Mi".to_string()))
+            ])),
+            workerLimit: Some(BTreeMap::from([
+                ("cpu".to_string(), IntOrString::String("30m".to_string())),
+                ("memory".to_string(), IntOrString::String("75Mi".to_string()))
+            ])),
             sync: Some(k3k_rs::cluster::SyncSpec{
                 ingresses: Some(k3k_rs::cluster::SyncResourceSpec {
                     enabled: true,
