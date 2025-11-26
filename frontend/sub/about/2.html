@@ -22,43 +22,32 @@
                 1. K3k
             </div>
             <div>
-                Kraft is built on top of K3k, a Rancher project to run Kubernetes clusters inside Kubernetes. The more daring people
-                may call this KinK :3 K3k runs pods on the host cluster with the API server and Kubelets and isolates the different
-                clusters with namespaces, network policies, and more. For Kraft, I am running K3k in shared mode, which uses less
-                resoures at the cost of isolation - it means your guest cluster will inherit access to ingressclasses and storageclasses
-                which are present on the host.
+                Kraft is built on top of K3k, a Rancher project to run Kubernetes clusters inside Kubernetes. K3k runs pods on the host cluster with the API server and Kubelets and isolates the different clusters with namespaces, network policies, and more. For Kraft, I am running K3k in shared mode, which uses less resoures at the cost of isolation - it means your guest cluster will inherit access to ingressclasses and storageclasses which are present on the host.
             </div>
 
             <div class="font-bold mt-4">
                 2. Longhorn
             </div>
             <div>
-                Longhorn is a cloud native block storage solution for Kubernetes, is a Rancher project, also on the CNCF landscape as an
-                incubating project. In the current configuration, Longhorn will create volume replicas on the host nodes, meaning any
-                node could fail and the volume will still work fine. Also, I have both snapshot and backup schedules to Wasabi S3 so,
-                in case I decimate the host cluster by accident, all your data can be recovered. At the end of the day, all of this means
-                that your data is safe and is not at risk of being lost, particularly by hardware failures.
+                Longhorn is a cloud native block storage solution for Kubernetes, is a Rancher project, also on the CNCF landscape as an incubating project. In the current configuration, Longhorn will create volume replicas on the host nodes, meaning any node could fail and the volume will still work fine. Also, I have both snapshot and backup schedules to Wasabi S3 so, in case I decimate the host cluster by accident, all your data can be recovered. At the end of the day, all of this means that your data is safe and is not at risk of being lost, particularly by hardware failures.
+                <br>
+                Please keep in mind that you must have good backup practices on your end and not rely entirely on my backups which may or may not work.
             </div>
 
             <div class="font-bold mt-4">
                 3. Ingress Classes
             </div>
             <div>
-                I won't tell you what's there at the time of writing, but by the time Kraft becomes ready, there will be both Traefik
-                and Longhorn storage classes available for the guest clusters. You get to choose the ingressclass when you create
-                your ingress resources.
+                KRaft sits on a host cluster with Traefik ingress. This means that when you create an ingress object, it is synced to the host cluster and created by Traefik.
             </div>
 
             <div class="font-bold mt-8">
                 4. Hardware
             </div>
             <div>
-                Again, not the present-day hardware. But eventually, Kraft will be running on 3 Talos VMs running on Proxmox. Talos has
-                been chosen for security given there's no shell or anything really. Reducing the attack surface makes my life easier
-                and should keep your clusters safer. Proxmox itself will be running on a single HP Proliant DL380 Gen8.
-                Limitations with the setup - no UPS so powercuts will cause issues. I also have a single physical server so, if it fails
-                or needs upgrading, Kraft will be down. And finally, it's running on a 200/50Mbps home connection so please don't
-                expect too much out of it.
+                For the time being, KRaft is running on my pre-existing homelab of 3 Dell Optiplex Micros, each with 4 cores, 4 threads, and 32GB of RAM. The nodes are connected over gigabit lines, with a 200/50 Mbps home connection, and I lack a UPS, meaning that powercuts or internet problems will cause noticeable issues.
+                <br>
+                In the future, the plan is to run KRaft on Talos on an HP Proliant DL 380 Gen8 server with 48 threads and 128GB of RAM. The bonus of running Talos will be security, skipping on having a shell (or many other things). Reducing the attack surface makes my life easier.
             </div>
         </div>
 
