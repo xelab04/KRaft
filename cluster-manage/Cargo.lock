@@ -484,6 +484,7 @@ dependencies = [
  "actix-web",
  "chrono",
  "env_logger",
+ "futures-util",
  "jsonwebtoken",
  "k3k-rs",
  "k8s-openapi",
