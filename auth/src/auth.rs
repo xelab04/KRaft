@@ -1,20 +1,20 @@
-use actix_web::mime::JSON;
 use argon2::{Argon2, PasswordHasher, PasswordVerifier, password_hash::Salt};
-use argon2::{password_hash::{PasswordHash, SaltString, Error}};
-use actix_web::{web, HttpRequest, HttpResponse, http::header, cookie::Cookie, cookie::SameSite};
-use actix_web::cookie::time::Duration;
-use rand;
-// use actix_web::web::{Json, Path};
-use serde::{Serialize, Deserialize};
-use serde_json::json;
-use sqlx::MySqlPool;
-use sqlx::FromRow;
-use serde_json;
-use log::{info};
-
+use argon2::{password_hash::{PasswordHash, SaltString}};
 use jsonwebtoken::{decode, DecodingKey, Validation, Algorithm};
 
+use actix_web::{web, HttpRequest, HttpResponse, FromRequest, Error, cookie::{Cookie, SameSite}};
+use rand;
+
+use serde::{Serialize, Deserialize};
+use serde_json::json;
+use serde_json;
+use sqlx::MySqlPool;
+use sqlx::FromRow;
+
+use futures_util::future::{ready, Ready};
+
 use crate::jwt;
+
 
 #[derive(serde::Serialize, serde::Deserialize, Debug, FromRow, Clone)]
 struct User {
@@ -23,7 +23,6 @@ struct User {
     email: String,
     #[serde(rename = "password")]
     user_password: String,
-    #[sqlx(skip)]
     betacode: Option<String>
 }
 
@@ -83,26 +82,47 @@ fn hash_password(clear_pwd: &String) -> String {
     return password_hash.to_string();
 }
 
+
+pub struct AuthUser {
+    user_id: String
+}
+
+impl FromRequest for AuthUser {
+    type Error = Error;
+    type Future = Ready<Result<Self, Self::Error>>;
+
+    fn from_request(req: &HttpRequest, _payload: &mut actix_web::dev::Payload) -> Self::Future {
+        let jwt = jwt::extract_user_id_from_jwt(&req);
+        match jwt {
+            Ok(id) => { return ready(Ok(AuthUser { user_id: id })); }
+            Err(e) => { return ready(Err(actix_web::error::ErrorUnauthorized("Unauthorised"))); }
+        };
+    }
+}
+
 #[actix_web::post("/auth/changepassword")]
 pub async fn changepwd(
     pool: web::Data<MySqlPool>,
     payload: web::Json<PasswordChange>,
-    req: HttpRequest,
+    // req: HttpRequest,
+    user: AuthUser
 ) -> HttpResponse {
 
-    // get user id from request
-    let jwt = jwt::extract_user_id_from_jwt(&req);
 
-    let mut user_id: String = String::from("0");
-    match jwt {
-        Ok(id) => {
-            user_id = Some(id).unwrap();
-        }
-        Err(e) => {
-            println!("Error: {:?}", e);
-            return HttpResponse::Unauthorized().json(json!({"status": "error", "message": "Unauthorized"}));
-        }
-    };
+    let user_id = user.user_id;
+    // get user id from request
+    // let jwt = jwt::extract_user_id_from_jwt(&req);
+
+    // let mut user_id: String = String::from("0");
+    // match jwt {
+    //     Ok(id) => {
+    //         user_id = Some(id).unwrap();
+    //     }
+    //     Err(e) => {
+    //         println!("Error: {:?}", e);
+    //         return HttpResponse::Unauthorized().json(json!({"status": "error", "message": "Unauthorized"}));
+    //     }
+    // };
 
     let user_password:String = sqlx::query_scalar("SELECT password FROM users WHERE user_id = (?)")
         .bind(&user_id)
@@ -140,7 +160,7 @@ pub async fn login(pool: web::Data<MySqlPool>, payload: web::Json<User>) -> Http
     }
 
     let user_data = sqlx::query_as::<_, User>(
-        "SELECT user_id, username, email, password as user_password FROM users WHERE email = (?)"
+        "SELECT user_id, username, email, password as user_password, betacode FROM users WHERE email = (?)"
         )
         .bind(email)
         .fetch_all(pool.get_ref())
@@ -303,29 +323,6 @@ pub async fn validate_jwt(req: HttpRequest) -> HttpResponse {
             return HttpResponse::Ok().json(json!({
                 "status": "success",
                 "message": format!("User ID: {}", token_data.sub),
-            }));
-        }
-        Err(_) => {
-            return HttpResponse::Unauthorized().json(json!({
-                "status": "error",
-                "message": "Invalid token."
-            }));
-        }
-    }
-
-}
-
-
-#[actix_web::get("/auth/get-userid")]
-pub async fn get_user_id(req: HttpRequest) -> HttpResponse {
-
-    let user_id = jwt::extract_user_id_from_jwt(&req);
-
-    match user_id {
-        Ok(id) => {
-            return HttpResponse::Ok().json(json!({
-                "status": "success",
-                "message": format!("User ID: {}", id),
             }));
         }
         Err(_) => {
