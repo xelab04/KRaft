@@ -6,6 +6,7 @@ use serde_json;
 use log::{info};
 
 use crate::jwt;
+use crate::auth;
 
 
 #[derive(serde::Serialize, serde::Deserialize, Debug, FromRow, Clone)]
@@ -24,21 +25,25 @@ struct User {
 pub async fn details(
     req: HttpRequest,
     pool: web::Data<MySqlPool>,
+    user: auth::AuthUser
 ) -> HttpResponse {
 
-    // get user id from request
-    let jwt = jwt::extract_user_id_from_jwt(&req);
 
-    let mut user_id: String = String::from("0");
-    match jwt {
-        Ok(id) => {
-            user_id = Some(id).unwrap();
-        }
-        Err(e) => {
-            println!("Error: {:?}", e);
-            return HttpResponse::Unauthorized().json(json!({"status": "error", "message": "Unauthorized"}));
-        }
-    };
+    let user_id = user.user_id;
+
+    // get user id from request
+    // let jwt = jwt::extract_user_id_from_jwt(&req);
+
+    // let mut user_id: String = String::from("0");
+    // match jwt {
+    //     Ok(id) => {
+    //         user_id = Some(id).unwrap();
+    //     }
+    //     Err(e) => {
+    //         println!("Error: {:?}", e);
+    //         return HttpResponse::Unauthorized().json(json!({"status": "error", "message": "Unauthorized"}));
+    //     }
+    // };
 
 
 

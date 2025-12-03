@@ -84,7 +84,7 @@ fn hash_password(clear_pwd: &String) -> String {
 
 
 pub struct AuthUser {
-    user_id: String
+    pub user_id: String
 }
 
 impl FromRequest for AuthUser {
