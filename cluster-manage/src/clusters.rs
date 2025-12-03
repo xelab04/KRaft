@@ -26,6 +26,8 @@ use crate::tlssan;
 use crate::ingress;
 use crate::vcp;
 
+use crate::utils::*;
+
 
 #[derive(Serialize, Deserialize, FromRow)]
 pub struct Cluster {
@@ -47,25 +49,28 @@ pub async fn create(
     pool: web::Data<MySqlPool>,
     kubeclient: web::Data<Client>,
     config: web::Data<AppConfig>,
+    user: AuthUser,
     Json(cluster): Json<ClusterCreateForm>,
 ) -> HttpResponse {
-    let jwt = jwt::extract_user_id_from_jwt(&req);
+    // let jwt = jwt::extract_user_id_from_jwt(&req);
 
     // assume that for testing purposes the User's ID is 0
     // USER ID MANAGEMENT AND VALIDATION
-    //
-    let mut user_id: String = String::from("0");
-    match jwt {
-        Ok(id) => {
-            user_id = Some(id).unwrap();
-        }
-        Err(e) => {
-            println!("Error: {:?}", e);
-            if config.environment == "PROD" {
-                return HttpResponse::Unauthorized().json(json!({"status": "error", "message": "Unauthorized"}));
-            }
-        }
-    };
+
+    let user_id = user.user_id;
+
+    // let mut user_id: String = String::from("0");
+    // match jwt {
+    //     Ok(id) => {
+    //         user_id = Some(id).unwrap();
+    //     }
+    //     Err(e) => {
+    //         println!("Error: {:?}", e);
+    //         if config.environment == "PROD" {
+    //             return HttpResponse::Unauthorized().json(json!({"status": "error", "message": "Unauthorized"}));
+    //         }
+    //     }
+    // };
 
     let cluster_name = format!("{}-{}", user_id, cluster.name);
 
@@ -213,25 +218,27 @@ pub async fn clusterdelete(
     cluster_name: web::Path<String>,
     kubeclient: web::Data<Client>,
     config: web::Data<AppConfig>,
+    user: AuthUser
 ) -> HttpResponse{
 
     let raw_cluster_name = cluster_name.into_inner();
+    let user_id = user.user_id;
 
-    let jwt = jwt::extract_user_id_from_jwt(&req);
+    // let jwt = jwt::extract_user_id_from_jwt(&req);
 
-    let mut user_id: String = String::from("0");
-    match jwt {
-        Ok(id) => {
-            user_id = Some(id).unwrap();
-        }
-        Err(e) => {
-            println!("Error: {:?}", e);
-            // #[PROD]
-            if config.environment == "PROD" {
-                return HttpResponse::Unauthorized().json("Unauthorized");
-            }
-        }
-    };
+    // let mut user_id: String = String::from("0");
+    // match jwt {
+    //     Ok(id) => {
+    //         user_id = Some(id).unwrap();
+    //     }
+    //     Err(e) => {
+    //         println!("Error: {:?}", e);
+    //         // #[PROD]
+    //         if config.environment == "PROD" {
+    //             return HttpResponse::Unauthorized().json("Unauthorized");
+    //         }
+    //     }
+    // };
 
     // check the user owns the cluster
     let cluster_count_belonging_to_user: i64 = sqlx::query_scalar("SELECT COUNT(*) FROM clusters WHERE user_id = ? AND cluster_name = ?")
@@ -276,25 +283,27 @@ pub async fn get_kubeconfig(
     cluster_name: web::Path<String>,
     kubeclient: web::Data<Client>,
     config: web::Data<AppConfig>,
+    user: AuthUser
 ) -> HttpResponse {
 
     let raw_cluster_name = cluster_name.into_inner();
+    let user_id = user.user_id;
 
-    let jwt = jwt::extract_user_id_from_jwt(&req);
+    // let jwt = jwt::extract_user_id_from_jwt(&req);
 
-    let mut user_id: String = String::from("0");
-    match jwt {
-        Ok(id) => {
-            user_id = Some(id).unwrap();
-        }
-        Err(e) => {
-            println!("Error: {:?}", e);
-            // #[PROD]
-            if config.environment == "PROD" {
-                return HttpResponse::Unauthorized().json("Unauthorized");
-            }
-        }
-    };
+    // let mut user_id: String = String::from("0");
+    // match jwt {
+    //     Ok(id) => {
+    //         user_id = Some(id).unwrap();
+    //     }
+    //     Err(e) => {
+    //         println!("Error: {:?}", e);
+    //         // #[PROD]
+    //         if config.environment == "PROD" {
+    //             return HttpResponse::Unauthorized().json("Unauthorized");
+    //         }
+    //     }
+    // };
     // raw_cluster_name is 3-meow
     // so userid-clustername
 
@@ -340,23 +349,25 @@ pub async fn list(
     req: HttpRequest,
     pool: web::Data<MySqlPool>,
     config: web::Data<AppConfig>,
+    user: AuthUser
 ) -> HttpResponse {
     let jwt = jwt::extract_user_id_from_jwt(&req);
 
-    let mut user_id:String = String::from("0");
-    match jwt {
-        Ok(id) => {
-            user_id = id;
-        }
-        Err(e) => {
-            println!("Error: {:?}", e);
+    let user_id = user.user_id;
+    // let mut user_id:String = String::from("0");
+    // match jwt {
+    //     Ok(id) => {
+    //         user_id = id;
+    //     }
+    //     Err(e) => {
+    //         println!("Error: {:?}", e);
 
-            if config.environment == "PROD" {
-                return HttpResponse::Unauthorized().json("Unauthorized")
-            }
-            // return HttpResponse::Unauthorized().json("Unauthorized")
-        }
-    };
+    //         if config.environment == "PROD" {
+    //             return HttpResponse::Unauthorized().json("Unauthorized")
+    //         }
+    //         // return HttpResponse::Unauthorized().json("Unauthorized")
+    //     }
+    // };
 
     // use id to get from postgres
 
