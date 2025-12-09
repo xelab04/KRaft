@@ -4,6 +4,7 @@ USE kraft;
 
 CREATE TABLE users (
     user_id int NOT NULL AUTO_INCREMENT,
+    uuid varchar(255) NOT NULL,
     username varchar(255) NOT NULL,
     email varchar(255) NOT NULL,
     password varchar(255) NOT NULL,
