@@ -245,12 +245,13 @@ pub async fn register(pool: web::Data<MySqlPool>, payload: web::Json<User>) -> H
     let password_hash = hash_password(&user_password.to_string());
     let user_uuid = uuid::Uuid::new_v4().to_string();
 
-    let r = sqlx::query("INSERT INTO users (username, email, password, betacode, uuid) VALUES (?, ?, ?, ?, ?)")
+    let r = sqlx::query("INSERT INTO users (username, email, password, betacode, uuid, admin) VALUES (?, ?, ?, ?, ?, ?)")
         .bind(user)
         .bind(email)
         .bind(password_hash)
         .bind(betacode)
         .bind(user_uuid)
+        .bind(false)
         .execute(pool.get_ref())
         .await;
 

@@ -43,12 +43,29 @@
             console.log(data);
             document.getElementById('error-message').textContent = data.message
           }
-
         })
       }
 
       function deleteAccount() {
-        document.getElementById('delete-message').textContent = 'This feature is not implemented yet.';
+        // document.getElementById('delete-message').textContent = 'This feature is not implemented yet.';
+
+        fetch ('/auth/user/delete', { method: 'POST' })
+        .then(async response => {
+          let data = {}
+          try {
+            data = await response.json();
+            document.getElementById('error-message').textContent = 'Account deleted successfully';
+          }
+          catch (error) {
+            console.log("error");
+            data = { message: await response.text() };
+          }
+
+          if (!response.ok) {
+            console.log(data);
+            document.getElementById('error-message').textContent = data.message
+          }
+        })
       }
 
       function signOut() {
