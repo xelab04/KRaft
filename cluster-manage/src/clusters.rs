@@ -326,7 +326,7 @@ pub async fn get_kubeconfig(
         Err(e) => { return HttpResponse::Processing().json("Kubeconfig not found, wait a minute and try again.")}
     }
 
-    let filename = "/kubeconfig.yaml";
+    let filename = format!("/kubeconfig/kconf-{}.yaml", raw_cluster_name);
 
     fs::write(&filename, kconf).await.unwrap();
 
@@ -334,7 +334,7 @@ pub async fn get_kubeconfig(
         Ok(file_contents) => {
             return HttpResponse::Ok()
                 .content_type("application/octet-stream")
-                .append_header(("Content-Disposition", format!("attachment; filename=\"{}\"", raw_cluster_name)))
+                .append_header(("Content-Disposition", format!("attachment; filename=\"{}.yaml\"", raw_cluster_name)))
                 .body(file_contents);
         },
         Err(e) => {

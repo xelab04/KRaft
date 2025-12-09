@@ -35,6 +35,10 @@ spec:
         - secretRef:
             name: database-secrets
 
+        volumeMounts:
+          - name: kraft-clusters
+            mountPath: /kubeconfig
+
       #   volumeMounts:
       #   - name: kubeconfig-volume
       #     mountPath: /root/.kube/
@@ -43,4 +47,9 @@ spec:
       # - name: kubeconfig-volume
       #   secret:
       #     secretName: kubeconfig
+      volumes:
+        - name: kraft-clusters
+          persistentVolumeClaim:
+            claimName: kraft-clusters
+
 status: {}
