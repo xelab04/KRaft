@@ -2,7 +2,7 @@ use argon2::{Argon2, PasswordHasher, PasswordVerifier, password_hash::Salt};
 use argon2::{password_hash::{PasswordHash, SaltString}};
 use jsonwebtoken::{decode, DecodingKey, Validation, Algorithm};
 
-use actix_web::{web, HttpRequest, HttpResponse, FromRequest, Error, cookie::{Cookie, SameSite}};
+use actix_web::{web, HttpRequest, HttpResponse, FromRequest, Error, cookie::{Cookie, SameSite, time}};
 use rand;
 use uuid;
 
@@ -132,6 +132,22 @@ pub async fn changepwd(
         return HttpResponse::Forbidden().json(json!({"message": "Invalid password"}));
     }
 
+}
+
+
+#[actix_web::post("/auth/logout")]
+pub async fn logout() -> HttpResponse {
+    let cookie = Cookie::build("auth_token", "")
+        .path("/")
+        .http_only(true)
+        .secure(true)
+        .same_site(SameSite::Strict)
+        .max_age(time::Duration::seconds(0))
+        .finish();
+
+    return HttpResponse::Ok()
+        .cookie(cookie)
+        .json(json!({ "status": "success", "message": "success" }));
 }
 
 #[actix_web::post("/auth/login")]

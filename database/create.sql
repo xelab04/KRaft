@@ -26,6 +26,12 @@ CREATE TABLE betacode (
     enabled BOOLEAN NOT NULL DEFAULT FALSE
 );
 
+CREATE TABLE admins (
+    user_id int NOT NULL,
+    admin BOOLEAN NOT NULL,
+    FOREIGN KEY (user_id) REFERENCES users(user_id)
+)
+
 INSERT INTO users VALUES (1, "alex", "alexbissessur@gmail.com", "password");
 
 INSERT INTO clusters VALUES (1, "test", "kraft.alexb.dev", 1);
