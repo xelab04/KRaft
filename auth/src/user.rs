@@ -87,12 +87,13 @@ pub async fn details(
 pub async fn user_delete (
     user: auth::AuthUser,
     pool: web::Data<MySqlPool>,
+    client: web::Data<Client>,
     uuid_query_param: web::Query<UserUUID>,
 ) -> HttpResponse {
 
     let user_jwt = user.user_id;
 
-    let client = Client::try_default().await.unwrap();
+    // let client = Client::try_default().await.unwrap();
 
     let is_admin: bool = sqlx::query_scalar("SELECT EXISTS(SELECT 1 FROM users WHERE user_id = ? and admin = true)")
         .bind(&user_jwt)
