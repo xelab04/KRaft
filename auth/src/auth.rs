@@ -4,12 +4,11 @@ use jsonwebtoken::{decode, DecodingKey, Validation, Algorithm};
 
 use actix_web::{web, HttpRequest, HttpResponse, FromRequest, Error, cookie::{Cookie, SameSite}};
 use rand;
+use uuid;
 
 use serde::{Serialize, Deserialize};
-use serde_json::json;
-use serde_json;
-use sqlx::MySqlPool;
-use sqlx::FromRow;
+use serde_json::{self, json};
+use sqlx::{MySqlPool, FromRow};
 
 use futures_util::future::{ready, Ready};
 
@@ -20,10 +19,28 @@ use crate::jwt;
 struct User {
     user_id: Option<i32>,
     username: Option<String>,
+    uuid: Option<String>,
     email: String,
     #[serde(rename = "password")]
     user_password: String,
     betacode: Option<String>
+}
+
+pub struct AuthUser {
+    pub user_id: String
+}
+
+impl FromRequest for AuthUser {
+    type Error = Error;
+    type Future = Ready<Result<Self, Self::Error>>;
+
+    fn from_request(req: &HttpRequest, _payload: &mut actix_web::dev::Payload) -> Self::Future {
+        let jwt = jwt::extract_user_id_from_jwt(&req);
+        match jwt {
+            Ok(id) => { return ready(Ok(AuthUser { user_id: id })); }
+            Err(e) => { return ready(Err(actix_web::error::ErrorUnauthorized("Unauthorised"))); }
+        };
+    }
 }
 
 #[derive(serde::Serialize, serde::Deserialize, Debug, FromRow, Clone)]
@@ -82,24 +99,6 @@ fn hash_password(clear_pwd: &String) -> String {
     return password_hash.to_string();
 }
 
-
-pub struct AuthUser {
-    pub user_id: String
-}
-
-impl FromRequest for AuthUser {
-    type Error = Error;
-    type Future = Ready<Result<Self, Self::Error>>;
-
-    fn from_request(req: &HttpRequest, _payload: &mut actix_web::dev::Payload) -> Self::Future {
-        let jwt = jwt::extract_user_id_from_jwt(&req);
-        match jwt {
-            Ok(id) => { return ready(Ok(AuthUser { user_id: id })); }
-            Err(e) => { return ready(Err(actix_web::error::ErrorUnauthorized("Unauthorised"))); }
-        };
-    }
-}
-
 #[actix_web::post("/auth/changepassword")]
 pub async fn changepwd(
     pool: web::Data<MySqlPool>,
@@ -108,21 +107,7 @@ pub async fn changepwd(
     user: AuthUser
 ) -> HttpResponse {
 
-
     let user_id = user.user_id;
-    // get user id from request
-    // let jwt = jwt::extract_user_id_from_jwt(&req);
-
-    // let mut user_id: String = String::from("0");
-    // match jwt {
-    //     Ok(id) => {
-    //         user_id = Some(id).unwrap();
-    //     }
-    //     Err(e) => {
-    //         println!("Error: {:?}", e);
-    //         return HttpResponse::Unauthorized().json(json!({"status": "error", "message": "Unauthorized"}));
-    //     }
-    // };
 
     let user_password:String = sqlx::query_scalar("SELECT password FROM users WHERE user_id = (?)")
         .bind(&user_id)
@@ -160,7 +145,7 @@ pub async fn login(pool: web::Data<MySqlPool>, payload: web::Json<User>) -> Http
     }
 
     let user_data = sqlx::query_as::<_, User>(
-        "SELECT user_id, username, email, password as user_password, betacode FROM users WHERE email = (?)"
+        "SELECT user_id, username, email, password as user_password, betacode, uuid FROM users WHERE email = (?)"
         )
         .bind(email)
         .fetch_all(pool.get_ref())
@@ -248,12 +233,14 @@ pub async fn register(pool: web::Data<MySqlPool>, payload: web::Json<User>) -> H
 
     // alex you idiot, you forgot to hash the password TwT
     let password_hash = hash_password(&user_password.to_string());
+    let user_uuid = uuid::Uuid::new_v4().to_string();
 
-    let r = sqlx::query("INSERT INTO users (username, email, password, betacode) VALUES (?, ?, ?, ?)")
+    let r = sqlx::query("INSERT INTO users (username, email, password, betacode, uuid) VALUES (?, ?, ?, ?, ?)")
         .bind(user)
         .bind(email)
         .bind(password_hash)
         .bind(betacode)
+        .bind(user_uuid)
         .execute(pool.get_ref())
         .await;
 
