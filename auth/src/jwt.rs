@@ -62,6 +62,18 @@ pub fn create_cookie(jwt_token: &String) -> Cookie {
     cookie
 }
 
+pub fn del_cookie() -> Cookie<'static> {
+    let cookie = Cookie::build("auth_token", "")
+        .path("/")
+        .http_only(true)
+        .secure(true)
+        .same_site(SameSite::Strict)
+        .max_age(time::Duration::seconds(0))
+        .finish();
+
+    cookie
+}
+
 pub fn validate_jwt(jwt: &String) -> bool {
 
     let jwt_secret = env::var("JWT_SECRET")

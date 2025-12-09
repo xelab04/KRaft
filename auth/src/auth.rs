@@ -137,13 +137,7 @@ pub async fn changepwd(
 
 #[actix_web::post("/auth/logout")]
 pub async fn logout() -> HttpResponse {
-    let cookie = Cookie::build("auth_token", "")
-        .path("/")
-        .http_only(true)
-        .secure(true)
-        .same_site(SameSite::Strict)
-        .max_age(time::Duration::seconds(0))
-        .finish();
+    let cookie = jwt::del_cookie();
 
     return HttpResponse::Ok()
         .cookie(cookie)

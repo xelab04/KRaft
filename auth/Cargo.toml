@@ -15,6 +15,8 @@ argon2 = "0.5.3"
 env_logger = "0.11.8"
 futures = "0.3.31"
 futures-util = "0.3.31"
+k3k-rs = { git = "https://github.com/xelab04/k3k-rs" }
+kube = { version = "2.0.1", features = ["runtime", "derive"] }
 mysql = "26.0.0"
 mysql_common = "0.35.4"
 serde = "1.0.219"
