@@ -8,6 +8,8 @@ use log::{info};
 use crate::jwt;
 use crate::auth;
 
+use k3k_rs;
+use kube::Client;
 
 #[derive(serde::Serialize, serde::Deserialize, Debug, FromRow, Clone)]
 struct User {
@@ -78,4 +80,65 @@ pub async fn details(
             return HttpResponse::InternalServerError().json(json!({"status": "error", "message": "Internal Server Error"}));
         }
     }
+}
+
+
+#[actix_web::delete("/auth/user/delete")]
+pub async fn user_delete (
+    user: auth::AuthUser,
+    pool: web::Data<MySqlPool>,
+    uuid_query_param: web::Query<UserUUID>,
+) -> HttpResponse {
+
+    let user_jwt = user.user_id;
+
+    let client = Client::try_default().await.unwrap();
+
+    let is_admin: bool = sqlx::query_scalar("SELECT EXISTS(SELECT 1 FROM users WHERE user_id = ? and admin = true)")
+        .bind(&user_jwt)
+        .fetch_one(pool.as_ref())
+        .await
+        .unwrap_or(false);
+
+
+    let cluster_names: Vec<String> = sqlx::query_scalar("SELECT cluster_name FROM clusters WHERE user_id = ?")
+        .bind(&user_jwt)
+        .fetch_all(pool.as_ref())
+        .await
+        .unwrap_or_default();
+
+    // Delete all clusters associated with the user
+    for cluster_name in cluster_names {
+        let namespace = format!("k3k-{}", cluster_name);
+        let r = k3k_rs::cluster::delete(&client, &namespace.as_str(), &cluster_name.as_str()).await;
+        match r {
+            Ok(_) => {
+                println!("Cluster {} deleted successfully", cluster_name);
+                sqlx::query("DELETE FROM clusters WHERE user_id = ? AND cluster_name = ?")
+                    .bind(&user_jwt)
+                    .bind(&cluster_name)
+                    .execute(pool.as_ref())
+                    .await
+                    .unwrap_or_default();
+            }
+            Err(e) => {
+                println!("Error deleting cluster {}: {:?}", cluster_name, e);
+                return HttpResponse::InternalServerError().json(json!({"status": "error", "message": format!("Failed deleting cluster: {}", cluster_name)}));
+            }
+        }
+    }
+
+    // Delete user from database
+    sqlx::query("DELETE FROM users WHERE user_id = ?")
+        .bind(&user_jwt)
+        .execute(pool.as_ref())
+        .await
+        .unwrap_or_default();
+
+    let delete_cookie = jwt::del_cookie();
+
+    // return HttpResponse::Ok().finish();
+    return HttpResponse::Ok()
+        .cookie(delete_cookie)
+        .json(json!({ "status": "success", "message": "success" }));
 }
