@@ -334,7 +334,7 @@ pub async fn get_kubeconfig(
         Ok(file_contents) => {
             return HttpResponse::Ok()
                 .content_type("application/octet-stream")
-                .append_header(("Content-Disposition", format!("attachment; filename=\"{}\"", raw_cluster_name)))
+                .append_header(("Content-Disposition", format!("attachment; filename=\"{}.yaml\"", raw_cluster_name)))
                 .body(file_contents);
         },
         Err(e) => {
