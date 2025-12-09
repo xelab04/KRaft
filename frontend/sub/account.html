@@ -55,6 +55,8 @@
           try {
             data = await response.json();
             document.getElementById('error-message').textContent = 'Account deleted successfully';
+            signOut();
+            window.location.href = `/`;
           }
           catch (error) {
             console.log("error");
