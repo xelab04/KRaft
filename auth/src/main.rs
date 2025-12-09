@@ -13,6 +13,7 @@ use actix_web::{
     middleware::{self, from_fn, Next},
     web
 };
+use kube::Client;
 
 mod auth;
 mod db_connect;
@@ -65,10 +66,12 @@ async fn main() -> io::Result<()> {
     }
 
     let db_pool = db_connect::get_db_pool().await.unwrap();
+    let kube_client = Client::try_default().await.unwrap();
 
     HttpServer::new(move || {
         App::new()
             .app_data(web::Data::new(db_pool.clone()))
+            .app_data(web::Data::new(kube_client.clone()))
             .wrap(middleware::Logger::default())
             .wrap(from_fn(update_cookie_middleware))
             .service(auth::login)
@@ -79,6 +82,7 @@ async fn main() -> io::Result<()> {
             // .service(auth::get_user_id)
             .service(auth::changepwd)
             .service(user::details)
+            .service(user::user_delete)
     })
         .bind("0.0.0.0:5000")?
         .run()
