@@ -88,7 +88,7 @@ pub async fn user_delete (
     user: auth::AuthUser,
     pool: web::Data<MySqlPool>,
     client: web::Data<Client>,
-    uuid_query_param: web::Query<UserUUID>,
+    uuid_query_param: Option<web::Query<UserUUID>>,
 ) -> HttpResponse {
 
     let user_jwt = user.user_id;
