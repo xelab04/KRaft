@@ -51,6 +51,12 @@
         document.getElementById('delete-message').textContent = 'This feature is not implemented yet.';
       }
 
+      function signOut() {
+        fetch('/auth/logout', {
+          method: "POST"
+        })
+        window.location.href = `/`;
+      }
 
       function userCheck() {
         fetch('/auth/validate-jwt', {
@@ -93,6 +99,10 @@
         <div class="text-white font-mono mt-2 text-xl">
           username: <span class="text-lg" x-text="user.username"></span>
         </div>
+
+        <button onclick="signOut()"  class="text-black bg-white hover:bg-gray-300 font-mono mt-2 text-xl">
+            Sign out
+        </button>
 
         <div class="text-white font-mono flex flex-col mt-8">
             <a href="#" class="text-2xl underline block">> Password</a>

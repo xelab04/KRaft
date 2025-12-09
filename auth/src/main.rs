@@ -30,6 +30,10 @@ where
     // pre-processing
     let user_id = jwt::extract_user_id_from_jwt(&req.request());
 
+    if req.path() == "/auth/logout" {
+        return next.call(req).await;
+    }
+
     let mut response = next.call(req).await.unwrap();
 
     // post-processing
@@ -68,6 +72,7 @@ async fn main() -> io::Result<()> {
             .wrap(middleware::Logger::default())
             .wrap(from_fn(update_cookie_middleware))
             .service(auth::login)
+            .service(auth::logout)
             .service(auth::register)
             .service(auth::password)
             .service(auth::validate_jwt)
