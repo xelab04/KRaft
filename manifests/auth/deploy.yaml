@@ -18,6 +18,8 @@ spec:
       labels:
         app: kraft-auth
     spec:
+      serviceAccountName: kraftsa
+      automountServiceAccountToken: true
       containers:
       - image: registry.alexbissessur.dev/kraft-auth:latest
         name: kraft-auth

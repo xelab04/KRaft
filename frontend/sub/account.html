@@ -49,7 +49,7 @@
       function deleteAccount() {
         // document.getElementById('delete-message').textContent = 'This feature is not implemented yet.';
 
-        fetch ('/auth/user/delete', { method: 'POST' })
+        fetch ('/auth/user/delete', { method: 'DELETE' })
         .then(async response => {
           let data = {}
           try {
