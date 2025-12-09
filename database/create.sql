@@ -9,6 +9,7 @@ CREATE TABLE users (
     email varchar(255) NOT NULL,
     password varchar(255) NOT NULL,
     betacode varchar(255),
+    admin BOOLEAN NOT NULL,
     PRIMARY KEY (user_id)
 );
 
@@ -25,12 +26,6 @@ CREATE TABLE betacode (
     betacode varchar(255) NOT NULL,
     enabled BOOLEAN NOT NULL DEFAULT FALSE
 );
-
-CREATE TABLE admins (
-    user_id int NOT NULL,
-    admin BOOLEAN NOT NULL,
-    FOREIGN KEY (user_id) REFERENCES users(user_id)
-)
 
 INSERT INTO users VALUES (1, "alex", "alexbissessur@gmail.com", "password");
 

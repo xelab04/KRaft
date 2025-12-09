@@ -162,9 +162,8 @@
           error: null,
 
           async userFetch() {
-            let uuid = localStorage.getItem('user_uuid') || '';
 
-            fetch('/auth/user/details/' + uuid)
+            fetch('/auth/user/details')
               .then(response => response.json())
               .then(data => {
                 console.log("User Data:", data.data);

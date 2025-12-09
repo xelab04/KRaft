@@ -32,26 +32,45 @@ pub async fn details(
     req: HttpRequest,
     pool: web::Data<MySqlPool>,
     user: auth::AuthUser,
-    user_uuid: web::Query<UserUUID>
+    useruuid_param: Option<web::Query<UserUUID>>
 ) -> HttpResponse {
 
-    let user_id = user.user_id;
-    let user_uuid = &user_uuid.u;
+    // If uuid is sent, then set that, otherwise default to jwt
+    let jwt_user_id = &user.user_id;
+
+    // check if is admin
+    let is_admin: bool = sqlx::query_scalar("SELECT EXISTS(SELECT 1 FROM users WHERE user_id = ? and admin = true)")
+        .bind(jwt_user_id)
+        .fetch_one(pool.as_ref())
+        .await
+        .unwrap_or(false);
+
+    // If admin, let the user get the details for all users
+    if is_admin {
+        let req_uuid: String;
+        match useruuid_param {
+            Some(found_uuid) => req_uuid = found_uuid.u.clone(),
+            None => req_uuid = user.user_id.clone()
+        }
+
+        let found_user: User = sqlx::query_as::<_, User>("SELECT user_id, username, email, uuid FROM users WHERE uuid = (?)")
+            .bind(&req_uuid)
+            .fetch_one(pool.as_ref())
+            .await
+            .unwrap();
+
+        return HttpResponse::Ok().json(json!({"status": "success", "data": found_user}))
+    }
 
     // get user details from database
-    let user = sqlx::query_as::<_, User>("SELECT user_id, username, email, uuid FROM users WHERE uuid = (?)")
-        .bind(user_uuid)
+    let user = sqlx::query_as::<_, User>("SELECT user_id, username, email, uuid FROM users WHERE user_id = (?)")
+        .bind(&jwt_user_id)
         .fetch_one(pool.as_ref())
         .await;
 
     // return user if valid
     match user {
         Ok(user) => {
-            // Check that the user who made the request matches the uuid fetched
-            if user_id != user.user_id.to_string() {
-                return HttpResponse::Unauthorized().json(json!({"status": "error", "message": "Unauthorized"}));
-            }
-
             HttpResponse::Ok().json(json!({"status": "success", "data": user}))
         }
         Err(e) => {
