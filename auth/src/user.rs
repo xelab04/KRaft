@@ -110,6 +110,7 @@ pub async fn user_delete (
 
     // Delete all clusters associated with the user
     for cluster_name in cluster_names {
+        println!("Deleting cluster {}", cluster_name);
         let namespace = format!("k3k-{}", cluster_name);
         let r = k3k_rs::cluster::delete(&client, &namespace.as_str(), &cluster_name.as_str()).await;
         match r {
