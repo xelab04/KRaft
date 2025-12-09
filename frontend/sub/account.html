@@ -54,7 +54,8 @@
       function signOut() {
         fetch('/auth/logout', {
           method: "POST"
-        })
+        });
+        window.localStorage.setItem('user_uuid', '');
         window.location.href = `/`;
       }
 
@@ -77,7 +78,19 @@
           document.getElementById('error-message').textContent = 'An error occurred somewhere between here and the server.';
         });
       }
+
+      function pageLoad() {
+        let uuid = localStorage.getItem('user_uuid') || '';
+        if (uuid == '') {
+          fetch('/auth/logout', {
+            method: "POST"
+          });
+          window.location.href = `/sub/login.html`;
+        }
+      }
+
       userCheck();
+      pageLoad();
     </script>
 
 </head>
@@ -149,7 +162,9 @@
           error: null,
 
           async userFetch() {
-            fetch('/auth/user/details')
+            let uuid = localStorage.getItem('user_uuid') || '';
+
+            fetch('/auth/user/details/' + uuid)
               .then(response => response.json())
               .then(data => {
                 console.log("User Data:", data.data);

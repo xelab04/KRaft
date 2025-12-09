@@ -195,12 +195,12 @@ pub async fn login(pool: web::Data<MySqlPool>, payload: web::Json<User>) -> Http
             if environment == "PROD" {
                 return HttpResponse::Ok()
                     .cookie(cookie)
-                    .json(json!({ "status": "success", "message": "success" }))
+                    .json(json!({ "status": "success", "message": "success", "uuid": &found_user.uuid }))
             }
 
             HttpResponse::Ok()
                 .cookie(cookie)
-                .json(json!({ "status": "success" }))
+                .json(json!({ "status": "success", "uuid": &found_user.uuid }))
 
         }
         Err(_) => {return HttpResponse::Forbidden().json(json!({ "status": "failure", "message": "Incorrect email/password" }));}
