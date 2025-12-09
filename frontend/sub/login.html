@@ -30,17 +30,14 @@
 
           let data;
           try {
-              console.log(response);
               data = await response.clone().json();
-              console.log(data);
           } catch {
             data = { message: await response.text() };
           }
 
           if (response.ok){
             document.getElementById('error-message').textContent = 'Success!';
-            console.log("RESPONSE DATA", data);
-            window.localStorage.setItem('user_uuid', data);
+            window.localStorage.setItem('user_uuid', data.uuid);
 
             await sleep(2000);
             console.log("redirecting");
