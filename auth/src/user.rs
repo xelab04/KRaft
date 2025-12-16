@@ -51,8 +51,8 @@ pub async fn details(
     if is_admin {
         let req_uuid: String;
         match useruuid_param {
-            Some(found_uuid) => req_uuid = found_uuid.u.clone(),
-            None => req_uuid = user.user_id.clone()
+            Some(found_uuid) => { println!("admin used, userid specified"); req_uuid = found_uuid.u.clone(); }
+            None => { println!("admin used, no userid specified"); req_uuid = user.user_id.clone(); }
         }
 
         let found_user: User = sqlx::query_as::<_, User>("SELECT user_id, username, email, uuid FROM users WHERE uuid = (?)")
