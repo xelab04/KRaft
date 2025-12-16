@@ -7,19 +7,19 @@ spec:
     - websecure
     - web
   routes:
-  - match: Host(`kraftcloud.dev`) && Path(`/api`)
+  - match: Host(`kraftcloud.dev`) && PathPrefix(`/api`)
     kind: Rule
     services:
     - name: kraft-cluster-manage
       port: 5000
 
-  - match: Host(`kraftcloud.dev`) && Path(`/resources`)
+  - match: Host(`kraftcloud.dev`) && PathPrefix(`/resources`)
     kind: Rule
     services:
     - name: kraft-resource-manage
       port: 5000
 
-  - match: Host(`kraftcloud.dev`) && Path(`/auth`)
+  - match: Host(`kraftcloud.dev`) && PathPrefix(`/auth`)
     kind: Rule
     services:
     - name: kraft-auth
