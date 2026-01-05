@@ -52,7 +52,16 @@ pub async fn details(
         let req_uuid: String;
         match useruuid_param {
             Some(found_uuid) => { println!("admin used, userid specified"); req_uuid = found_uuid.u.clone(); }
-            None => { println!("admin used, no userid specified"); req_uuid = user.user_id.clone(); }
+            None => {
+                println!("admin used, no userid specified");
+                req_uuid = user.user_id.clone();
+                let found_user: User = sqlx::query_as::<_, User>("SELECT user_id, username, email, uuid FROM users WHERE user_id = (?)")
+                    .bind(&req_uuid)
+                    .fetch_one(pool.as_ref())
+                    .await
+                    .unwrap();
+                return HttpResponse::Ok().json(json!({"status": "success", "data": found_user}))
+            }
         }
 
         let found_user: User = sqlx::query_as::<_, User>("SELECT user_id, username, email, uuid FROM users WHERE uuid = (?)")
