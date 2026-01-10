@@ -72,23 +72,26 @@ pub async fn create(
     //     }
     // };
 
-    let cluster_name = format!("{}-{}", user_id, cluster.name);
+    let cluster_name = format!("k-{}-{}", user_id, cluster.name);
 
     // generate random string for whatever.kraft.alexb.dev
-    let mut endpoint_string: String;
-    loop {
-        endpoint_string = format!("{}-{}", random_word::get(Lang::En), random_word::get(Lang::En));
+    // let mut endpoint_string: String;
+    let mut endpoint_string: String = format!("{}", cluster_name);
 
-        let count_with_same_endpoint: i64 = sqlx::query_scalar("SELECT COUNT(*) FROM clusters WHERE cluster_endpoint = (?)")
-            .bind(&endpoint_string)
-            .fetch_one(pool.get_ref())
-            .await
-            .unwrap();
+    //loop {
+    //    break
+    //    endpoint_string = format!("{}-{}", random_word::get(Lang::En), random_word::get(Lang::En));
 
-        if count_with_same_endpoint == 0 {
-            break
-        }
-    }
+    //    let count_with_same_endpoint: i64 = sqlx::query_scalar("SELECT COUNT(*) FROM clusters WHERE cluster_endpoint = (?)")
+    //        .bind(&endpoint_string)
+    //        .fetch_one(pool.get_ref())
+    //        .await
+    //        .unwrap();
+
+    //    if count_with_same_endpoint == 0 {
+    //        break
+    //    }
+    //}
 
     // validate all TLS SANs
     let mut validated_tlssan_list = Vec::new();
