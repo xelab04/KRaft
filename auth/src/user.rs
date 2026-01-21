@@ -7,6 +7,7 @@ use log::{info};
 
 use crate::jwt;
 use crate::auth;
+use crate::util;
 
 use k3k_rs;
 use kube::Client;
@@ -152,4 +153,32 @@ pub async fn user_delete (
     return HttpResponse::Ok()
         .cookie(delete_cookie)
         .json(json!({ "status": "success", "message": "success" }));
+}
+
+
+#[actix_web::get("/auth/validate/{token}")]
+pub async fn validate (
+    user: auth::AuthUser,
+    pool: web::Data<MySqlPool>,
+    token: web::Path<String>,
+) -> HttpResponse {
+
+    let raw_token = token.into_inner();
+
+    let possible_stored_user_token: Result<String, sqlx::Error> = sqlx::query_scalar("SELECT verification_code FROM users WHERE user_id = (?)")
+        .bind(&user.user_id)
+        .fetch_one(pool.as_ref())
+        .await;
+
+    let db_user_token;
+    match possible_stored_user_token {
+        Ok(stored_user_token) => { db_user_token = stored_user_token; }
+        Err(_) => { return HttpResponse::Unauthorized().finish() }
+    }
+
+    if util::check_passwords_match(&raw_token, &db_user_token) {
+        return HttpResponse::Ok().json(json!({"status":"success", "message":"account validated, thank you"}));
+    }
+
+    return HttpResponse::Unauthorized().finish();
 }
