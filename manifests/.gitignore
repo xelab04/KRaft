@@ -2,3 +2,4 @@ kubeconfig.yaml
 betacode.yaml
 jwtsecret.yaml
 db.yaml
+secrets.yaml
