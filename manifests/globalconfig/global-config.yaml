@@ -4,9 +4,6 @@ data:
   ENVIRONMENT: 'PROD'
   HOST: 'kraftcloud.dev'
   # JWT_SECRET: 'something-goes-here'
-  NTFY_URL: 'https://notify.alexbissessur.dev'
-  NTFY_TOPIC: 'kraft'
-  NTFY_BASIC_AUTH: 'base64 encoding of <username:password>'
 
 kind: ConfigMap
 metadata:
