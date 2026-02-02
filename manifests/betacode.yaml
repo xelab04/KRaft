@@ -1,7 +1,0 @@
-apiVersion: v1
-data:
-  BETACODE: bWVvdzE5ODQ=
-kind: Secret
-metadata:
-  creationTimestamp: null
-  name: betacode

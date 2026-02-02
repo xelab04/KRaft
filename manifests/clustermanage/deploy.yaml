@@ -34,6 +34,8 @@ spec:
             name: jwtsecret
         - secretRef:
             name: database-secrets
+        - secretRef:
+            name: ntfysecret
 
       #   volumeMounts:
       #   - name: kubeconfig-volume
