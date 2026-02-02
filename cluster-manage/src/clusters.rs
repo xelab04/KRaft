@@ -28,9 +28,6 @@ use crate::vcp;
 
 use crate::class::{AuthUser, Cluster, ClusterCreateForm};
 
-
-
-
 #[post("/api/create/clusters")]
 pub async fn create(
     req: HttpRequest,
@@ -46,19 +43,6 @@ pub async fn create(
     // USER ID MANAGEMENT AND VALIDATION
 
     let user_id = user.user_id;
-
-    // let mut user_id: String = String::from("0");
-    // match jwt {
-    //     Ok(id) => {
-    //         user_id = Some(id).unwrap();
-    //     }
-    //     Err(e) => {
-    //         println!("Error: {:?}", e);
-    //         if config.environment == "PROD" {
-    //             return HttpResponse::Unauthorized().json(json!({"status": "error", "message": "Unauthorized"}));
-    //         }
-    //     }
-    // };
 
     let cluster_name = format!("k-{}-{}", user_id, cluster.name);
 
@@ -215,22 +199,6 @@ pub async fn clusterdelete(
     let raw_cluster_name = cluster_name.into_inner();
     let user_id = user.user_id;
 
-    // let jwt = jwt::extract_user_id_from_jwt(&req);
-
-    // let mut user_id: String = String::from("0");
-    // match jwt {
-    //     Ok(id) => {
-    //         user_id = Some(id).unwrap();
-    //     }
-    //     Err(e) => {
-    //         println!("Error: {:?}", e);
-    //         // #[PROD]
-    //         if config.environment == "PROD" {
-    //             return HttpResponse::Unauthorized().json("Unauthorized");
-    //         }
-    //     }
-    // };
-
     // check the user owns the cluster
     let cluster_count_belonging_to_user: i64 = sqlx::query_scalar("SELECT COUNT(*) FROM clusters WHERE user_id = ? AND cluster_name = ?")
         .bind(&user_id)
@@ -280,21 +248,6 @@ pub async fn get_kubeconfig(
     let raw_cluster_name = cluster_name.into_inner();
     let user_id = user.user_id;
 
-    // let jwt = jwt::extract_user_id_from_jwt(&req);
-
-    // let mut user_id: String = String::from("0");
-    // match jwt {
-    //     Ok(id) => {
-    //         user_id = Some(id).unwrap();
-    //     }
-    //     Err(e) => {
-    //         println!("Error: {:?}", e);
-    //         // #[PROD]
-    //         if config.environment == "PROD" {
-    //             return HttpResponse::Unauthorized().json("Unauthorized");
-    //         }
-    //     }
-    // };
     // raw_cluster_name is 3-meow
     // so userid-clustername
 
@@ -345,21 +298,6 @@ pub async fn list(
     let jwt = jwt::extract_user_id_from_jwt(&req);
 
     let user_id = user.user_id;
-    // let mut user_id:String = String::from("0");
-    // match jwt {
-    //     Ok(id) => {
-    //         user_id = id;
-    //     }
-    //     Err(e) => {
-    //         println!("Error: {:?}", e);
-
-    //         if config.environment == "PROD" {
-    //             return HttpResponse::Unauthorized().json("Unauthorized")
-    //         }
-    //         // return HttpResponse::Unauthorized().json("Unauthorized")
-    //     }
-    // };
-
     // use id to get from postgres
 
     let user_id_int: i32 = user_id.parse().unwrap_or(0);
