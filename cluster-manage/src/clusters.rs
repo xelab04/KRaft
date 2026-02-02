@@ -26,22 +26,10 @@ use crate::tlssan;
 use crate::ingress;
 use crate::vcp;
 
-use crate::utils::*;
+use crate::class::{AuthUser, Cluster, ClusterCreateForm};
 
 
-#[derive(Serialize, Deserialize, FromRow)]
-pub struct Cluster {
-    id: Option<i64>,
-    name: String,
-    endpoint: Option<String>
-}
 
-#[derive(Serialize, Deserialize, FromRow)]
-pub struct ClusterCreateForm {
-    id: Option<i64>,
-    name: String,
-    tlssan_array: Option<Vec<String>>
-}
 
 #[post("/api/create/clusters")]
 pub async fn create(
@@ -311,14 +299,14 @@ pub async fn get_kubeconfig(
     // so userid-clustername
 
     // check user_id and cluster_name in database
-    let cluster_count_belonging_to_user: i64 = sqlx::query_scalar("SELECT COUNT(*) FROM clusters WHERE user_id = ? AND cluster_name = ?")
+    let cluster_belongs_to_user: bool = sqlx::query_scalar("SELECT EXISTS(SELECT 1 FROM clusters WHERE user_id = ? AND cluster_name = ?)")
         .bind(&user_id)
         .bind(&raw_cluster_name)
         .fetch_one(pool.get_ref())
         .await
         .expect("Failed to fetch cluster count");
 
-    if cluster_count_belonging_to_user == 0 {
+    if !cluster_belongs_to_user {
         return HttpResponse::NotFound().json("Cluster not found");
     }
 

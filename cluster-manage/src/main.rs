@@ -23,7 +23,7 @@ mod tlssan;
 mod ingress;
 mod logs;
 mod vcp;
-mod utils;
+mod class;
 
 #[derive(Clone)]
 pub struct AppConfig {
