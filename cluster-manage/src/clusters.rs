@@ -197,6 +197,7 @@ pub async fn create(
             let title = "Cluster Created";
             let message = format!("Cluster {cluster_name} has just been created");
 
+            println!("{:?}", config.ntfy);
             if let Some(ntfy_config) = &config.ntfy {
                 utils::send_ntfy_notif(&ntfy_config.host, message.as_str(), title, &ntfy_config.basic_auth, &ntfy_config.token)
                     .await
