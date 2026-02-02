@@ -1,5 +1,3 @@
-use std::error::Error;
-
 use actix_web::{FromRequest, Error, HttpRequest};
 use futures_util::future::{ready, Ready};
 use reqwest;
