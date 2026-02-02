@@ -1,6 +1,8 @@
 use actix_web::{FromRequest, Error, HttpRequest};
 use futures_util::future::{ready, Ready};
 
+use sqlx::FromRow;
+use serde::{self, Serialize, Deserialize};
 use crate::jwt;
 
 
@@ -19,4 +21,18 @@ impl FromRequest for AuthUser {
             Err(e) => { return ready(Err(actix_web::error::ErrorUnauthorized("Unauthorised"))); }
         };
     }
+}
+
+#[derive(Serialize, Deserialize, FromRow)]
+pub struct Cluster {
+    pub id: Option<i64>,
+    pub name: String,
+    pub endpoint: Option<String>
+}
+
+#[derive(Serialize, Deserialize, FromRow)]
+pub struct ClusterCreateForm {
+    pub id: Option<i64>,
+    pub name: String,
+    pub tlssan_array: Option<Vec<String>>
 }

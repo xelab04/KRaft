@@ -20,6 +20,7 @@ mod db_connect;
 mod jwt;
 mod user;
 mod util;
+mod class;
 
 
 pub async fn update_cookie_middleware<B>(

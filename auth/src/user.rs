@@ -6,35 +6,32 @@ use serde_json;
 use log::{info};
 
 use crate::jwt;
-use crate::auth;
 use crate::util;
+use crate::class::{AuthUser, UserUUID, User};
 
 use k3k_rs;
 use kube::Client;
 
-#[derive(serde::Serialize, serde::Deserialize, Debug, FromRow, Clone)]
-struct User {
-    user_id: i32,
-    username: String,
-    email: String,
-    uuid: String,
-    #[serde(rename = "password")]
-    #[sqlx(skip)]
-    user_password: String,
-    #[sqlx(skip)]
-    betacode: Option<String>
-}
+// #[derive(serde::Serialize, serde::Deserialize, Debug, FromRow, Clone)]
+// struct User {
+//     user_id: i32,
+//     username: String,
+//     email: String,
+//     uuid: String,
+//     #[serde(rename = "password")]
+//     #[sqlx(skip)]
+//     user_password: String,
+//     #[sqlx(skip)]
+//     betacode: Option<String>
+// }
 
-#[derive(serde::Serialize, serde::Deserialize)]
-struct UserUUID {
-    u: String
-}
+
 
 #[actix_web::get("/auth/user/details")]
 pub async fn details(
     req: HttpRequest,
     pool: web::Data<MySqlPool>,
-    user: auth::AuthUser,
+    user: AuthUser,
     useruuid_param: Option<web::Query<UserUUID>>
 ) -> HttpResponse {
 
@@ -75,14 +72,17 @@ pub async fn details(
     }
 
     // get user details from database
-    let user = sqlx::query_as::<_, User>("SELECT user_id, username, email, uuid FROM users WHERE user_id = (?)")
+    let user = sqlx::query_as::<_, User>("SELECT user_id, username, email, uuid, password as user_password, betacode FROM users WHERE user_id = (?)")
         .bind(&jwt_user_id)
         .fetch_one(pool.as_ref())
         .await;
 
     // return user if valid
     match user {
-        Ok(user) => {
+        Ok(mut user) => {
+            user.user_password = String::new();
+            user.betacode = None;
+
             HttpResponse::Ok().json(json!({"status": "success", "data": user}))
         }
         Err(e) => {
@@ -95,7 +95,7 @@ pub async fn details(
 
 #[actix_web::delete("/auth/user/delete")]
 pub async fn user_delete (
-    user: auth::AuthUser,
+    user: AuthUser,
     pool: web::Data<MySqlPool>,
     client: web::Data<Client>,
     uuid_query_param: Option<web::Query<UserUUID>>,
@@ -158,7 +158,7 @@ pub async fn user_delete (
 
 #[actix_web::get("/auth/validate/{token}")]
 pub async fn validate (
-    user: auth::AuthUser,
+    user: AuthUser,
     pool: web::Data<MySqlPool>,
     token: web::Path<String>,
 ) -> HttpResponse {
