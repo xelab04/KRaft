@@ -176,9 +176,15 @@ pub async fn validate (
         Err(_) => { return HttpResponse::Unauthorized().finish() }
     }
 
-    if util::check_passwords_match(&raw_token, &db_user_token) {
-        return HttpResponse::Ok().json(json!({"status":"success", "message":"account validated, thank you"}));
+    if !util::check_passwords_match(&raw_token, &db_user_token) {
+        return HttpResponse::Unauthorized().finish();
     }
 
-    return HttpResponse::Unauthorized().finish();
+    let _r = sqlx::query("UPDATE users SET verified_email = true WHERE verification_code = (?)")
+        .bind(&db_user_token)
+        .execute(pool.as_ref())
+        .await
+        .unwrap();
+
+    return HttpResponse::Ok().json(json!({"status":"success", "message":"account validated, thank you"}));
 }
