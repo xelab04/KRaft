@@ -10,6 +10,7 @@ use sqlx::MySqlPool;
 use k3k_rs;
 use kube::Client;
 
+use crate::class::AuthUser;
 use crate::jwt;
 use crate::AppConfig;
 
@@ -21,54 +22,50 @@ pub struct LogsType {
 
 #[get("/api/logs")]
 pub async fn getlogs(
-    req: HttpRequest,
+    // req: HttpRequest,
     pool: web::Data<MySqlPool>,
-    config: web::Data<AppConfig>,
-    query: web::Query<LogsType>
+    client: web::Data<Client>,
+    // config: web::Data<AppConfig>,
+    query: web::Query<LogsType>,
+    user: AuthUser
 ) -> HttpResponse {
 
-    let jwt = jwt::extract_user_id_from_jwt(&req);
-    // let cluster_name = format!("{}-{}", user_id, &query.name);
+    let user_id = user.user_id;
     let cluster_name = &query.full_cluster_name;
     let namespace = format!("k3k-{}", cluster_name);
 
     let logtype = &query.logtype;
 
-    let client = Client::try_default().await.unwrap();
-
-    // assume that for testing purposes the User's ID is 0
-    let mut user_id: String = String::from("0");
-    match jwt {
-        Ok(id) => {
-            user_id = Some(id).unwrap();
-        }
-        Err(e) => {
-            println!("Error: {:?}", e);
-            if config.environment == "PROD" {
-                return HttpResponse::Unauthorized().json(json!({"status": "error", "message": "Unauthorized"}));
-            }
-        }
-    };
-
     // check user owns that cluster
-    let cluster_id_from_db: Result<i64, sqlx::Error> = sqlx::query_scalar("SELECT cluster_id FROM clusters WHERE user_id = ? AND cluster_name = ?")
+    let user_owns_cluster: bool = sqlx::query_scalar("SELECT EXISTS(SELECT 1 FROM clusters WHERE user_id = ? AND cluster_name = ?)")
         .bind(user_id)
         .bind(cluster_name)
         .fetch_one(pool.get_ref())
-        .await;
+        .await
+        .unwrap_or(false);
 
-    let mut cluster_id;
-    match cluster_id_from_db {
-        Ok(id) => {
-            cluster_id = id;
-        }
-        Err(sqlx::Error::RowNotFound) => {
-            return HttpResponse::NotFound().json(json!({"status": "error", "message": "Cluster not found"}));
-        }
-        Err(e) => {
-            return HttpResponse::InternalServerError().json(json!({"status": "error", "message": format!("Failed to check cluster: {}", e)}));
-        }
+    if !user_owns_cluster {
+        return HttpResponse::NotFound().json(json!({"status": "error", "message": "Cluster not found under this user"}));
     }
+
+    // let cluster_id_from_db: Result<i64, sqlx::Error> = sqlx::query_scalar("SELECT cluster_id FROM clusters WHERE user_id = ? AND cluster_name = ?")
+    //     .bind(user_id)
+    //     .bind(cluster_name)
+    //     .fetch_one(pool.get_ref())
+    //     .await;
+
+    // let mut cluster_id;
+    // match cluster_id_from_db {
+    //     Ok(id) => {
+    //         cluster_id = id;
+    //     }
+    //     Err(sqlx::Error::RowNotFound) => {
+    //         return HttpResponse::NotFound().json(json!({"status": "error", "message": "Cluster not found"}));
+    //     }
+    //     Err(e) => {
+    //         return HttpResponse::InternalServerError().json(json!({"status": "error", "message": format!("Failed to check cluster: {}", e)}));
+    //     }
+    // }
 
     // default to server
     let logs_returned;
