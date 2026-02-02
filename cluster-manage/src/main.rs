@@ -73,10 +73,7 @@ pub fn get_ntfy_config() -> Option<NtfyConfig> {
     let basic_auth = std::env::var("NTFY_BASIC_AUTH").ok();
     let token = std::env::var("NTFY_TOKEN").ok();
 
-    let r = Some(NtfyConfig { host, basic_auth, token });
-    println!("In get config: {:?}", r);
-
-    return r;
+    return Some(NtfyConfig { host, basic_auth, token });
 }
 
 #[actix_rt::main]
@@ -87,7 +84,6 @@ async fn main() -> io::Result<()> {
     let host = std::env::var("HOST").unwrap_or_else(|_| "kraftcloud.dev".to_string());
 
     let ntfy_config = get_ntfy_config();
-    println!("In main: {:?}", ntfy_config);
 
     let config = AppConfig {
         environment: environment.clone(),
