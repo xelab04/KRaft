@@ -192,13 +192,13 @@ pub async fn register(
     match r {
         Ok(mysql_result) => {
             // if user created succesfully, generate cookie
-            // let user_id = mysql_result.last_insert_id();
+            let user_id = mysql_result.last_insert_id();
 
-            let user_id: i64 = sqlx::query_scalar("SELECT user_id FROM users WHERE username = ?")
-                .bind(user)
-                .fetch_one(pool.get_ref())
-                .await
-                .unwrap();
+            // let user_id: i64 = sqlx::query_scalar("SELECT user_id FROM users WHERE username = ?")
+            //     .bind(user)
+            //     .fetch_one(pool.get_ref())
+            //     .await
+            //     .unwrap();
 
             let jwt_token = jwt::create_jwt(user_id.to_string());
 
@@ -217,7 +217,7 @@ pub async fn register(
                     let validation_link = format!("{}/auth/validate/{}", app_config.host, email_validation);
                     let body = format!("Thank you for creating an account on KRaft, please confirm your email address using the following link:
                         \n{validation_link}");
-                    let r = send_mail(&mail_config, email, subject, body.as_str())
+                    let _ = send_mail(&mail_config, email, subject, body.as_str())
                         .await
                         .unwrap();
                 }
