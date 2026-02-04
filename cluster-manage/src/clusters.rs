@@ -19,7 +19,7 @@ use k8s_openapi::apimachinery::pkg::apis::meta::v1::ObjectMeta;
 use random_word::Lang;
 use tokio::fs;
 
-use crate::jwt;
+use crate::{jwt, utils};
 use crate::validatename;
 use crate::AppConfig;
 use crate::tlssan;
@@ -193,6 +193,16 @@ pub async fn create(
         Err(e) => {println!("Error creating cluster {}: {}", cluster_schema.metadata.name.unwrap(), e); return HttpResponse::BadGateway().json(e.to_string())}
 
         Ok(response) => {
+
+            let title = "Cluster Created";
+            let message = format!("Cluster {cluster_name} has just been created");
+
+            if let Some(ntfy_config) = &config.ntfy {
+                utils::send_ntfy_notif(&ntfy_config.host, message.as_str(), title, &ntfy_config.basic_auth, &ntfy_config.token)
+                    .await
+                    .unwrap()
+            }
+
             println!("Cluster created successfully");
         }
     }
