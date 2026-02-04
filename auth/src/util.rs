@@ -26,9 +26,12 @@ pub fn generate_email_config() -> Option<MailConfig> {
 
 pub fn generate_appconfig() -> AppConfig {
     let email_config = generate_email_config();
+    let host = std::env::var("HOST").unwrap_or_else(|_| "kraftcloud.dev".to_string());
 
-
-    let conf: AppConfig = AppConfig { email: email_config };
+    let conf: AppConfig = AppConfig {
+        email: email_config,
+        host: host
+    };
 
     conf
 }
