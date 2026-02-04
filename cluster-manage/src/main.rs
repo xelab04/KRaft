@@ -29,6 +29,15 @@ mod class;
 pub struct AppConfig {
     pub environment: String,
     pub host: String,
+    pub ntfy: Option<NtfyConfig>,
+}
+
+#[derive(Clone)]
+#[derive(Debug)]
+pub struct NtfyConfig {
+    pub host: String,
+    pub basic_auth: Option<String>,
+    pub token: Option<String>
 }
 
 pub async fn update_cookie_middleware<B>(
@@ -59,15 +68,27 @@ where
 }
 
 
+pub fn get_ntfy_config() -> Option<NtfyConfig> {
+    let host = std::env::var("NTFY_HOST").ok()?;
+    let basic_auth = std::env::var("NTFY_BASIC_AUTH").ok();
+    let token = std::env::var("NTFY_TOKEN").ok();
+
+    return Some(NtfyConfig { host, basic_auth, token });
+}
+
 #[actix_rt::main]
 async fn main() -> io::Result<()> {
     env::set_var("RUST_LOG", "actix_web=debug,actix_server=info");
 
     let environment = std::env::var("ENVIRONMENT").unwrap_or_else(|_| "PROD".to_string());
     let host = std::env::var("HOST").unwrap_or_else(|_| "kraftcloud.dev".to_string());
+
+    let ntfy_config = get_ntfy_config();
+
     let config = AppConfig {
         environment: environment.clone(),
         host: host.clone(),
+        ntfy: ntfy_config,
     };
     env_logger::init();
 
