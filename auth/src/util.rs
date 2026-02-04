@@ -1,9 +1,39 @@
+use std::env;
+
+use actix_web::App;
 use argon2::{Argon2, PasswordHasher, PasswordVerifier, password_hash::Salt};
 use argon2::{password_hash::{PasswordHash, SaltString}};
 use mail_builder::MessageBuilder;
 use mail_send::SmtpClientBuilder;
 
-use crate::class::{MailConfig};
+use crate::class::{MailConfig, AppConfig};
+
+
+pub fn generate_email_config() -> Option<MailConfig> {
+    let email_config = MailConfig{
+        mail_encryption: env::var("MAIL_ENCRYPTION").ok()?,
+        mail_from_address: env::var("MAIL_FROM_ADDRESS").ok()?,
+        mail_from_name: env::var("MAIL_FROM_NAME").ok()?,
+        mail_host: env::var("MAIL_HOST").ok()?,
+        mail_mailer: env::var("MAIL_HOST").ok()?,
+        mail_port: env::var("MAIL_HOST").ok()?,
+        mail_username: env::var("MAIL_HOST").ok(),
+        mail_password: env::var("MAIL_PASSWORD").ok()
+    };
+
+    Some(email_config)
+}
+
+pub fn generate_appconfig() -> AppConfig {
+    let email_config = generate_email_config();
+
+
+    let conf: AppConfig = AppConfig { email: email_config };
+
+    conf
+}
+
+
 
 pub fn check_passwords_match(clear_pwd:&String, hashed: &String) -> bool {
 

@@ -5,6 +5,7 @@ use sqlx::FromRow;
 
 use crate::jwt;
 
+#[derive(Clone)]
 pub struct MailConfig {
     pub mail_encryption: String,
     pub mail_from_address: String,
@@ -14,6 +15,11 @@ pub struct MailConfig {
     pub mail_port: String,
     pub mail_password: Option<String>,
     pub mail_username: Option<String>,
+}
+
+#[derive(Clone)]
+pub struct AppConfig {
+    pub email: Option<MailConfig>
 }
 
 // User ID from Request
