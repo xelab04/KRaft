@@ -69,11 +69,13 @@ async fn main() -> io::Result<()> {
 
     let db_pool = db_connect::get_db_pool().await.unwrap();
     let kube_client = Client::try_default().await.unwrap();
+    let app_config = util::generate_appconfig();
 
     HttpServer::new(move || {
         App::new()
             .app_data(web::Data::new(db_pool.clone()))
             .app_data(web::Data::new(kube_client.clone()))
+            .app_data(web::Data::new(app_config.clone()))
             .wrap(middleware::Logger::default())
             .wrap(from_fn(update_cookie_middleware))
             .service(auth::login)
