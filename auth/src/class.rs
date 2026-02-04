@@ -19,7 +19,8 @@ pub struct MailConfig {
 
 #[derive(Clone)]
 pub struct AppConfig {
-    pub email: Option<MailConfig>
+    pub email: Option<MailConfig>,
+    pub host: String
 }
 
 // User ID from Request
