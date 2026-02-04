@@ -4,6 +4,7 @@ use jsonwebtoken::{decode, DecodingKey, Validation, Algorithm};
 
 use actix_web::{web, HttpRequest, HttpResponse, cookie::{Cookie, SameSite}};
 use uuid;
+use log::{info, error};
 use serde_json::{self, json};
 use sqlx::{MySqlPool};
 
@@ -208,15 +209,21 @@ pub async fn register(
                 .same_site(SameSite::Lax)
                 .finish();
 
-            if let Some(mail_config) = &app_config.email {
-                let subject = "Confirm your email for KRaft";
+            // if we have a mail config and mail_verification is active, send a verification mail
+            if app_config.mail_verification {
+                if let Some(mail_config) = &app_config.email {
+                    let subject = "Confirm your email for KRaft";
 
-                let validation_link = format!("{}/auth/validate/{}", app_config.host, email_validation);
-                let body = format!("Thank you for creating an account on KRaft, please confirm your email address using the following link:
-                    \n{validation_link}");
-                let r = send_mail(&mail_config, email, subject, body.as_str())
-                    .await
-                    .unwrap();
+                    let validation_link = format!("{}/auth/validate/{}", app_config.host, email_validation);
+                    let body = format!("Thank you for creating an account on KRaft, please confirm your email address using the following link:
+                        \n{validation_link}");
+                    let r = send_mail(&mail_config, email, subject, body.as_str())
+                        .await
+                        .unwrap();
+                }
+                else {
+                    error!("Mail verification enabled but no valid mail config set");
+                }
             }
 
             return HttpResponse::Ok().cookie(cookie).json(json!({ "status": "success" }));
