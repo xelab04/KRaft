@@ -10,6 +10,9 @@ CREATE TABLE users (
     password varchar(255) NOT NULL,
     betacode varchar(255),
     admin BOOLEAN NOT NULL,
+    verified_email BOOLEAN NOT NULL,
+    last_email datetime,
+    verification_code varchar(255),
     PRIMARY KEY (user_id)
 );
 
