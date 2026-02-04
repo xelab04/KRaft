@@ -9,8 +9,8 @@ use sqlx::{MySqlPool};
 
 use crate::jwt;
 use crate::util::{check_passwords_match, hash_password};
-use crate::class::{PasswordChange, User, AuthUser, PasswordParams, Claims};
-
+use crate::class::{AppConfig, AuthUser, Claims, PasswordChange, PasswordParams, User};
+use crate::util::send_mail;
 
 #[actix_web::get("/auth/password")]
 pub async fn password(query: web::Query<PasswordParams>) -> HttpResponse {
@@ -57,7 +57,6 @@ pub async fn changepwd(
     } else {
         return HttpResponse::Forbidden().json(json!({"message": "Invalid password"}));
     }
-
 }
 
 
@@ -129,7 +128,11 @@ pub async fn login(pool: web::Data<MySqlPool>, payload: web::Json<User>) -> Http
 }
 
 #[actix_web::post("/auth/register")]
-pub async fn register(pool: web::Data<MySqlPool>, payload: web::Json<User>) -> HttpResponse {
+pub async fn register(
+    pool: web::Data<MySqlPool>,
+    app_config: web::Data<AppConfig>,
+    payload: web::Json<User>
+) -> HttpResponse {
     let user = &payload.username;
     let email = &payload.email;
     let user_password = &payload.user_password;
@@ -170,13 +173,15 @@ pub async fn register(pool: web::Data<MySqlPool>, payload: web::Json<User>) -> H
     // alex you idiot, you forgot to hash the password TwT
     let password_hash = hash_password(&user_password.to_string());
     let user_uuid = uuid::Uuid::new_v4().to_string();
+    let email_validation = uuid::Uuid::new_v4().to_string();
 
-    let r = sqlx::query("INSERT INTO users (username, email, password, betacode, uuid, admin) VALUES (?, ?, ?, ?, ?, ?)")
+    let r = sqlx::query("INSERT INTO users (username, email, password, betacode, uuid, verification_code, admin) VALUES (?, ?, ?, ?, ?, ?, ?)")
         .bind(user)
         .bind(email)
         .bind(password_hash)
         .bind(betacode)
         .bind(user_uuid)
+        .bind(&email_validation)
         .bind(false)
         .execute(pool.get_ref())
         .await;
@@ -184,8 +189,9 @@ pub async fn register(pool: web::Data<MySqlPool>, payload: web::Json<User>) -> H
     // In the future, have email verification
 
     match r {
-        Ok(_) => {
+        Ok(mysql_result) => {
             // if user created succesfully, generate cookie
+            // let user_id = mysql_result.last_insert_id();
 
             let user_id: i64 = sqlx::query_scalar("SELECT user_id FROM users WHERE username = ?")
                 .bind(user)
@@ -201,6 +207,17 @@ pub async fn register(pool: web::Data<MySqlPool>, payload: web::Json<User>) -> H
                 .secure(true)
                 .same_site(SameSite::Lax)
                 .finish();
+
+            if let Some(mail_config) = &app_config.email {
+                let subject = "Confirm your email for KRaft";
+
+                let validation_link = format!("{}/auth/validate/{}", app_config.host, email_validation);
+                let body = format!("Thank you for creating an account on KRaft, please confirm your email address using the following link:
+                    \n{validation_link}");
+                let r = send_mail(&mail_config, email, subject, body.as_str())
+                    .await
+                    .unwrap();
+            }
 
             return HttpResponse::Ok().cookie(cookie).json(json!({ "status": "success" }));
         }
