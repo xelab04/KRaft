@@ -24,16 +24,19 @@ def get_storage_reserved_cluster_longhorn(custom_api):
 
 # get storage which has been reserved across cluster
 def get_pv_claimed_storage(api_instance, custom_api):
+
+    # attempt to get longhorn metrics
+    longhorn_used_storage = get_storage_reserved_cluster_longhorn(custom_api)
+    # if longhorn metrics are not none, use that
+    if longhorn_used_storage:
+        return longhorn_used_storage
+
+    # otherwise grab all pvs and sum up the claimed storage
     returned_list_of_pvs = api_instance.list_persistent_volume(watch=False)
 
     total_claimed_storage = 0
     for persistent_volume in returned_list_of_pvs.items:
         # pprint(persistent_volume)
-
-        longhorn_used_storage = get_storage_reserved_cluster_longhorn(custom_api)
-        if longhorn_used_storage:
-            return longhorn_used_storage
-
         total_claimed_storage += utils.convert_storage(str(persistent_volume.spec.capacity['storage']))
 
     return total_claimed_storage
