@@ -1,10 +1,11 @@
 use actix_web::{FromRequest, Error, HttpRequest};
 use futures_util::future::{ready, Ready};
 use reqwest;
+use log::{info};
 
 use sqlx::FromRow;
 use serde::{self, Serialize, Deserialize};
-use crate::jwt;
+use crate::{NtfyConfig, jwt};
 
 
 pub struct AuthUser {
@@ -36,6 +37,28 @@ pub struct ClusterCreateForm {
     pub id: Option<i64>,
     pub name: String,
     pub tlssan_array: Option<Vec<String>>
+}
+
+pub fn panic_ntfy(config: &NtfyConfig, message: &str, title: &str) {
+    let client = reqwest::blocking::Client::new();
+
+    let mut request = client.post(&config.host)
+        .header("Title", title)
+        .body(message.to_string());
+
+    if let Some(auth) = &config.basic_auth { request = request.header("Authorization", format!("Basic {auth}")); }
+    if let Some(auth) = &config.token { request = request.header("Authorization", format!("Bearer {auth}")); }
+
+    match request.send() {
+        Ok(r) => {
+
+            match r.error_for_status() {
+                Ok(_) => { info!("Ntfy panic message sent"); }
+                Err(e) => { info!("Error message; {}", e); }
+            }
+        }
+        Err(_) => { info!("Error sending ntfy panic message, ironic") }
+    }
 }
 
 pub async fn send_ntfy_notif(host: &str, message: &str, title: &str, basic_auth: &Option<String>, token: &Option<String>) -> Result<(), String> {
