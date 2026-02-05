@@ -489,6 +489,7 @@ dependencies = [
  "k3k-rs",
  "k8s-openapi",
  "kube",
+ "log",
  "random_word",
  "regex",
  "reqwest",
@@ -1822,9 +1823,9 @@ dependencies = [
 
 [[package]]
 name = "log"
-version = "0.4.28"
+version = "0.4.29"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "34080505efa8e45a4b816c349525ebe327ceaa8559756f0356cba97ef3bf7432"
+checksum = "5e5032e24019045c762d3c0f28f5b6b8bbf38563a65908389bf7978758920897"
 
 [[package]]
 name = "md-5"
@@ -2384,7 +2385,9 @@ dependencies = [
  "base64",
  "bytes",
  "encoding_rs",
+ "futures-channel",
  "futures-core",
+ "futures-util",
  "h2 0.4.12",
  "http 1.4.0",
  "http-body",

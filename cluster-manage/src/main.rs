@@ -1,7 +1,8 @@
 #[macro_use]
 extern crate actix_web;
 
-use std::{env, io};
+use std::{env, io, panic::PanicHookInfo};
+use log::{info, error};
 
 use actix_web::{
     HttpServer, Error, App,
@@ -32,8 +33,7 @@ pub struct AppConfig {
     pub ntfy: Option<NtfyConfig>,
 }
 
-#[derive(Clone)]
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 pub struct NtfyConfig {
     pub host: String,
     pub basic_auth: Option<String>,
@@ -84,6 +84,7 @@ async fn main() -> io::Result<()> {
     let host = std::env::var("HOST").unwrap_or_else(|_| "kraftcloud.dev".to_string());
 
     let ntfy_config = get_ntfy_config();
+    let panic_ntfy_config = ntfy_config.clone();
 
     let config = AppConfig {
         environment: environment.clone(),
@@ -91,6 +92,42 @@ async fn main() -> io::Result<()> {
         ntfy: ntfy_config,
     };
     env_logger::init();
+
+    let default_panic = std::panic::take_hook();
+    fn get_message(info: &PanicHookInfo) -> String {
+        let payload: &str = if let Some(s) = info.payload_as_str() {
+            s
+        } else {
+            "Unknown panic?"
+        };
+        let location = if let Some(location) = info.location() {
+                format!(" in file '{}' at line {}", location.file(), location.line())
+        } else {
+            "in an unknown location".to_string()
+        };
+        let message = format!("Panic: {} {}", payload, location);
+        message
+    }
+    std::panic::set_hook(Box::new(move |info| {
+        println!("HEEERE");
+        if let Some(ntfy) = &panic_ntfy_config {
+            let message = get_message(info);
+
+            class::panic_ntfy(ntfy, &message, "Panic Occured");
+
+            // handle.block_on(async {
+            //     let _ = class::send_ntfy_notif(
+            //         &ntfy.host,
+            //         &message,
+            //         "Title: Panic",
+            //         &ntfy.basic_auth,
+            //         &ntfy.token
+            //     ).await;
+            // })
+
+        }
+        default_panic(info)
+    }));
 
     // Will panic here if the db is unreachable :P
     let db_pool = db_connect::get_db_pool().await.unwrap();
