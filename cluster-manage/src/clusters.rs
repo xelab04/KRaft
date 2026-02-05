@@ -19,7 +19,7 @@ use k8s_openapi::apimachinery::pkg::apis::meta::v1::ObjectMeta;
 use random_word::Lang;
 use tokio::fs;
 
-use crate::{jwt, utils};
+use crate::{jwt, class};
 use crate::validatename;
 use crate::AppConfig;
 use crate::tlssan;
@@ -170,7 +170,7 @@ pub async fn create(
             let message = format!("Cluster {cluster_name} has just been created");
 
             if let Some(ntfy_config) = &config.ntfy {
-                utils::send_ntfy_notif(&ntfy_config.host, message.as_str(), title, &ntfy_config.basic_auth, &ntfy_config.token)
+                class::send_ntfy_notif(&ntfy_config.host, message.as_str(), title, &ntfy_config.basic_auth, &ntfy_config.token)
                     .await
                     .unwrap()
             }
