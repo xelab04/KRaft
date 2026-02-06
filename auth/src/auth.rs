@@ -36,7 +36,7 @@ pub async fn changepwd(
 
     let user_id = user.user_id;
 
-    let user_password:String = sqlx::query_scalar("SELECT password FROM users WHERE user_id = (?)")
+    let user_password:String = sqlx::query_scalar("SELECT password FROM users WHERE user_id = ($1)")
         .bind(&user_id)
         .fetch_one(pool.get_ref())
         .await
@@ -46,7 +46,7 @@ pub async fn changepwd(
 
         let new_hashed_password = hash_password(&payload.new_password);
 
-        sqlx::query("UPDATE users SET password = (?) WHERE user_id = (?)")
+        sqlx::query("UPDATE users SET password = ($1) WHERE user_id = ($2)")
             .bind(new_hashed_password)
             .bind(&user_id)
             .execute(pool.get_ref())
@@ -81,7 +81,7 @@ pub async fn login(pool: web::Data<MySqlPool>, payload: web::Json<User>) -> Http
     }
 
     let user_data = sqlx::query_as::<_, User>(
-        "SELECT user_id, username, email, password as user_password, betacode, uuid FROM users WHERE email = (?)"
+        "SELECT user_id, username, email, password as user_password, betacode, uuid FROM users WHERE email = ($1)"
         )
         .bind(email)
         .fetch_all(pool.get_ref())
@@ -152,7 +152,7 @@ pub async fn register(
         }
     }
 
-    let same_users: i64 = sqlx::query_scalar("SELECT COUNT(*) FROM users WHERE email = (?)")
+    let same_users: i64 = sqlx::query_scalar("SELECT COUNT(*) FROM users WHERE email = ($1)")
         .bind(email)
         .fetch_one(pool.get_ref())
         .await
@@ -161,7 +161,7 @@ pub async fn register(
         return HttpResponse::Conflict().json(json!({ "status": "error", "message": "User already exists with that email" }));
     }
 
-    let same_users: i64 = sqlx::query_scalar("SELECT COUNT(*) FROM users WHERE username = (?)")
+    let same_users: i64 = sqlx::query_scalar("SELECT COUNT(*) FROM users WHERE username = ($1)")
         .bind(user)
         .fetch_one(pool.get_ref())
         .await
@@ -176,7 +176,7 @@ pub async fn register(
     let user_uuid = uuid::Uuid::new_v4().to_string();
     let email_validation = uuid::Uuid::new_v4().to_string();
 
-    let r = sqlx::query("INSERT INTO users (username, email, password, betacode, uuid, verification_code, admin) VALUES (?, ?, ?, ?, ?, ?, ?)")
+    let r = sqlx::query("INSERT INTO users (username, email, password, betacode, uuid, verification_code, admin) VALUES ($1, $2, $3, $4, $5, $6, $7)")
         .bind(user)
         .bind(email)
         .bind(password_hash)
