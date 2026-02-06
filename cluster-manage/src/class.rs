@@ -1,11 +1,11 @@
-use actix_web::{FromRequest, Error, HttpRequest};
+use actix_web::{Error, FromRequest, HttpRequest, web};
 use futures_util::future::{ready, Ready};
 use reqwest;
 use log::{info};
 
 use sqlx::FromRow;
 use serde::{self, Serialize, Deserialize};
-use crate::{NtfyConfig, jwt};
+use crate::{AppConfig, NtfyConfig, jwt};
 
 
 pub struct AuthUser {
@@ -17,6 +17,14 @@ impl FromRequest for AuthUser {
     type Future = Ready<Result<Self, Self::Error>>;
 
     fn from_request(req: &HttpRequest, _payload: &mut actix_web::dev::Payload) -> Self::Future {
+        // if not running in prod, bypass auth
+        let config = req.app_data::<web::Data<AppConfig>>();
+        if let Some(cfg) = config {
+            if cfg.environment != "PROD" {
+                return ready(Ok(AuthUser { user_id: String::from("0") }))
+            }
+        }
+
         let jwt = jwt::extract_user_id_from_jwt(&req);
         match jwt {
             Ok(id) => { return ready(Ok(AuthUser { user_id: id })); }
