@@ -109,22 +109,10 @@ async fn main() -> io::Result<()> {
         message
     }
     std::panic::set_hook(Box::new(move |info| {
-        println!("HEEERE");
         if let Some(ntfy) = &panic_ntfy_config {
             let message = get_message(info);
 
             class::panic_ntfy(ntfy, &message, "Panic Occured");
-
-            // handle.block_on(async {
-            //     let _ = class::send_ntfy_notif(
-            //         &ntfy.host,
-            //         &message,
-            //         "Title: Panic",
-            //         &ntfy.basic_auth,
-            //         &ntfy.token
-            //     ).await;
-            // })
-
         }
         default_panic(info)
     }));
