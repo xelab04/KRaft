@@ -9,7 +9,7 @@ use serde_json::json;
 
 use sqlx;
 use sqlx::prelude::FromRow;
-use sqlx::MySqlPool;
+use sqlx::PgPool;
 
 use k3k_rs;
 use kube::Client;
@@ -31,7 +31,7 @@ use crate::class::{AuthUser, Cluster, ClusterCreateForm};
 #[post("/api/create/clusters")]
 pub async fn create(
     req: HttpRequest,
-    pool: web::Data<MySqlPool>,
+    pool: web::Data<PgPool>,
     kubeclient: web::Data<Client>,
     config: web::Data<AppConfig>,
     user: AuthUser,
@@ -68,7 +68,7 @@ pub async fn create(
     }
 
     // check for other clusters of the same name
-    let count_same_name: i64 = sqlx::query_scalar("SELECT COUNT(*) FROM clusters WHERE cluster_name = ?")
+    let count_same_name: i64 = sqlx::query_scalar("SELECT COUNT(*) FROM clusters WHERE cluster_name = $1")
         .bind(&cluster_name)
         .fetch_one(pool.get_ref())
         .await
@@ -162,7 +162,7 @@ pub async fn create(
         }
     }
 
-    sqlx::query("INSERT INTO clusters (cluster_name, user_id, cluster_endpoint) VALUES (?, ?, ?)")
+    sqlx::query("INSERT INTO clusters (cluster_name, user_id, cluster_endpoint) VALUES ($1, $2, $3)")
         .bind(&cluster_name)
         .bind(user_id)
         .bind(&endpoint_string)
@@ -182,7 +182,7 @@ pub async fn create(
 #[delete("/api/delete/cluster/{cluster_name}")]
 pub async fn clusterdelete(
     req: HttpRequest,
-    pool: web::Data<MySqlPool>,
+    pool: web::Data<PgPool>,
     cluster_name: web::Path<String>,
     kubeclient: web::Data<Client>,
     config: web::Data<AppConfig>,
@@ -231,7 +231,7 @@ pub async fn clusterdelete(
 #[get("/api/get/kubeconfig/{cluster_name}")]
 pub async fn get_kubeconfig(
     req: HttpRequest,
-    pool: web::Data<MySqlPool>,
+    pool: web::Data<PgPool>,
     cluster_name: web::Path<String>,
     kubeclient: web::Data<Client>,
     config: web::Data<AppConfig>,
@@ -284,7 +284,7 @@ pub async fn get_kubeconfig(
 #[get("/api/get/clusters")]
 pub async fn list(
     req: HttpRequest,
-    pool: web::Data<MySqlPool>,
+    pool: web::Data<PgPool>,
     config: web::Data<AppConfig>,
     user: AuthUser
 ) -> HttpResponse {
