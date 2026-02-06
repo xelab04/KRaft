@@ -193,7 +193,7 @@ pub async fn clusterdelete(
     let user_id = user.user_id;
 
     // check the user owns the cluster
-    let cluster_count_belonging_to_user: i64 = sqlx::query_scalar("SELECT COUNT(*) FROM clusters WHERE user_id = ? AND cluster_name = ?")
+    let cluster_count_belonging_to_user: i64 = sqlx::query_scalar("SELECT COUNT(*) FROM clusters WHERE user_id = $1 AND cluster_name = $2")
         .bind(&user_id)
         .bind(&raw_cluster_name)
         .fetch_one(pool.get_ref())
@@ -211,7 +211,7 @@ pub async fn clusterdelete(
 
     k3k_rs::namespace::delete(&kubeclient, namespace.as_str()).await.unwrap();
 
-    let r = sqlx::query("DELETE FROM clusters WHERE user_id = ? AND cluster_name = ?")
+    let r = sqlx::query("DELETE FROM clusters WHERE user_id = $1 AND cluster_name = $2")
         .bind(&user_id)
         .bind(&raw_cluster_name)
         .execute(pool.get_ref())
@@ -245,7 +245,7 @@ pub async fn get_kubeconfig(
     // so userid-clustername
 
     // check user_id and cluster_name in database
-    let cluster_belongs_to_user: bool = sqlx::query_scalar("SELECT EXISTS(SELECT 1 FROM clusters WHERE user_id = ? AND cluster_name = ?)")
+    let cluster_belongs_to_user: bool = sqlx::query_scalar("SELECT EXISTS(SELECT 1 FROM clusters WHERE user_id = $1 AND cluster_name = $2)")
         .bind(&user_id)
         .bind(&raw_cluster_name)
         .fetch_one(pool.get_ref())
