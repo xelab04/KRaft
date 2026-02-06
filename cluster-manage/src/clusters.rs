@@ -43,27 +43,9 @@ pub async fn create(
     // USER ID MANAGEMENT AND VALIDATION
 
     let user_id = user.user_id;
-
     let cluster_name = format!("k-{}-{}", user_id, cluster.name);
-
-    // generate random string for whatever.kraft.alexb.dev
-    // let mut endpoint_string: String;
-    let mut endpoint_string: String = format!("{}", cluster_name);
-
-    //loop {
-    //    break
-    //    endpoint_string = format!("{}-{}", random_word::get(Lang::En), random_word::get(Lang::En));
-
-    //    let count_with_same_endpoint: i64 = sqlx::query_scalar("SELECT COUNT(*) FROM clusters WHERE cluster_endpoint = (?)")
-    //        .bind(&endpoint_string)
-    //        .fetch_one(pool.get_ref())
-    //        .await
-    //        .unwrap();
-
-    //    if count_with_same_endpoint == 0 {
-    //        break
-    //    }
-    //}
+    let endpoint_string: String = format!("{}", cluster_name);
+    let namespace = format!("k3k-{}", cluster_name);
 
     // validate all TLS SANs
     let mut validated_tlssan_list = Vec::new();
@@ -80,7 +62,7 @@ pub async fn create(
 
     validated_tlssan_list.push(format!("{}.{}", endpoint_string, config.host));
 
-
+    // validate cluster name
     if !validatename::namevalid(&cluster_name) {
         return HttpResponse::BadRequest().json("Invalid Name");
     }
@@ -95,8 +77,6 @@ pub async fn create(
     if count_same_name != 0 {
         return HttpResponse::BadRequest().json("Cluster with the same name already exists");
     }
-
-    let namespace = format!("k3k-{}", cluster_name);
 
     let cluster_schema = k3k_rs::cluster::Cluster {
         metadata: kube::core::ObjectMeta {
@@ -117,8 +97,8 @@ pub async fn create(
                 Ingress: None
             }),
             serverLimit: Some(BTreeMap::from([
-                ("cpu".to_string(), IntOrString::String("200m".to_string())),
-                ("memory".to_string(), IntOrString::String("500Mi".to_string()))
+                ("cpu".to_string(), IntOrString::String("400m".to_string())),
+                ("memory".to_string(), IntOrString::String("600Mi".to_string()))
             ])),
             workerLimit: Some(BTreeMap::from([
                 ("cpu".to_string(), IntOrString::String("30m".to_string())),
@@ -162,7 +142,10 @@ pub async fn create(
     let response = k3k_rs::cluster::create(&kubeclient, &namespace, &cluster_schema).await;
 
     match response {
-        Err(e) => {println!("Error creating cluster {}: {}", cluster_schema.metadata.name.unwrap(), e); return HttpResponse::BadGateway().json(e.to_string())}
+        Err(e) => {
+            println!("{:?}", e);
+            println!("Error creating cluster {}: {}", cluster_schema.metadata.name.unwrap(), e); return HttpResponse::BadGateway().json(e.to_string())
+        }
 
         Ok(response) => {
 
