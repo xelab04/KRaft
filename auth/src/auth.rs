@@ -6,7 +6,7 @@ use actix_web::{web, HttpRequest, HttpResponse, cookie::{Cookie, SameSite}};
 use uuid;
 use log::{info, error};
 use serde_json::{self, json};
-use sqlx::{MySqlPool};
+use sqlx::{PgPool, Row};
 
 use crate::jwt;
 use crate::util::{check_passwords_match, hash_password};
@@ -28,7 +28,7 @@ pub async fn password(query: web::Query<PasswordParams>) -> HttpResponse {
 
 #[actix_web::post("/auth/changepassword")]
 pub async fn changepwd(
-    pool: web::Data<MySqlPool>,
+    pool: web::Data<PgPool>,
     payload: web::Json<PasswordChange>,
     // req: HttpRequest,
     user: AuthUser
@@ -71,7 +71,7 @@ pub async fn logout() -> HttpResponse {
 }
 
 #[actix_web::post("/auth/login")]
-pub async fn login(pool: web::Data<MySqlPool>, payload: web::Json<User>) -> HttpResponse {
+pub async fn login(pool: web::Data<PgPool>, payload: web::Json<User>) -> HttpResponse {
 
     let email = &payload.email;
     let user_password = &payload.user_password;
@@ -130,7 +130,7 @@ pub async fn login(pool: web::Data<MySqlPool>, payload: web::Json<User>) -> Http
 
 #[actix_web::post("/auth/register")]
 pub async fn register(
-    pool: web::Data<MySqlPool>,
+    pool: web::Data<PgPool>,
     app_config: web::Data<AppConfig>,
     payload: web::Json<User>
 ) -> HttpResponse {
@@ -176,7 +176,7 @@ pub async fn register(
     let user_uuid = uuid::Uuid::new_v4().to_string();
     let email_validation = uuid::Uuid::new_v4().to_string();
 
-    let r = sqlx::query("INSERT INTO users (username, email, password, betacode, uuid, verification_code, admin) VALUES ($1, $2, $3, $4, $5, $6, $7)")
+    let row = sqlx::query("INSERT INTO users (username, email, password, betacode, uuid, verification_code, admin) VALUES ($1, $2, $3, $4, $5, $6, $7)")
         .bind(user)
         .bind(email)
         .bind(password_hash)
@@ -184,15 +184,16 @@ pub async fn register(
         .bind(user_uuid)
         .bind(&email_validation)
         .bind(false)
-        .execute(pool.get_ref())
+        .fetch_one(pool.get_ref())
         .await;
 
     // In the future, have email verification
 
-    match r {
-        Ok(mysql_result) => {
+    match row {
+        Ok(row) => {
+            let user_id: i32 = row.get("id");
             // if user created succesfully, generate cookie
-            let user_id = mysql_result.last_insert_id();
+            // let user_id = pg_result.last_insert_id();
 
             // let user_id: i64 = sqlx::query_scalar("SELECT user_id FROM users WHERE username = ?")
             //     .bind(user)

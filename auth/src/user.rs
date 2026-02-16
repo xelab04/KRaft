@@ -1,6 +1,6 @@
 use actix_web::{web, HttpRequest, HttpResponse};
 use serde_json::json;
-use sqlx::MySqlPool;
+use sqlx::PgPool;
 use sqlx::FromRow;
 use serde_json;
 use log::{info};
@@ -30,7 +30,7 @@ use kube::Client;
 #[actix_web::get("/auth/user/details")]
 pub async fn details(
     req: HttpRequest,
-    pool: web::Data<MySqlPool>,
+    pool: web::Data<PgPool>,
     user: AuthUser,
     useruuid_param: Option<web::Query<UserUUID>>
 ) -> HttpResponse {
@@ -96,7 +96,7 @@ pub async fn details(
 #[actix_web::delete("/auth/user/delete")]
 pub async fn user_delete (
     user: AuthUser,
-    pool: web::Data<MySqlPool>,
+    pool: web::Data<PgPool>,
     client: web::Data<Client>,
     uuid_query_param: Option<web::Query<UserUUID>>,
 ) -> HttpResponse {
@@ -159,7 +159,7 @@ pub async fn user_delete (
 #[actix_web::get("/auth/validate/{token}")]
 pub async fn validate (
     user: AuthUser,
-    pool: web::Data<MySqlPool>,
+    pool: web::Data<PgPool>,
     token: web::Path<String>,
 ) -> HttpResponse {
 

@@ -3,9 +3,9 @@
     "method": "POST",
     "body": {
         "mimeType": "application/json",
-        "text": "{\n    \"username\": \"test\",\n    \"email\": \"test@email.com\",\n    \"password\": \"badpassword\",\n    \"betacode\": \"bleh\"\n}"
+        "text": "{\n    \"username\": \"alex\",\n    \"email\": \"alexbissessur@email.com\",\n    \"password\": \"password\",\n    \"betacode\": \"meow\"\n}"
     },
-    "url": "https://kraft.alexbissessur.dev/auth/register",
+    "url": "http://127.0.0.1:5000/auth/register",
     "sortOrder": 0,
     "parameters": [],
     "pathParameters": [],
