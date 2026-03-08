@@ -14,3 +14,23 @@ spec:
     app: kraft-db
 status:
   loadBalancer: {}
+
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  creationTimestamp: null
+  labels:
+    app: kraft-db-pg
+  name: kraft-db-pg
+spec:
+  ports:
+  - port: 5432
+    protocol: TCP
+    targetPort: 5432
+  selector:
+    app: kraft-db-pg
+status:
+  loadBalancer: {}
