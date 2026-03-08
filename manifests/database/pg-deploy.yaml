@@ -28,19 +28,19 @@ spec:
               mountPath: /var/lib/postgresql/18/docker
 
           env:
-            - name: PGDATABASE
+            - name: POSTGRES_DATABASE
               valueFrom:
                 secretKeyRef:
                   name: database-secrets
                   key: DB_DATABASE
 
-            - name: PGUSER
+            - name: POSTGRES_USER
               valueFrom:
                 secretKeyRef:
                   name: database-secrets
                   key: DB_USER
 
-            - name: PGPASSWORD
+            - name: POSTGRES_PASSWORD
               valueFrom:
                 secretKeyRef:
                   name: database-secrets
