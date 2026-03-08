@@ -1,48 +1,48 @@
-.PHONY: frontend redeploy all db-init auth clustermanage docker resourcemanage
+.PHONY: frontend redeploy all db-init auth clustermanage podman resourcemanage
 .SILENT:
 VERSION := $(shell cat version.txt)
 
 frontend:
-	cd frontend && docker build . -t registry.alexbissessur.dev/kraft-frontend
-	docker push registry.alexbissessur.dev/kraft-frontend
+	cd frontend && podman build . -t registry.alexbissessur.dev/kraft-frontend
+	podman push registry.alexbissessur.dev/kraft-frontend
 
 clustermanage:
-	cd cluster-manage && docker build . -t registry.alexbissessur.dev/kraft-cluster-manage
-	docker push registry.alexbissessur.dev/kraft-cluster-manage
+	cd cluster-manage && podman build . -t registry.alexbissessur.dev/kraft-cluster-manage
+	podman push registry.alexbissessur.dev/kraft-cluster-manage
 
 resourcemanage:
-	cd resource-manage && docker build . -t registry.alexbissessur.dev/kraft-resource-manage
-	docker push registry.alexbissessur.dev/kraft-resource-manage
+	cd resource-manage && podman build . -t registry.alexbissessur.dev/kraft-resource-manage
+	podman push registry.alexbissessur.dev/kraft-resource-manage
 
 auth:
-	cd auth && docker build . -t registry.alexbissessur.dev/kraft-auth
-	docker push registry.alexbissessur.dev/kraft-auth
+	cd auth && podman build . -t registry.alexbissessur.dev/kraft-auth
+	podman push registry.alexbissessur.dev/kraft-auth
 
-docker:
-	cd frontend && docker build . -t registry.alexbissessur.dev/kraft-frontend
-	docker push registry.alexbissessur.dev/kraft-frontend
+podman:
+	cd frontend && podman build . -t registry.alexbissessur.dev/kraft-frontend
+	podman push registry.alexbissessur.dev/kraft-frontend
 
-	cd auth && docker build . -t registry.alexbissessur.dev/kraft-auth
-	docker push registry.alexbissessur.dev/kraft-auth
+	cd auth && podman build . -t registry.alexbissessur.dev/kraft-auth
+	podman push registry.alexbissessur.dev/kraft-auth
 
-	cd cluster-manage && docker build . -t registry.alexbissessur.dev/kraft-cluster-manage
-	docker push registry.alexbissessur.dev/kraft-cluster-manage
+	cd cluster-manage && podman build . -t registry.alexbissessur.dev/kraft-cluster-manage
+	podman push registry.alexbissessur.dev/kraft-cluster-manage
 
-	cd resource-manage && docker build . -t registry.alexbissessur.dev/kraft-resource-manage
-	docker push registry.alexbissessur.dev/kraft-resource-manage
+	cd resource-manage && podman build . -t registry.alexbissessur.dev/kraft-resource-manage
+	podman push registry.alexbissessur.dev/kraft-resource-manage
 
-	# cd cloudflare-manage && docker build . -t registry.alexbissessur.dev/kraft-cloudflare-manage
-	# docker push registry.alexbissessur.dev/kraft-cloudflare-manage
+	# cd cloudflare-manage && podman build . -t registry.alexbissessur.dev/kraft-cloudflare-manage
+	# podman push registry.alexbissessur.dev/kraft-cloudflare-manage
 
 prod:
-	cd frontend && docker build . -t xelab04/kraft-frontend:$(VERSION)
-	docker push xelab04/kraft-frontend:$(VERSION)
+	cd frontend && podman build . -t xelab04/kraft-frontend:$(VERSION)
+	podman push xelab04/kraft-frontend:$(VERSION)
 
-	cd auth && docker build . -t xelab04/kraft-auth:$(VERSION)
-	docker push xelab04/kraft-auth:$(VERSION)
+	cd auth && podman build . -t xelab04/kraft-auth:$(VERSION)
+	podman push xelab04/kraft-auth:$(VERSION)
 
-	cd cluster-manage && docker build . -t xelab04/kraft-cluster-manage:$(VERSION)
-	docker push xelab04/kraft-cluster-manage:$(VERSION)
+	cd cluster-manage && podman build . -t xelab04/kraft-cluster-manage:$(VERSION)
+	podman push xelab04/kraft-cluster-manage:$(VERSION)
 
-	cd resource-manage && docker build . -t xelab04/kraft-resource-manage:$(VERSION)
-	docker push xelab04/kraft-resource-manage:$(VERSION)
+	cd resource-manage && podman build . -t xelab04/kraft-resource-manage:$(VERSION)
+	podman push xelab04/kraft-resource-manage:$(VERSION)
