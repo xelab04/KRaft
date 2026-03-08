@@ -176,7 +176,7 @@ pub async fn register(
     let user_uuid = uuid::Uuid::new_v4().to_string();
     let email_validation = uuid::Uuid::new_v4().to_string();
 
-    let row = sqlx::query("INSERT INTO users (username, email, password, betacode, uuid, verification_code, admin) VALUES ($1, $2, $3, $4, $5, $6, $7)")
+    let user_id = sqlx::query_scalar::<_, i32>("INSERT INTO users (username, email, password, betacode, uuid, verification_code, admin, verified_email) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING user_id")
         .bind(user)
         .bind(email)
         .bind(password_hash)
@@ -184,22 +184,15 @@ pub async fn register(
         .bind(user_uuid)
         .bind(&email_validation)
         .bind(false)
+        .bind(false)
         .fetch_one(pool.get_ref())
         .await;
 
-    // In the future, have email verification
-
-    match row {
-        Ok(row) => {
-            let user_id: i32 = row.get("id");
+    match user_id {
+        Ok(uid) => {
+            let user_id: i32 = uid;
             // if user created succesfully, generate cookie
             // let user_id = pg_result.last_insert_id();
-
-            // let user_id: i64 = sqlx::query_scalar("SELECT user_id FROM users WHERE username = ?")
-            //     .bind(user)
-            //     .fetch_one(pool.get_ref())
-            //     .await
-            //     .unwrap();
 
             let jwt_token = jwt::create_jwt(user_id.to_string());
 

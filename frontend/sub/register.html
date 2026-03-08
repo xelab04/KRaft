@@ -7,7 +7,11 @@
     <script src="https://cdn.tailwindcss.com"></script>
 
     <script>
-      function submitForm() {
+      function sleep(ms) {
+          return new Promise(resolve => setTimeout(resolve, ms));
+      }
+      async function submitForm() {
+        if (event) event.preventDefault();
         // const username = document.getElementById('username').value;
         const email = document.getElementById('email').value;
         const username = document.getElementById('username').value;
@@ -16,35 +20,40 @@
 
         console.log("meow");
 
-        fetch('/auth/register', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({ email, username, password, betacode })
-        })
-        .then(response => response.json())
-        .then(data => {
-          if (data.error || data.status == "error") {
-            document.getElementById('error-message').textContent = data.error;
 
-            if (data.error == null) {
-              document.getElementById('error-message').textContent = data.message;
-            }
+        try {
+          const response = await fetch('/auth/register', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({email, username, password, betacode})
+          })
 
-          } else {
-            document.getElementById('error-message').textContent = 'Success!';
-            delay(2000).then(() => {
-              window.location.href = `/`;
-            });
+          let data;
+          try {
+            data = await response.clone().json();
+          } catch {
+            data = { message: await response.text() };
           }
-        })
-        .catch(error => {
-          document.getElementById('error-message').textContent = 'An error occurred somewhere between here and the server.';
-          console.error('Error:', error);
-        });
-        return false;
 
+          if (response.ok) {
+            document.getElementById('error-message').textContent = 'Success!';
+
+            await sleep(2000);
+            console.log('redirecting to home');
+            window.location.href = `/`;
+          }
+          else {
+            console.log(data);
+            document.getElementById('error-message').textContent = data.message;
+          }
+        } catch (err) {
+          console.error("Error caught: ", err);
+          document.getElementById('error-message').textContent = 'An error occurred somewhere between here and the server.'
+        }
+
+        return false;
       }
     </script>
 
