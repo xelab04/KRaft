@@ -1,0 +1,54 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  creationTimestamp: null
+  labels:
+    app: kraft-db-pg
+  name: kraft-db-pg
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: kraft-db-pg
+  strategy: {}
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        app: kraft-db-pg
+    spec:
+      containers:
+        - image: registry.opensuse.org/opensuse/postgres:18
+          name: postgres
+          ports:
+            - containerPort: 5432
+          resources: {}
+          volumeMounts:
+            - name: kraft-db
+              mountPath: /var/lib/postgresql/18/docker
+
+          env:
+            - name: PGDATABASE
+              valueFrom:
+                secretKeyRef:
+                  name: database-secrets
+                  key: DB_DATABASE
+
+            - name: PGUSER
+              valueFrom:
+                secretKeyRef:
+                  name: database-secrets
+                  key: DB_USER
+
+            - name: PGPASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: database-secrets
+                  key: DB_PASSWORD
+
+      volumes:
+        - name: kraft-db
+          persistentVolumeClaim:
+            claimName: kraft-db-pg
+
+status: {}

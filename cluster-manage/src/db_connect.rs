@@ -3,7 +3,6 @@ use sqlx::postgres::PgPoolOptions;
 use sqlx::PgPool;
 
 pub async fn get_db_pool() -> Result<PgPool, sqlx::Error> {
-    sqlx::any::install_default_drivers();
 
     let user = std::env::var("DB_USER").unwrap_or_else(|_| "root".to_string());
     let key = std::env::var("DB_PASSWORD").unwrap_or_else(|_| "password".to_string());
