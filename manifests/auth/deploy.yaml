@@ -30,8 +30,8 @@ spec:
         envFrom:
         - configMapRef:
             name: global-config
-        - secretRef:
-            name: betacode
+        # - secretRef:
+        #     name: betacode
         - secretRef:
             name: jwtsecret
         - secretRef:

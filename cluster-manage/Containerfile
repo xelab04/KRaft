@@ -2,9 +2,9 @@ FROM registry.suse.com/bci/rust:1.93 AS build
 
 WORKDIR /app
 
-COPY . ./
-
 RUN zypper -n in openssl-devel
+
+COPY . ./
 
 RUN cargo build --release
 

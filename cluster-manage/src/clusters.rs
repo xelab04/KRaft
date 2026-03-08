@@ -294,7 +294,7 @@ pub async fn list(
     // use id to get from postgres
 
     let user_id_int: i32 = user_id.parse().unwrap_or(0);
-    let clusters: Vec<Cluster> = sqlx::query_as::<_, Cluster>("SELECT cluster_id as id, cluster_name as name, cluster_endpoint as endpoint FROM clusters WHERE user_id=(?)")
+    let clusters: Vec<Cluster> = sqlx::query_as::<_, Cluster>("SELECT cluster_id as id, cluster_name as name, cluster_endpoint as endpoint FROM clusters WHERE user_id=($1)")
         .bind(user_id_int)
         .fetch_all(pool.get_ref())
         .await
