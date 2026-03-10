@@ -25,7 +25,7 @@ spec:
           resources: {}
           volumeMounts:
             - name: kraft-db
-              mountPath: /var/lib/postgresql/18/docker
+              mountPath: /var/lib/pgsql
 
           env:
             - name: POSTGRES_DATABASE
