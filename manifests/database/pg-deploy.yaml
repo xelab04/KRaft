@@ -25,10 +25,10 @@ spec:
           resources: {}
           volumeMounts:
             - name: kraft-db
-              mountPath: /var/lib/pgsql
+              mountPath: /var/lib/pgsql/data
 
           env:
-            - name: POSTGRES_DATABASE
+            - name: POSTGRES_DB
               valueFrom:
                 secretKeyRef:
                   name: database-secrets
