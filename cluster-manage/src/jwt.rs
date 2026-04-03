@@ -1,5 +1,5 @@
 use actix_web::cookie::Cookie;
-use actix_web::{web, HttpRequest, cookie::SameSite};
+use actix_web::{HttpRequest, cookie::SameSite};
 use actix_web::cookie::time;
 use jsonwebtoken::{encode, Header, EncodingKey, errors::Error as JwtError};
 use jsonwebtoken::{decode, DecodingKey, Validation, Algorithm, errors::ErrorKind};
@@ -50,7 +50,7 @@ pub fn create_jwt(user_id: String) -> String {
 }
 
 
-pub fn create_cookie(jwt_token: &String) -> Cookie {
+pub fn create_cookie(jwt_token: &str) -> Cookie {
     let cookie = Cookie::build("auth_token", jwt_token)
         .path("/")
         .http_only(true)
@@ -62,24 +62,24 @@ pub fn create_cookie(jwt_token: &String) -> Cookie {
     cookie
 }
 
-pub fn validate_jwt(jwt: &String) -> bool {
+// pub fn validate_jwt(jwt: &String) -> bool {
 
-    let jwt_secret = env::var("JWT_SECRET")
-        .expect("JWT_SECRET must be set in environment variables");
+//     let jwt_secret = env::var("JWT_SECRET")
+//         .expect("JWT_SECRET must be set in environment variables");
 
-    let validation = Validation::new(jsonwebtoken::Algorithm::HS256);
+//     let validation = Validation::new(jsonwebtoken::Algorithm::HS256);
 
-    let token_data = decode::<JWT>(
-        &jwt,
-        &DecodingKey::from_secret(jwt_secret.as_bytes()),
-        &validation,
-    );
+//     let token_data = decode::<JWT>(
+//         &jwt,
+//         &DecodingKey::from_secret(jwt_secret.as_bytes()),
+//         &validation,
+//     );
 
-    match token_data {
-        Ok(_) => {return true;}
-        Err(_) => {return false;}
-    }
-}
+//     match token_data {
+//         Ok(_) => {return true;}
+//         Err(_) => {return false;}
+//     }
+// }
 
 pub fn extract_user_id_from_jwt(req: &HttpRequest) -> Result<String, JwtError> {
     let JWT_SECRET = std::env::var("JWT_SECRET")
