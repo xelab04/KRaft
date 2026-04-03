@@ -1,5 +1,5 @@
 use kube::{
-    api::{Api, PostParams, ResourceExt},
+    api::{Api, PostParams},
     core::{DynamicObject, GroupVersionKind, ApiResource},
     Client,
 };
@@ -42,7 +42,7 @@ pub async fn traefik(client: &Client, cluster_name: &String, namespace: &String,
     let pp = PostParams::default();
     let ingressroute: DynamicObject = serde_json::from_value(ingressroute).unwrap();
 
-    let created = ingress_routes.create(&pp, &ingressroute).await.unwrap();
+    let _created = ingress_routes.create(&pp, &ingressroute).await.unwrap();
 
     true
 }

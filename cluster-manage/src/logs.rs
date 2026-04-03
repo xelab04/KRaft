@@ -1,6 +1,5 @@
 use actix_web::web;
-use actix_web::web::{Json, Path};
-use actix_web::{HttpRequest, HttpResponse};
+use actix_web::HttpResponse;
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 
@@ -11,8 +10,6 @@ use k3k_rs;
 use kube::Client;
 
 use crate::class::AuthUser;
-use crate::jwt;
-use crate::AppConfig;
 
 #[derive(Serialize, Deserialize)]
 pub struct LogsType {

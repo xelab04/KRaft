@@ -28,14 +28,14 @@ impl FromRequest for AuthUser {
         let jwt = jwt::extract_user_id_from_jwt(&req);
         match jwt {
             Ok(id) => { return ready(Ok(AuthUser { user_id: id })); }
-            Err(e) => { return ready(Err(actix_web::error::ErrorUnauthorized("Unauthorised"))); }
+            Err(_) => { return ready(Err(actix_web::error::ErrorUnauthorized("Unauthorised"))); }
         };
     }
 }
 
 #[derive(Serialize, Deserialize, FromRow)]
 pub struct Cluster {
-    pub id: Option<i64>,
+    pub id: Option<i32>,
     pub name: String,
     pub endpoint: Option<String>
 }

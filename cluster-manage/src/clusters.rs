@@ -1,14 +1,11 @@
 use std::collections::BTreeMap;
 
 use actix_web::web;
-use actix_web::web::{Json, Path};
+use actix_web::web::Json;
 use actix_web::{HttpRequest, HttpResponse};
 use k8s_openapi::apimachinery::pkg::util::intstr::IntOrString;
-use serde::{Deserialize, Serialize};
-use serde_json::json;
 
 use sqlx;
-use sqlx::prelude::FromRow;
 use sqlx::PgPool;
 
 use k3k_rs;
@@ -16,15 +13,13 @@ use kube::Client;
 use k8s_openapi::api::core::v1::Namespace;
 use k8s_openapi::apimachinery::pkg::apis::meta::v1::ObjectMeta;
 
-use random_word::Lang;
 use tokio::fs;
 
-use crate::{jwt, class};
+use crate::class;
 use crate::validatename;
 use crate::AppConfig;
 use crate::tlssan;
 use crate::ingress;
-use crate::vcp;
 
 use crate::class::{AuthUser, Cluster, ClusterCreateForm};
 
@@ -147,7 +142,7 @@ pub async fn create(
             println!("Error creating cluster {}: {}", cluster_schema.metadata.name.unwrap(), e); return HttpResponse::BadGateway().json(e.to_string())
         }
 
-        Ok(response) => {
+        Ok(_) => {
 
             let title = "Cluster Created";
             let message = format!("Cluster {cluster_name} has just been created");
@@ -181,11 +176,9 @@ pub async fn create(
 
 #[delete("/api/delete/cluster/{cluster_name}")]
 pub async fn clusterdelete(
-    req: HttpRequest,
     pool: web::Data<PgPool>,
     cluster_name: web::Path<String>,
     kubeclient: web::Data<Client>,
-    config: web::Data<AppConfig>,
     user: AuthUser
 ) -> HttpResponse{
 
@@ -230,11 +223,9 @@ pub async fn clusterdelete(
 
 #[get("/api/get/kubeconfig/{cluster_name}")]
 pub async fn get_kubeconfig(
-    req: HttpRequest,
     pool: web::Data<PgPool>,
     cluster_name: web::Path<String>,
     kubeclient: web::Data<Client>,
-    config: web::Data<AppConfig>,
     user: AuthUser
 ) -> HttpResponse {
 
@@ -260,7 +251,7 @@ pub async fn get_kubeconfig(
     let kconf;
     match k3k_rs::kubeconfig::get(&kubeclient, raw_cluster_name.as_str(), None).await {
         Ok(kubeconfig) => { kconf = kubeconfig }
-        Err(e) => { return HttpResponse::Processing().json("Kubeconfig not found, wait a minute and try again.")}
+        Err(_) => { return HttpResponse::Processing().json("Kubeconfig not found, wait a minute and try again.")}
     }
 
     let filename = "/kubeconfig.yaml";
@@ -283,12 +274,9 @@ pub async fn get_kubeconfig(
 
 #[get("/api/get/clusters")]
 pub async fn list(
-    req: HttpRequest,
     pool: web::Data<PgPool>,
-    config: web::Data<AppConfig>,
     user: AuthUser
 ) -> HttpResponse {
-    let jwt = jwt::extract_user_id_from_jwt(&req);
 
     let user_id = user.user_id;
     // use id to get from postgres

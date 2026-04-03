@@ -2,7 +2,7 @@
 extern crate actix_web;
 
 use std::{env, io, panic::PanicHookInfo};
-use log::{info, error};
+// use log::{info, error};
 
 use actix_web::{
     HttpServer, Error, App,
@@ -11,8 +11,6 @@ use actix_web::{
     middleware::{self, from_fn, Next},
     web
 };
-use actix_web::{cookie::Cookie, cookie::SameSite};
-use actix_web::cookie::time::Duration;
 
 use kube::Client;
 
@@ -57,7 +55,7 @@ where
         Ok(uid) => {
             let jwt_token = jwt::create_jwt(uid);
 
-            let cookie = jwt::create_cookie(&jwt_token);
+            let cookie = jwt::create_cookie(jwt_token.as_str());
 
             response.response_mut().add_cookie(&cookie).ok();
         }
