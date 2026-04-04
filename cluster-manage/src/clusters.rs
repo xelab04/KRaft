@@ -92,12 +92,12 @@ pub async fn create(
                 Ingress: None
             }),
             serverLimit: Some(BTreeMap::from([
-                ("cpu".to_string(), IntOrString::String("400m".to_string())),
-                ("memory".to_string(), IntOrString::String("600Mi".to_string()))
+                ("cpu".to_string(), IntOrString::String("600m".to_string())),
+                ("memory".to_string(), IntOrString::String("1000Mi".to_string()))
             ])),
             workerLimit: Some(BTreeMap::from([
-                ("cpu".to_string(), IntOrString::String("30m".to_string())),
-                ("memory".to_string(), IntOrString::String("75Mi".to_string()))
+                ("cpu".to_string(), IntOrString::String("50m".to_string())),
+                ("memory".to_string(), IntOrString::String("100Mi".to_string()))
             ])),
             sync: Some(k3k_rs::cluster::SyncSpec{
                 ingresses: Some(k3k_rs::cluster::SyncResourceSpec {
