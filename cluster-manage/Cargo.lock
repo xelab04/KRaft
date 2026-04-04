@@ -492,7 +492,6 @@ dependencies = [
  "log",
  "regex",
  "reqwest",
- "schemars",
  "serde",
  "serde_json",
  "sqlx",
