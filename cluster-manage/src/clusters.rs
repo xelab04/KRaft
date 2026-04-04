@@ -236,8 +236,9 @@ pub async fn get_kubeconfig(
     // so userid-clustername
 
     // check user_id and cluster_name in database
+    let int_user_id = user_id.parse::<i32>().unwrap();
     let cluster_belongs_to_user: bool = sqlx::query_scalar("SELECT EXISTS(SELECT 1 FROM clusters WHERE user_id = $1 AND cluster_name = $2)")
-        .bind(&user_id)
+        .bind(&int_user_id)
         .bind(&raw_cluster_name)
         .fetch_one(pool.get_ref())
         .await
