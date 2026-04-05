@@ -3,10 +3,13 @@ FROM registry.suse.com/bci/rust:1.90 AS build
 WORKDIR /app
 
 RUN zypper -n in openssl-devel
+RUN cargo install cargo-chef
 
-RUN cargo init
-COPY Cargo.toml Cargo.lock ./
-RUN cargo build --release
+COPY Cargo.lock Cargo.toml ./
+RUN mkdir src
+RUN touch src/main.rs
+RUN cargo chef prepare --recipe-path recipe.json
+RUN cargo chef cook --release --recipe-path recipe.json
 
 COPY . ./
 
