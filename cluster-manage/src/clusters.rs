@@ -96,8 +96,8 @@ pub async fn create(
                 ("memory".to_string(), IntOrString::String("1000Mi".to_string()))
             ])),
             workerLimit: Some(BTreeMap::from([
-                ("cpu".to_string(), IntOrString::String("50m".to_string())),
-                ("memory".to_string(), IntOrString::String("100Mi".to_string()))
+                ("cpu".to_string(), IntOrString::String("30m".to_string())),
+                ("memory".to_string(), IntOrString::String("75Mi".to_string()))
             ])),
             sync: Some(k3k_rs::cluster::SyncSpec{
                 ingresses: Some(k3k_rs::cluster::SyncResourceSpec {
@@ -111,10 +111,7 @@ pub async fn create(
         status: None,
     };
 
-    //
     // CREATE NAMESPACE
-    //
-
     if k3k_rs::namespace::exists(&kubeclient, &namespace).await.unwrap() {
         println!("Namespace already exists: {}", namespace);
     } else {
@@ -157,9 +154,10 @@ pub async fn create(
         }
     }
 
+    let int_user_id = user_id.parse::<i32>().unwrap();
     sqlx::query("INSERT INTO clusters (cluster_name, user_id, cluster_endpoint) VALUES ($1, $2, $3)")
         .bind(&cluster_name)
-        .bind(user_id)
+        .bind(int_user_id)
         .bind(&endpoint_string)
         .execute(pool.get_ref())
         .await
@@ -186,8 +184,9 @@ pub async fn clusterdelete(
     let user_id = user.user_id;
 
     // check the user owns the cluster
+    let int_user_id = user_id.parse::<i32>().unwrap();
     let cluster_count_belonging_to_user: i64 = sqlx::query_scalar("SELECT COUNT(*) FROM clusters WHERE user_id = $1 AND cluster_name = $2")
-        .bind(&user_id)
+        .bind(&int_user_id)
         .bind(&raw_cluster_name)
         .fetch_one(pool.get_ref())
         .await
@@ -200,7 +199,7 @@ pub async fn clusterdelete(
     let namespace = format!("k3k-{}", raw_cluster_name);
 
     // let client = Client::try_default().await.unwrap();
-    k3k_rs::cluster::delete(&kubeclient, namespace.as_str(), raw_cluster_name.as_str()).await.unwrap();
+    k3k_rs::cluster::delete(&kubeclient, namespace.as_str(), raw_cluster_name.as_str()).await.expect("cluster not found ");
 
     k3k_rs::namespace::delete(&kubeclient, namespace.as_str()).await.unwrap();
 
