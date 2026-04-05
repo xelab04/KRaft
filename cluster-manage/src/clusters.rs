@@ -225,6 +225,7 @@ pub async fn get_kubeconfig(
     pool: web::Data<PgPool>,
     cluster_name: web::Path<String>,
     kubeclient: web::Data<Client>,
+    config: web::Data<AppConfig>,
     user: AuthUser
 ) -> HttpResponse {
 
@@ -256,7 +257,18 @@ pub async fn get_kubeconfig(
 
     let filename = "/kubeconfig.yaml";
 
-    fs::write(&filename, kconf).await.unwrap();
+    // this feels so bad
+    let mut new_kconf = String::new();
+    for l in kconf.lines() {
+        println!(" NEWLINE {}", l);
+        if l.starts_with("    server:") {
+            new_kconf += format!("    server: https://{}.{}:1337 \n", raw_cluster_name, config.host).as_str();
+        } else {
+            new_kconf += format!("{}\n", l).as_str();
+        }
+    }
+
+    fs::write(&filename, new_kconf).await.unwrap();
 
     match std::fs::read_to_string(&filename) {
         Ok(file_contents) => {
