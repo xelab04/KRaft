@@ -63,6 +63,7 @@ CREATE TABLE clusters (
 CREATE TABLE workspaces (
     workspace_id SERIAL PRIMARY KEY,
     workspace_name VARCHAR(255) NOT NULL,
+    cluster_name VARCHAR(255) NOT NULL,
     user_id INT NOT NULL,
     CONSTRAINT fk_user
         FOREIGN KEY (user_id)
