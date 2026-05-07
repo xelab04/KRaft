@@ -71,6 +71,11 @@
                 Download
             </button>
 
+            <div class="text-xl block font-mono flex flex-col mt-4">Workspace</div>
+            <button class="hover:bg-gray-500 underline px-6" @click="workspace(viewCluster.name)">
+                Create / Load Workspace
+            </button>
+
             <div class="text-xl block font-mono flex flex-col mt-4">Delete Cluster</div>
             <button class="hover:bg-gray-500 underline px-6" @click="clusterdelete(viewCluster.name)">
                 Delete
@@ -131,6 +136,33 @@
                     document.body.appendChild(link);
                     link.click();
                     document.body.removeChild(link);
+                },
+
+                workspace(clustername) {
+                  fetch('/api/create/workspaces', {
+                    method: 'POST',
+                    headers: {
+                      'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ name })
+                  })
+                  .then(response => response.json())
+                  .then(data => {
+                    console.log(data);
+                    if (data.status == "error") {
+                      document.getElementById('error-message').textContent = data.message;
+                    } else {
+                      document.getElementById('error-message').textContent = 'Success! Redirecting...';
+                      setTimeout(() => {
+                        window.location.href = data.path;
+                      }, 2000);
+                    }
+                  })
+                  .catch(error => {
+                    document.getElementById('error-message').textContent = 'An error occurred somewhere between here and the server.';
+                    console.error('Error:', error);
+                  });
+
                 },
 
                 // should probably have a verification :D
