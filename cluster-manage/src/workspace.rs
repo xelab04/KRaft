@@ -5,6 +5,7 @@ use k8s_openapi::apimachinery::pkg::apis::meta::v1::ObjectMeta;
 use actix_web::web;
 use actix_web::web::Json;
 use actix_web::{HttpRequest, HttpResponse};
+use serde::{self, Serialize, Deserialize};
 
 use sqlx;
 use sqlx::PgPool;
@@ -23,7 +24,7 @@ use kube::{
 use serde_json::json;
 
 
-pub async fn ingressroute(client: &Client, cluster_name: &str, namespace: &str, host: &str) {
+pub async fn ingressroute(client: &Client, cluster_name: &str, namespace: &str, host: &str) -> String {
 
     // define CRD type
     let gvk = GroupVersionKind::gvk("traefik.io", "v1alpha1", "IngressRoute");
@@ -31,6 +32,8 @@ pub async fn ingressroute(client: &Client, cluster_name: &str, namespace: &str, 
 
     // api
     let ingress_routes: Api<DynamicObject> = Api::namespaced_with(client.clone(), namespace, &ar);
+
+    let ingress_path = format!("Host(`{}-wrk.{}`)", cluster_name, host);
 
     // json cause im lazy
     let ingressroute = json!({
@@ -45,7 +48,7 @@ pub async fn ingressroute(client: &Client, cluster_name: &str, namespace: &str, 
             "routes": [
                 {
                     "kind": "Rule",
-                    "match": format!("Host(`{}`)", host),
+                    "match": ingress_path,
                     "services": [
                         {
                             "name": format!("workspace-{}",cluster_name),
@@ -62,6 +65,8 @@ pub async fn ingressroute(client: &Client, cluster_name: &str, namespace: &str, 
     let ingressroute: DynamicObject = serde_json::from_value(ingressroute).unwrap();
 
     let _created = ingress_routes.create(&pp, &ingressroute).await.unwrap();
+
+    ingress_path
 }
 
 pub async fn service(client: &Client, cluster_name: &str, namespace: &str) {
@@ -183,6 +188,11 @@ pub async fn statefulset(client: &Client, cluster_name: &str, namespace: &str) {
     let _created = statefulsets.create(&pp, &ingressroute).await.unwrap();
 }
 
+#[derive(Serialize, Deserialize)]
+pub struct WorkspaceCreate {
+    pub name: String
+}
+
 #[post("/api/create/workspaces")]
 pub async fn create(
     req: HttpRequest,
@@ -190,11 +200,11 @@ pub async fn create(
     kubeclient: web::Data<Client>,
     config: web::Data<AppConfig>,
     user: AuthUser,
-    Json(cluster): Json<ClusterCreateForm>,
+    Json(workspace): Json<WorkspaceCreate>,
 ) -> HttpResponse {
 
     let user_id = user.user_id;
-    let cluster_name = format!("k-{}-{}", user_id, cluster.name);
+    let cluster_name = format!("k-{}-{}", user_id, workspace.name);
     let namespace = format!("k3k-{}", cluster_name);
     let int_user_id: i32 = user_id.parse().unwrap();
 
@@ -219,7 +229,7 @@ pub async fn create(
 
     service(&kubeclient, cluster_name.as_str(), namespace.as_str()).await;
 
-    ingressroute(&kubeclient, cluster_name.as_str(), namespace.as_str(), &config.host).await;
+    let ingress_path = ingressroute(&kubeclient, cluster_name.as_str(), namespace.as_str(), &config.host).await;
 
     // let int_user_id = user_id.parse::<i32>().unwrap();
     sqlx::query("INSERT INTO workspaces (workspace_name, user_id) VALUES ($1, $2)")
@@ -229,5 +239,5 @@ pub async fn create(
         .await
         .unwrap();
 
-    HttpResponse::Ok().finish()
+    HttpResponse::Ok().json(json!({"path": ingress_path}))
 }
