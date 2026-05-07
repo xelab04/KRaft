@@ -30,12 +30,13 @@ pub async fn getlogs(
     let user_id = user.user_id;
     let cluster_name = &query.full_cluster_name;
     let namespace = format!("k3k-{}", cluster_name);
+    let int_user_id = user_id.parse::<i32>().unwrap();
 
     let logtype = &query.logtype;
 
     // check user owns that cluster
     let user_owns_cluster: bool = sqlx::query_scalar("SELECT EXISTS(SELECT 1 FROM clusters WHERE user_id = $1 AND cluster_name = $2)")
-        .bind(user_id)
+        .bind(int_user_id)
         .bind(cluster_name)
         .fetch_one(pool.get_ref())
         .await
