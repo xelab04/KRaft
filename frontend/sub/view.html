@@ -156,7 +156,7 @@
                     } else {
                       document.getElementById('error-message').textContent = 'Success! Redirecting...';
                       setTimeout(() => {
-                        window.location.href = data.path;
+                        window.location.href = 'https://' + data.path;
                       }, 2000);
                     }
                   })
