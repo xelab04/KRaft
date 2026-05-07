@@ -1,0 +1,56 @@
+FROM registry.suse.com/suse/sle15:15.7
+
+# This could have been a bash script...
+
+# Install basic cli tools
+RUN zypper --non-interactive --gpg-auto-import-keys install git wget bash-completion
+
+# Install fish
+RUN zypper --non-interactive addrepo https://download.opensuse.org/repositories/shells:fish:release:4/15.6/ shells_fish
+RUN zypper --non-interactive --gpg-auto-import-keys refresh && zypper --non-interactive install fish
+
+# Install kubectl
+RUN curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+RUN chmod +x ./kubectl
+RUN mv ./kubectl /bin/kubectl
+RUN echo "source <(kubectl completion bash)" >> ~/.bashrc
+
+# Install kubecolor
+RUN zypper --non-interactive --gpg-auto-import-keys addrepo -f https://kubecolor.github.io/packages/rpm/kubecolor.repo
+RUN zypper --non-interactive --gpg-auto-import-keys install kubecolor
+
+# Configure bash for kubecolor
+RUN echo alias kubectl=kubecolor >> ~/.bashrc
+RUN echo complete -o default -F __start_kubectl kubecolor >> ~/.bashrc
+RUN echo -e "alias k=kubectl\ncomplete -o default -F __start_kubectl k" >> ~/.bashrc
+
+# Install K9s
+RUN curl -LO https://github.com/derailed/k9s/releases/download/v0.50.18/k9s_linux_amd64.rpm
+RUN zypper --non-interactive install --allow-unsigned-rpm ./k9s_linux_amd64.rpm
+RUN rm ./k9s_linux_amd64.rpm
+
+# Install Neovim and Lazyvim
+RUN curl -LO https://github.com/neovim/neovim/releases/latest/download/nvim-linux-x86_64.tar.gz
+RUN tar -xzf nvim-linux-x86_64.tar.gz
+RUN cp -r nvim-linux-x86_64/* /
+RUN rm -rf nvim-linux-x86_64 nvim-linux-x86_64.tar.gz
+
+# RUN mv ~/.config/nvim{,.bak} && mv ~/.local/share/nvim{,.bak} && mv ~/.local/state/nvim{,.bak} && mv ~/.cache/nvim{,.bak}
+RUN git clone https://github.com/LazyVim/starter ~/.config/nvim
+
+# Install ttyd
+RUN curl -LO https://github.com/tsl0922/ttyd/releases/download/1.7.7/ttyd.x86_64
+RUN chmod +x /ttyd.x86_64
+RUN mv ttyd.x86_64 /bin/ttyd
+
+# Yes, okay, you can just copy.fail your way into root but giving root outright feels bad
+RUN groupadd -g 1000 kraft && useradd -u 1000 -g kraft -m -s /usr/bin/bash kraft
+RUN cp -r /root/.bashrc /home/kraft/.bashrc
+RUN cp -r /root/.config /home/kraft/.config
+USER kraft
+WORKDIR /home/kraft
+
+# ENTRYPOINT [ "sleep", "3600" ]
+EXPOSE 7681
+ENV KUBE_EDITOR=nvim
+ENTRYPOINT [ "ttyd", "--writable", "bash" ]
