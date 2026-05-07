@@ -7,6 +7,8 @@ use actix_web::web::Json;
 use actix_web::{HttpRequest, HttpResponse};
 use serde::{self, Serialize, Deserialize};
 
+use log::{info, error};
+
 use sqlx;
 use sqlx::PgPool;
 
@@ -24,7 +26,7 @@ use kube::{
 use serde_json::json;
 
 
-pub async fn ingressroute(client: &Client, cluster_name: &str, namespace: &str, ingress_path: &str) -> String {
+pub async fn ingressroute(client: &Client, cluster_name: &str, namespace: &str, ingress_path: &str) {
 
     // define CRD type
     let gvk = GroupVersionKind::gvk("traefik.io", "v1alpha1", "IngressRoute");
@@ -164,7 +166,7 @@ pub async fn statefulset(client: &Client, cluster_name: &str, namespace: &str) {
                     "volumes": [{
                         "name": "kubeconfig",
                         "secret": {
-                            "secretName": "k3k-k-1-easterhegg-kubeconfig",
+                            "secretName": format!("k3k-{}-kubeconfig", cluster_name),
                             "defaultMode": 0444,
                             "items": [{
                                 "key": "kubeconfig.yaml",
@@ -226,8 +228,12 @@ pub async fn create(
         .expect("Failed to check if cluster workspace exists");
 
     if cluster_workspace_exists {
-        return HttpResponse::Ok().json(json!({path: ingress_path}));
+        info!("cluster workspace already exists for cluster {}", cluster_name);
+        println!("cluster workspace already exists for cluster {}", cluster_name);
+        return HttpResponse::Ok().json(json!({"path": ingress_path}));
     }
+
+    println!("cluster workspace to be created for cluster {}", cluster_name);
 
     let workspace_name = format!("workspace-{}", cluster_name);
     if !validatename::namevalid(&workspace_name) {
