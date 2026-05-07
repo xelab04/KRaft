@@ -1,0 +1,50 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: workspace
+spec:
+  selector:
+    matchLabels:
+      app: workspace
+  serviceName: "workspace"
+  replicas: 1
+  minReadySeconds: 10
+  template:
+    metadata:
+      labels:
+        app: workspace
+    spec:
+      terminationGracePeriodSeconds: 10
+      imagePullSecrets:
+        - name: regcred
+      automountServiceAccountToken: false
+      securityContext:
+        fsGroup: 1000
+        runAsNonRoot: true
+      containers:
+      - name: workspace
+        image: registry.alexbissessur.dev/kraft-workspace:latest
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 7681
+          name: ttyd
+        volumeMounts:
+        - name: kubeconfig
+          mountPath: /home/kraft/.kube/config
+          subPath: config
+        resources:
+          limits:
+            cpu: 100m
+            memory: 50M
+        securityContext:
+          allowPrivilegeEscalation: false
+          runAsUser: 1000
+
+      volumes:
+      - name: kubeconfig
+        secret:
+          secretName: k3k-k-1-easterhegg-kubeconfig
+          defaultMode: 0444
+          items:
+          - key: kubeconfig.yaml
+            path: config

@@ -1,0 +1,16 @@
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: workspaceroute
+spec:
+  entryPoints:
+  - websecure
+  - web
+  routes:
+  - kind: Rule
+    match: Host(`workspace.alexbissessur.dev`)
+    services:
+    - name: workspace-service
+      port: 8080
+  tls:
+    certResolver: le
