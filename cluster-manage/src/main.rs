@@ -23,6 +23,7 @@ mod ingress;
 mod logs;
 mod vcp;
 mod class;
+mod workspace;
 
 #[derive(Clone)]
 pub struct AppConfig {
@@ -131,6 +132,7 @@ async fn main() -> io::Result<()> {
             .service(clusters::clusterdelete)
             .service(clusters::get_kubeconfig)
             .service(logs::getlogs)
+            .service(workspace::create)
     })
     .bind("0.0.0.0:5000")?
     .run()
