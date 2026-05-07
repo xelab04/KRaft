@@ -8,7 +8,7 @@ rules:
   verbs: ["get", "watch", "list", "delete", "edit", "create", "patch"]
 
 - apiGroups: ["traefik.io"]
-  resources: ["ingressroutetcps"]
+  resources: ["ingressroutetcps", "ingressroutes"]
   verbs: ["create", "delete", "list", "watch"]
 
 - apiGroups: [""]
@@ -17,7 +17,7 @@ rules:
   # hmmmmm, deleting perms aren't ideal...
 
 - apiGroups: [""]
-  resources: ["nodes", "services"]
+  resources: ["nodes"]
   verbs: ["get","list"]
 
 - apiGroups: ["longhorn.io"]
@@ -29,8 +29,12 @@ rules:
   verbs: ["get","list"]
 
 - apiGroups: [""]
-  resources: ["namespaces", "secrets", "ingress"]
+  resources: ["namespaces", "secrets", "ingress", "services"]
   verbs: ["get","list", "create", "delete"]
+
+- apiGroups: ["apps"]
+  resources: ["statefulsets"]
+  verbs: ["get", "list", "create", "delete"]
 
 - apiGroups: [""]
   resources: ["pods/log"]

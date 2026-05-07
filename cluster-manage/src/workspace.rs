@@ -204,7 +204,7 @@ pub async fn create(
 ) -> HttpResponse {
 
     let user_id = user.user_id;
-    let cluster_name = format!("k-{}-{}", user_id, workspace.name);
+    let cluster_name = workspace.name;
     let namespace = format!("k3k-{}", cluster_name);
     let int_user_id: i32 = user_id.parse().unwrap();
 
@@ -217,7 +217,7 @@ pub async fn create(
         .expect("Failed to fetch cluster count");
 
     if !cluster_belongs_to_user {
-        return HttpResponse::NotFound().json(json!({"message": "Workspace cluster not found"}));
+        return HttpResponse::NotFound().json(json!({"message": format!("Workspace cluster {} not found for uid {}", cluster_name, int_user_id)}));
     }
 
     let workspace_name = format!("workspace-{}", cluster_name);
