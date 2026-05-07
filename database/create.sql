@@ -60,6 +60,15 @@ CREATE TABLE clusters (
         REFERENCES users(user_id)
 );
 
+CREATE TABLE workspaces (
+    workspace_id SERIAL PRIMARY KEY,
+    workspace_name VARCHAR(255) NOT NULL,
+    user_id INT NOT NULL,
+    CONSTRAINT fk_user
+        FOREIGN KEY (user_id)
+        REFERENCES users(user_id)
+);
+
 CREATE TABLE betacode (
     betacode VARCHAR(255) PRIMARY KEY,
     enabled BOOLEAN NOT NULL DEFAULT FALSE
