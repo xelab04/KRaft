@@ -24,7 +24,7 @@ use kube::{
 use serde_json::json;
 
 
-pub async fn ingressroute(client: &Client, cluster_name: &str, namespace: &str, host: &str) -> String {
+pub async fn ingressroute(client: &Client, cluster_name: &str, namespace: &str, ingress_path: &str) -> String {
 
     // define CRD type
     let gvk = GroupVersionKind::gvk("traefik.io", "v1alpha1", "IngressRoute");
@@ -32,8 +32,6 @@ pub async fn ingressroute(client: &Client, cluster_name: &str, namespace: &str, 
 
     // api
     let ingress_routes: Api<DynamicObject> = Api::namespaced_with(client.clone(), namespace, &ar);
-
-    let ingress_path = format!("Host(`{}-wrk.{}`)", cluster_name, host);
 
     // json cause im lazy
     let ingressroute = json!({
@@ -48,7 +46,7 @@ pub async fn ingressroute(client: &Client, cluster_name: &str, namespace: &str, 
             "routes": [
                 {
                     "kind": "Rule",
-                    "match": ingress_path,
+                    "match": format!("Host(`{}`)", ingress_path),
                     "services": [
                         {
                             "name": format!("workspace-{}",cluster_name),
@@ -65,8 +63,6 @@ pub async fn ingressroute(client: &Client, cluster_name: &str, namespace: &str, 
     let ingressroute: DynamicObject = serde_json::from_value(ingressroute).unwrap();
 
     let _created = ingress_routes.create(&pp, &ingressroute).await.unwrap();
-
-    ingress_path
 }
 
 pub async fn service(client: &Client, cluster_name: &str, namespace: &str) {
@@ -116,8 +112,8 @@ pub async fn statefulset(client: &Client, cluster_name: &str, namespace: &str) {
 
     // json cause im lazy
     let ss = json!({
-        "apiVersion": "v1",
-        "kind": "Service",
+        "apiVersion": "apps/v1",
+        "kind": "StatefulSet",
         "metadata": {
             "name": "workspace",
             "namespace": namespace
@@ -183,9 +179,9 @@ pub async fn statefulset(client: &Client, cluster_name: &str, namespace: &str) {
     });
 
     let pp = PostParams::default();
-    let ingressroute: DynamicObject = serde_json::from_value(ss).unwrap();
+    let statefulset: DynamicObject = serde_json::from_value(ss).unwrap();
 
-    let _created = statefulsets.create(&pp, &ingressroute).await.unwrap();
+    let _created = statefulsets.create(&pp, &statefulset).await.unwrap();
 }
 
 #[derive(Serialize, Deserialize)]
@@ -207,6 +203,7 @@ pub async fn create(
     let cluster_name = workspace.name;
     let namespace = format!("k3k-{}", cluster_name);
     let int_user_id: i32 = user_id.parse().unwrap();
+    let ingress_path = format!("{}-wrk.{}", cluster_name, config.host);
 
     // check the cluster exists and belongs to that user
     let cluster_belongs_to_user: bool = sqlx::query_scalar("SELECT EXISTS(SELECT 1 FROM clusters WHERE user_id = $1 AND cluster_name = $2)")
@@ -220,6 +217,18 @@ pub async fn create(
         return HttpResponse::NotFound().json(json!({"message": format!("Workspace cluster {} not found for uid {}", cluster_name, int_user_id)}));
     }
 
+    // check if an existing workspace... exists
+    let cluster_workspace_exists: bool = sqlx::query_scalar("SELECT EXISTS(SELECT 1 FROM workspaces WHERE user_id = $1 AND cluster_name = $2)")
+        .bind(&int_user_id)
+        .bind(&cluster_name)
+        .fetch_one(pool.get_ref())
+        .await
+        .expect("Failed to check if cluster workspace exists");
+
+    if cluster_workspace_exists {
+        return HttpResponse::Ok().json(json!({path: ingress_path}));
+    }
+
     let workspace_name = format!("workspace-{}", cluster_name);
     if !validatename::namevalid(&workspace_name) {
         return HttpResponse::ImATeapot().finish(); // this shouldn't ever happen
@@ -229,12 +238,13 @@ pub async fn create(
 
     service(&kubeclient, cluster_name.as_str(), namespace.as_str()).await;
 
-    let ingress_path = ingressroute(&kubeclient, cluster_name.as_str(), namespace.as_str(), &config.host).await;
+    ingressroute(&kubeclient, cluster_name.as_str(), namespace.as_str(), &ingress_path).await;
 
     // let int_user_id = user_id.parse::<i32>().unwrap();
-    sqlx::query("INSERT INTO workspaces (workspace_name, user_id) VALUES ($1, $2)")
-        .bind(workspace_name)
-        .bind(int_user_id)
+    sqlx::query("INSERT INTO workspaces (workspace_name, cluster_name, user_id) VALUES ($1, $2, $3)")
+        .bind(&workspace_name)
+        .bind(&cluster_name)
+        .bind(&int_user_id)
         .execute(pool.get_ref())
         .await
         .unwrap();
