@@ -28,10 +28,10 @@ spec:
         ports:
         - containerPort: 7681
           name: ttyd
-        volumeMounts:
-        - name: kubeconfig
-          mountPath: /home/kraft/.kube/config
-          subPath: config
+        # volumeMounts:
+        # - name: kubeconfig
+        #   mountPath: /home/kraft/.kube/config
+        #   subPath: config
         resources:
           limits:
             cpu: 100m
@@ -40,11 +40,11 @@ spec:
           allowPrivilegeEscalation: false
           runAsUser: 1000
 
-      volumes:
-      - name: kubeconfig
-        secret:
-          secretName: k3k-k-1-easterhegg-kubeconfig
-          defaultMode: 0444
-          items:
-          - key: kubeconfig.yaml
-            path: config
+      # volumes:
+      # - name: kubeconfig
+      #   secret:
+      #     secretName: k3k-k-1-easterhegg-kubeconfig
+      #     defaultMode: 0444
+      #     items:
+      #     - key: kubeconfig.yaml
+      #       path: config

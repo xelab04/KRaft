@@ -3,7 +3,7 @@ FROM registry.suse.com/suse/sle15:15.7
 # This could have been a bash script...
 
 # Install basic cli tools
-RUN zypper --non-interactive --gpg-auto-import-keys install git wget bash-completion
+RUN zypper --non-interactive --gpg-auto-import-keys install git wget bash-completion vim
 
 # Install fish
 RUN zypper --non-interactive addrepo https://download.opensuse.org/repositories/shells:fish:release:4/15.6/ shells_fish
@@ -46,7 +46,7 @@ RUN mv ttyd.x86_64 /bin/ttyd
 # Yes, okay, you can just copy.fail your way into root but giving root outright feels bad
 RUN groupadd -g 1000 kraft && useradd -u 1000 -g kraft -m -s /usr/bin/bash kraft
 RUN cp -r /root/.bashrc /home/kraft/.bashrc
-RUN cp -r /root/.config /home/kraft/.config
+RUN cp -r /root/.config/ /home/kraft/.config
 USER kraft
 WORKDIR /home/kraft
 
