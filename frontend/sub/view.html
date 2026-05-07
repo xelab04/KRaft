@@ -155,8 +155,9 @@
                       document.getElementById('error-message').textContent = data.message;
                     } else {
                       document.getElementById('error-message').textContent = 'Success! Redirecting...';
+                      const workspace_url = 'https://' + data.path
                       setTimeout(() => {
-                        window.location.href = 'https://' + data.path;
+                        window.open(workspace_url, '_blank');
                       }, 2000);
                     }
                   })
