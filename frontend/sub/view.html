@@ -138,7 +138,9 @@
                     document.body.removeChild(link);
                 },
 
-                workspace(clustername) {
+                workspace(clusterName) {
+                  const name = clusterName;
+                  console.log('getting workspace for cluster: ', name);
                   fetch('/api/create/workspaces', {
                     method: 'POST',
                     headers: {
