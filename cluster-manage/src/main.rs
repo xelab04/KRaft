@@ -133,6 +133,8 @@ async fn main() -> io::Result<()> {
             .service(clusters::get_kubeconfig)
             .service(logs::getlogs)
             .service(workspace::create)
+            .service(workspace::create_token_for_terminal)
+            .service(workspace::validate_terminal_access)
     })
     .bind("0.0.0.0:5000")?
     .run()
