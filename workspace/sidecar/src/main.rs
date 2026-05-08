@@ -5,17 +5,33 @@ use futures_util::{SinkExt, StreamExt};
 use std::env;
 
 async fn validate_token(token: &str, cluster_id: &str) -> bool {
-    let backend = env::var("HOST").unwrap();
+    let host_config = env::var("HOST").unwrap();
 
     println!("validating token {}", token);
 
     let client = reqwest::Client::new();
     let res = client
-        .post(format!("{}/api/workspaces/validatetoken/{}/{}", backend, cluster_id, token))
+        .post(format!("https://{}/api/workspaces/validatetoken/{}/{}", host_config, cluster_id, token))
         .send()
         .await;
 
-    matches!(res, Ok(r) if r.status().is_success())
+    match res {
+        Ok(r) => {
+            if r.status().is_success() {
+                println!("Verifying token successful: {}", token);
+                true
+            } else {
+                println!("Verifying token unsuccessful: {}", token);
+                false
+            }
+        }
+        Err(e) => {
+            println!("Token validation request failed: {}", e);
+            false
+        }
+    }
+
+    // matches!(res, Ok(r) if r.status().is_success())
 }
 
 async fn terminal(req: HttpRequest, stream: web::Payload) -> HttpResponse {
@@ -44,7 +60,15 @@ async fn terminal(req: HttpRequest, stream: web::Payload) -> HttpResponse {
     let ttyd_url = env::var("TTYD_URL").unwrap_or("ws://localhost:7681/ws".into());
 
     actix_web::rt::spawn(async move {
-        let Ok((ttyd_ws, _)) = tokio_tungstenite::connect_async(&ttyd_url).await else {
+
+        use tokio_tungstenite::tungstenite::client::IntoClientRequest;
+        let mut request = ttyd_url.into_client_request().unwrap();
+        request.headers_mut().insert(
+            "Sec-WebSocket-Protocol",
+            "tty".parse().unwrap()
+        );
+
+        let Ok((ttyd_ws, _)) = tokio_tungstenite::connect_async(request).await else {
             session.close(None).await.ok();
             return;
         };

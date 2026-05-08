@@ -333,7 +333,7 @@ pub async fn create_token_for_terminal(
     let int_cluster_id: i32 = cluster_id.into_inner();
     let created_at = chrono::Utc::now();
 
-    if !check_cluster_ownership(&pool, &int_cluster_id, None, Some(&int_cluster_id)).await {
+    if !check_cluster_ownership(&pool, &int_user_id, None, Some(&int_cluster_id)).await {
         return HttpResponse::NotFound().json(json!({"message": format!("Workspace cluster {} not found for uid {}", int_cluster_id, int_user_id)}));
     }
 
