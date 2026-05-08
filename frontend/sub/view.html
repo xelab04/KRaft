@@ -72,7 +72,7 @@
             </button>
 
             <div class="text-xl block font-mono flex flex-col mt-4">Workspace</div>
-            <button class="hover:bg-gray-500 underline px-6" @click="workspace(viewCluster.name)">
+            <button class="hover:bg-gray-500 underline px-6" @click="workspace(viewCluster.name, viewCluster.id)">
                 Create / Load Workspace
             </button>
 
@@ -138,9 +138,11 @@
                     document.body.removeChild(link);
                 },
 
-                workspace(clusterName) {
+                workspace(clusterName, clusterId) {
                   const name = clusterName;
                   console.log('getting workspace for cluster: ', name);
+
+                  // first create a workspace, or just get the url if one exists already
                   fetch('/api/create/workspaces', {
                     method: 'POST',
                     headers: {
@@ -149,16 +151,29 @@
                     body: JSON.stringify({ name })
                   })
                   .then(response => response.json())
+
                   .then(data => {
                     console.log(data);
                     if (data.status == "error") {
                       document.getElementById('error-message').textContent = data.message;
-                    } else {
-                      document.getElementById('error-message').textContent = 'Success! Redirecting...';
-                      const workspace_url = 'https://' + data.path
-                      setTimeout(() => {
-                        window.open(workspace_url, '_blank');
-                      }, 2000);
+                    }
+                    // now we have the cluster workspace url, we need to do the auth stuff
+                    else {
+
+                      // get the workspace auth token
+                      fetch(`/api/workspaces/createtoken/${clusterId}`, { method: 'POST'})
+                        .then(response => response.json())
+                        .then(tokenData => {
+                          // now we have the workspace auth, we can redirect
+                          document.getElementById('error-message').textContent = 'Success! Redirecting...';
+                          const workspace_url = `https://${data.path}?token=${tokenData.token}`
+
+                          // redirect, now to the sidecar proxy thing
+                          setTimeout(() => {
+                            window.open(workspace_url, '_blank');
+                          }, 2000);
+                        })
+
                     }
                   })
                   .catch(error => {

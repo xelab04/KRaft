@@ -143,7 +143,7 @@ pub async fn statefulset(client: &Client, cluster_name: &str, namespace: &str, c
                     },
                     "containers": [
                         {
-                            "name": "workspace_proxy",
+                            "name": "workspace-proxy",
                             "image": "registry.alexbissessur.dev/kraft-workspace-proxy:latest",
                             "imagePullPolicy": "Always",
                             "env": [
