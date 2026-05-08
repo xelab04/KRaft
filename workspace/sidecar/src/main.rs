@@ -7,6 +7,8 @@ use std::env;
 async fn validate_token(token: &str, cluster_id: &str) -> bool {
     let backend = env::var("HOST").unwrap();
 
+    println!("validating token {}", token);
+
     let client = reqwest::Client::new();
     let res = client
         .post(format!("{}/api/workspaces/validatetoken/{}/{}", backend, cluster_id, token))
@@ -112,6 +114,11 @@ async fn proxy_http(req: HttpRequest) -> HttpResponse {
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
+    unsafe {
+        env::set_var("RUST_LOG", "actix_web=debug,actix_server=info");
+    }
+    env_logger::init();
+
     HttpServer::new(|| {
         App::new()
             .route("/ws", web::get().to(terminal))
