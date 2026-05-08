@@ -9,6 +9,7 @@ use sqlx::PgPool;
 use k3k_rs;
 use kube::Client;
 
+use crate::class;
 use crate::class::AuthUser;
 
 #[derive(Serialize, Deserialize)]
@@ -34,17 +35,22 @@ pub async fn getlogs(
 
     let logtype = &query.logtype;
 
-    // check user owns that cluster
-    let user_owns_cluster: bool = sqlx::query_scalar("SELECT EXISTS(SELECT 1 FROM clusters WHERE user_id = $1 AND cluster_name = $2)")
-        .bind(int_user_id)
-        .bind(cluster_name)
-        .fetch_one(pool.get_ref())
-        .await
-        .unwrap_or(false);
 
-    if !user_owns_cluster {
-        return HttpResponse::NotFound().json(json!({"status": "error", "message": "Cluster not found under this user"}));
+    if !class::check_cluster_ownership(&pool, &int_user_id, Some(&cluster_name), None).await {
+        return HttpResponse::NotFound().json(json!({"status": "error", "message": "Cluster not found under this user"}));;
     }
+
+    // check user owns that cluster
+    // let user_owns_cluster: bool = sqlx::query_scalar("SELECT EXISTS(SELECT 1 FROM clusters WHERE user_id = $1 AND cluster_name = $2)")
+    //     .bind(int_user_id)
+    //     .bind(cluster_name)
+    //     .fetch_one(pool.get_ref())
+    //     .await
+    //     .unwrap_or(false);
+
+    // if !user_owns_cluster {
+    //     return HttpResponse::NotFound().json(json!({"status": "error", "message": "Cluster not found under this user"}));
+    // }
 
     // let cluster_id_from_db: Result<i64, sqlx::Error> = sqlx::query_scalar("SELECT cluster_id FROM clusters WHERE user_id = ? AND cluster_name = ?")
     //     .bind(user_id)
