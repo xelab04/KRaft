@@ -21,8 +21,8 @@ RUN zypper -n in openssl-devel wget
 
 COPY --from=build /app/target/release/workspace-sidecar /usr/local/bin/workspace-sidecar
 
-RUN groupadd -g 1000 kraft && useradd -u 1000 -g kraft -m -s /usr/bin/bash kraft
-USER kraft
+# RUN groupadd -g 1000 kraft && useradd -u 1000 -g kraft -m -s /usr/bin/bash kraft
+# USER kraft
 
 EXPOSE 8080
 
