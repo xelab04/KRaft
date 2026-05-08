@@ -70,11 +70,11 @@ CREATE TABLE workspaces (
         REFERENCES users(user_id)
 );
 CREATE TABLE workspace_tokens (
-    token UUID PRIMARY KEY,
+    token VARCHAR(255) PRIMARY KEY,
     user_id INT NOT NULL,
     cluster_id INT NOT NULL,
     created_at TIMESTAMPTZ NOT NULL,
-    used BOOLEAN NOT NULL DEFAULT FALSE
+    used BOOLEAN NOT NULL DEFAULT FALSE,
     CONSTRAINT fk_user
         FOREIGN KEY (user_id)
         REFERENCES users(user_id)
