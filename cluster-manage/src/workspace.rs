@@ -105,7 +105,7 @@ pub async fn service(client: &Client, cluster_name: &str, namespace: &str) {
     let _created = services.create(&pp, &ingressroute).await.unwrap();
 }
 
-pub async fn statefulset(client: &Client, cluster_name: &str, namespace: &str) {
+pub async fn statefulset(client: &Client, cluster_name: &str, namespace: &str, cluster_id: &i32, appconfig: &AppConfig) {
 
     // define CRD type
     let gvk = GroupVersionKind::gvk("apps", "v1", "StatefulSet");
@@ -141,30 +141,61 @@ pub async fn statefulset(client: &Client, cluster_name: &str, namespace: &str) {
                       "fsGroup": 1000,
                       "runAsNonRoot": true
                     },
-                    "containers": [{
-                        "name": "workspace",
-                        "image": "registry.alexbissessur.dev/kraft-workspace:latest",
-                        "imagePullPolicy": "Always",
-                        "ports": [{
-                            "containerPort": 7681,
-                            "name": "ttyd"
-                        }],
-                        "volumeMounts": [{
-                            "name": "kubeconfig",
-                            "mountPath": "/home/kraft/.kube/config",
-                            "subPath": "config"
-                        }],
-                        "resources": {
-                            "limits": {
-                                "cpu": "100m",
-                                "memory": "50M"
+                    "containers": [
+                        {
+                            "name": "workspace_proxy",
+                            "image": "registry.alexbissessur.dev/kraft-workspace-proxy:latest",
+                            "imagePullPolicy": "Always",
+                            "env": [
+                                {
+                                    "name": "HOST",
+                                    "value": appconfig.host
+                                },
+                                {
+                                    "name": "CLUSTER_ID",
+                                    "value": format!("{}", cluster_id)
+                                }
+                            ],
+                            "ports": [{
+                                "containerPort": 8080,
+                                "name": "web"
+                            }],
+                            "resources": {
+                                "limits": {
+                                    "cpu": "50m",
+                                    "memory": "50M"
+                                }
+                            },
+                            "securityContext": {
+                                "allowPrivilegeEscalation": false,
+                                "runAsUser": 1000
                             }
                         },
-                        "securityContext": {
-                            "allowPrivilegeEscalation": false,
-                            "runAsUser": 1000
+                        {
+                            "name": "workspace",
+                            "image": "registry.alexbissessur.dev/kraft-workspace:latest",
+                            "imagePullPolicy": "Always",
+                            "ports": [{
+                                "containerPort": 7681,
+                                "name": "ttyd"
+                            }],
+                            "volumeMounts": [{
+                                "name": "kubeconfig",
+                                "mountPath": "/home/kraft/.kube/config",
+                                "subPath": "config"
+                            }],
+                            "resources": {
+                                "limits": {
+                                    "cpu": "100m",
+                                    "memory": "50M"
+                                }
+                            },
+                            "securityContext": {
+                                "allowPrivilegeEscalation": false,
+                                "runAsUser": 1000
+                            }
                         }
-                    }],
+                    ],
                     "volumes": [{
                         "name": "kubeconfig",
                         "secret": {
@@ -206,6 +237,17 @@ pub async fn check_cluster_ownership(pool: &web::Data<PgPool>, user_id: &i32, cl
     return cluster_belongs_to_user
 }
 
+pub async fn get_cluster_id_from_name(pool: &web::Data<PgPool>, user_id: &i32, cluster_name: &str) -> i32 {
+    let int_cluster_id = sqlx::query_scalar("SELECT cluster_id FROM clusters WHERE user_id = $1 AND cluster_name = $2")
+        .bind(user_id)
+        .bind(cluster_name)
+        .fetch_one(pool.get_ref())
+        .await
+        .expect("Failed to get cluster id");
+
+    return int_cluster_id;
+}
+
 #[post("/api/create/workspaces")]
 pub async fn create(
     req: HttpRequest,
@@ -221,6 +263,7 @@ pub async fn create(
     let namespace = format!("k3k-{}", cluster_name);
     let int_user_id: i32 = user_id.parse().unwrap();
     let ingress_path = format!("{}-wrk.{}", cluster_name, config.host);
+    let int_cluster_id = get_cluster_id_from_name(&pool, &int_user_id, &cluster_name).await;
 
     if !check_cluster_ownership(&pool, &int_user_id, Some(&cluster_name), None).await {
         return HttpResponse::NotFound().json(json!({"message": format!("Workspace cluster {} not found for uid {}", cluster_name, int_user_id)}));
@@ -259,7 +302,7 @@ pub async fn create(
         return HttpResponse::ImATeapot().finish(); // this shouldn't ever happen
     }
 
-    statefulset(&kubeclient, cluster_name.as_str(), namespace.as_str()).await;
+    statefulset(&kubeclient, cluster_name.as_str(), namespace.as_str(), &int_cluster_id, &config).await;
 
     service(&kubeclient, cluster_name.as_str(), namespace.as_str()).await;
 
