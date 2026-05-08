@@ -93,7 +93,7 @@ pub async fn service(client: &Client, cluster_name: &str, namespace: &str) {
             "ports": [{
                 "protocol": "TCP",
                 "port": 8080,
-                "targetPort": 7681
+                "targetPort": 8080
             }],
             "type": "ClusterIP"
         }
