@@ -185,16 +185,21 @@ pub async fn clusterdelete(
 
     // check the user owns the cluster
     let int_user_id = user_id.parse::<i32>().unwrap();
-    let cluster_count_belonging_to_user: i64 = sqlx::query_scalar("SELECT COUNT(*) FROM clusters WHERE user_id = $1 AND cluster_name = $2")
-        .bind(&int_user_id)
-        .bind(&raw_cluster_name)
-        .fetch_one(pool.get_ref())
-        .await
-        .expect("Failed to fetch cluster count");
 
-    if cluster_count_belonging_to_user == 0 {
+    if !class::check_cluster_ownership(&pool, &int_user_id, Some(&raw_cluster_name), None).await {
         return HttpResponse::NotFound().json("Cluster not found");
     }
+
+    // let cluster_count_belonging_to_user: i64 = sqlx::query_scalar("SELECT COUNT(*) FROM clusters WHERE user_id = $1 AND cluster_name = $2")
+    //     .bind(&int_user_id)
+    //     .bind(&raw_cluster_name)
+    //     .fetch_one(pool.get_ref())
+    //     .await
+    //     .expect("Failed to fetch cluster count");
+
+    // if cluster_count_belonging_to_user == 0 {
+    //     return HttpResponse::NotFound().json("Cluster not found");
+    // }
 
     let namespace = format!("k3k-{}", raw_cluster_name);
 
@@ -235,18 +240,22 @@ pub async fn get_kubeconfig(
     // raw_cluster_name is 3-meow
     // so userid-clustername
 
-    // check user_id and cluster_name in database
     let int_user_id = user_id.parse::<i32>().unwrap();
-    let cluster_belongs_to_user: bool = sqlx::query_scalar("SELECT EXISTS(SELECT 1 FROM clusters WHERE user_id = $1 AND cluster_name = $2)")
-        .bind(&int_user_id)
-        .bind(&raw_cluster_name)
-        .fetch_one(pool.get_ref())
-        .await
-        .expect("Failed to fetch cluster count");
-
-    if !cluster_belongs_to_user {
+    if !class::check_cluster_ownership(&pool, &int_user_id, Some(&raw_cluster_name), None).await {
         return HttpResponse::NotFound().json("Cluster not found");
     }
+
+    // check user_id and cluster_name in database
+    // let cluster_belongs_to_user: bool = sqlx::query_scalar("SELECT EXISTS(SELECT 1 FROM clusters WHERE user_id = $1 AND cluster_name = $2)")
+    //     .bind(&int_user_id)
+    //     .bind(&raw_cluster_name)
+    //     .fetch_one(pool.get_ref())
+    //     .await
+    //     .expect("Failed to fetch cluster count");
+
+    // if !cluster_belongs_to_user {
+    //     return HttpResponse::NotFound().json("Cluster not found");
+    // }
 
     // let client = Client::try_default().await.unwrap();
     let kconf;
