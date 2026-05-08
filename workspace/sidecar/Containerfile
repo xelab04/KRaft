@@ -1,0 +1,29 @@
+FROM registry.suse.com/bci/rust:1.93 AS build
+
+WORKDIR /app
+
+RUN zypper -n in openssl-devel
+RUN cargo install cargo-chef
+
+COPY Cargo.lock Cargo.toml ./
+RUN mkdir src
+RUN touch src/main.rs
+RUN cargo chef prepare --recipe-path recipe.json
+RUN cargo chef cook --release --recipe-path recipe.json
+
+COPY . ./
+
+RUN cargo build --release
+
+FROM registry.suse.com/bci/bci-base:latest
+
+RUN zypper -n in openssl-devel wget
+
+COPY --from=build /app/target/release/workspace-sidecar /usr/local/bin/workspace-sidecar
+
+RUN groupadd -g 1000 kraft && useradd -u 1000 -g kraft -m -s /usr/bin/bash kraft
+USER kraft
+
+EXPOSE 8080
+
+CMD ["workspace-sidecar"]
