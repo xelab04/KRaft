@@ -204,7 +204,7 @@ pub async fn clusterdelete(
     k3k_rs::namespace::delete(&kubeclient, namespace.as_str()).await.unwrap();
 
     let r = sqlx::query("DELETE FROM clusters WHERE user_id = $1 AND cluster_name = $2")
-        .bind(&user_id)
+        .bind(&int_user_id)
         .bind(&raw_cluster_name)
         .execute(pool.get_ref())
         .await;
