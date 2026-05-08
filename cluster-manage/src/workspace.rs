@@ -364,7 +364,7 @@ pub async fn validate_terminal_access(
     // let int_user_id: i32 = user.user_id.parse().unwrap();
     // let right_now = chrono::Utc::now();
     // the token is only valid if created in the last 10 seconds
-    let valid_window = chrono::Utc::now() - chrono::Duration::seconds(10);
+    let valid_window = chrono::Utc::now() - chrono::Duration::seconds(60);
 
     // if !check_cluster_ownership(&pool, &int_cluster_id, None, Some(&int_cluster_id)).await {
     //     return HttpResponse::NotFound().json(json!({"message": format!("Workspace cluster {} not found for uid {}", int_cluster_id)}));
