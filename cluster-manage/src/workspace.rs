@@ -8,6 +8,8 @@ use actix_web::{HttpRequest, HttpResponse};
 use serde::{self, Serialize, Deserialize};
 
 use log::{info, error};
+use uuid::Uuid;
+use chrono;
 
 use sqlx;
 use sqlx::PgPool;
@@ -191,6 +193,19 @@ pub struct WorkspaceCreate {
     pub name: String
 }
 
+
+pub async fn check_cluster_ownership(pool: &web::Data<PgPool>, user_id: &i32, cluster_name: Option<&String>, cluster_id: Option<&i32>) -> bool {
+    let cluster_belongs_to_user: bool = sqlx::query_scalar("SELECT EXISTS(SELECT 1 FROM clusters WHERE user_id = $1 AND (cluster_name = $2 OR cluster_id = $3))")
+        .bind(&user_id)
+        .bind(&cluster_name)
+        .bind(&cluster_id)
+        .fetch_one(pool.get_ref())
+        .await
+        .expect("Failed to fetch cluster count");
+
+    return cluster_belongs_to_user
+}
+
 #[post("/api/create/workspaces")]
 pub async fn create(
     req: HttpRequest,
@@ -207,17 +222,21 @@ pub async fn create(
     let int_user_id: i32 = user_id.parse().unwrap();
     let ingress_path = format!("{}-wrk.{}", cluster_name, config.host);
 
-    // check the cluster exists and belongs to that user
-    let cluster_belongs_to_user: bool = sqlx::query_scalar("SELECT EXISTS(SELECT 1 FROM clusters WHERE user_id = $1 AND cluster_name = $2)")
-        .bind(&int_user_id)
-        .bind(&cluster_name)
-        .fetch_one(pool.get_ref())
-        .await
-        .expect("Failed to fetch cluster count");
-
-    if !cluster_belongs_to_user {
+    if !check_cluster_ownership(&pool, &int_user_id, Some(&cluster_name), None).await {
         return HttpResponse::NotFound().json(json!({"message": format!("Workspace cluster {} not found for uid {}", cluster_name, int_user_id)}));
     }
+
+    // check the cluster exists and belongs to that user
+    // let cluster_belongs_to_user: bool = sqlx::query_scalar("SELECT EXISTS(SELECT 1 FROM clusters WHERE user_id = $1 AND cluster_name = $2)")
+    //     .bind(&int_user_id)
+    //     .bind(&cluster_name)
+    //     .fetch_one(pool.get_ref())
+    //     .await
+    //     .expect("Failed to fetch cluster count");
+
+    // if !cluster_belongs_to_user {
+    //     return HttpResponse::NotFound().json(json!({"message": format!("Workspace cluster {} not found for uid {}", cluster_name, int_user_id)}));
+    // }
 
     // check if an existing workspace... exists
     let cluster_workspace_exists: bool = sqlx::query_scalar("SELECT EXISTS(SELECT 1 FROM workspaces WHERE user_id = $1 AND cluster_name = $2)")
@@ -256,4 +275,68 @@ pub async fn create(
         .unwrap();
 
     HttpResponse::Ok().json(json!({"path": ingress_path}))
+}
+
+
+#[post("/api/workspaces/createtoken/{cluster_id}")]
+pub async fn create_token_for_terminal(
+    pool: web::Data<PgPool>,
+    user: AuthUser,
+    cluster_id: web::Path<i32>
+) -> HttpResponse {
+
+    let token = Uuid::new_v4().to_string();
+    let int_user_id: i32 = user.user_id.parse().unwrap();
+    let int_cluster_id: i32 = cluster_id.into_inner();
+    let created_at = chrono::Utc::now();
+
+    if !check_cluster_ownership(&pool, &int_cluster_id, None, Some(&int_cluster_id)).await {
+        return HttpResponse::NotFound().json(json!({"message": format!("Workspace cluster {} not found for uid {}", int_cluster_id, int_user_id)}));
+    }
+
+    // add token to database
+    let _r = sqlx::query("INSERT INTO workspace_tokens (token, user_id, cluster_id, created_at, used) VALUES ($1, $2, $3, $4, $5)")
+        .bind(&token)
+        .bind(&int_user_id)
+        .bind(&int_cluster_id)
+        .bind(&created_at)
+        .bind(false)
+        .execute(pool.get_ref())
+        .await
+        .unwrap();
+
+    return HttpResponse::Ok().json(json!({"token": token}));
+}
+
+#[post("/api/workspaces/validatetoken/{cluster_id}/{token}")]
+pub async fn validate_terminal_access(
+    pool: web::Data<PgPool>,
+    // user: AuthUser,
+    // cluster_id: web::Path<i32>,
+    // token: web::Path<String>
+    path: web::Path<(i32, String)>
+) -> HttpResponse {
+
+    let (int_cluster_id, token) = path.into_inner();
+    // let int_user_id: i32 = user.user_id.parse().unwrap();
+    // let right_now = chrono::Utc::now();
+    // the token is only valid if created in the last 10 seconds
+    let valid_window = chrono::Utc::now() - chrono::Duration::seconds(10);
+
+    // if !check_cluster_ownership(&pool, &int_cluster_id, None, Some(&int_cluster_id)).await {
+    //     return HttpResponse::NotFound().json(json!({"message": format!("Workspace cluster {} not found for uid {}", int_cluster_id)}));
+    // }
+
+    let valid = sqlx::query("UPDATE workspace_tokens SET used=True WHERE token=$1 AND cluster_id=$2 AND used=False AND created_at>$3 RETURNING user_id")
+        .bind(token)
+        .bind(int_cluster_id)
+        .bind(valid_window)
+        .fetch_optional(pool.get_ref())
+        .await;
+
+    match valid {
+        Ok(Some(_)) => HttpResponse::Ok().finish(),
+        Ok(None) => HttpResponse::Unauthorized().json(json!({"message": "Invalid, expired, or already used token"})),
+        Err(_) => HttpResponse::InternalServerError().finish()
+    }
 }
