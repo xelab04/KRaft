@@ -23,7 +23,7 @@ pub async fn traefik(client: &Client, cluster_name: &String, namespace: &String,
             "namespace": namespace
         },
         "spec": {
-            "entryPoints": ["kraft"],
+            "entryPoints": ["websecure"],
             "routes": [
                 {
                     "match": format!("HostSNI(`{}`)", host),

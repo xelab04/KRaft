@@ -271,7 +271,7 @@ pub async fn get_kubeconfig(
     for l in kconf.lines() {
         println!(" NEWLINE {}", l);
         if l.starts_with("    server:") {
-            new_kconf += format!("    server: https://{}.{}:1337 \n", raw_cluster_name, config.host).as_str();
+            new_kconf += format!("    server: https://{}.{}:443 \n", raw_cluster_name, config.host).as_str();
         } else {
             new_kconf += format!("{}\n", l).as_str();
         }
