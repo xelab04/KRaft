@@ -1,0 +1,30 @@
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: redirect-ingressroute
+spec:
+  entryPoints:
+    - websecure
+    - web
+  routes:
+  - match: Host(`kraft.alexbissessur.dev`)
+    kind: Rule
+    middlewares:
+    - name: redirect-ingressroute
+    services:
+    - kind: TraefikService
+      name: noop@internal
+  tls:
+    certResolver: le
+
+---
+
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: redirect-ingressroute
+spec:
+  redirectRegex:
+    permanent: true
+    regex: ^https?://kraft.alexbissessur.dev/(.*)
+    replacement: https://kraftcloud.dev/${1}
