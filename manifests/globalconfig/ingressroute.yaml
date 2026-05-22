@@ -1,34 +1,79 @@
-apiVersion: traefik.io/v1alpha1
-kind: IngressRoute
+# apiVersion: traefik.io/v1alpha1
+# kind: IngressRoute
+# metadata:
+#   name: kraft-ingressroute
+# spec:
+#   entryPoints:
+#     - websecure
+#     - web
+#   routes:
+#   - match: Host(`kraftcloud.dev`) && PathPrefix(`/api`)
+#     kind: Rule
+#     services:
+#     - name: kraft-cluster-manage
+#       port: 5000
+
+#   - match: Host(`kraftcloud.dev`) && PathPrefix(`/resources`)
+#     kind: Rule
+#     services:
+#     - name: kraft-resource-manage
+#       port: 5000
+
+#   - match: Host(`kraftcloud.dev`) && PathPrefix(`/auth`)
+#     kind: Rule
+#     services:
+#     - name: kraft-auth
+#       port: 5000
+
+#   - match: Host(`kraftcloud.dev`)
+#     kind: Rule
+#     services:
+#     - name: kraft-frontend
+#       port: 80
+#   tls:
+#     certResolver: le
+
+apiVersion: networking.k8s.io/v1
+kind: Ingress
 metadata:
   name: kraft-ingressroute
+  annotations:
+    cert-manager.io/cluster-issuer: "issuer"
 spec:
-  entryPoints:
-    - websecure
-    - web
-  routes:
-  - match: Host(`kraftcloud.dev`) && PathPrefix(`/api`)
-    kind: Rule
-    services:
-    - name: kraft-cluster-manage
-      port: 5000
-
-  - match: Host(`kraftcloud.dev`) && PathPrefix(`/resources`)
-    kind: Rule
-    services:
-    - name: kraft-resource-manage
-      port: 5000
-
-  - match: Host(`kraftcloud.dev`) && PathPrefix(`/auth`)
-    kind: Rule
-    services:
-    - name: kraft-auth
-      port: 5000
-
-  - match: Host(`kraftcloud.dev`)
-    kind: Rule
-    services:
-    - name: kraft-frontend
-      port: 80
+  ingressClassName: traefik
   tls:
-    certResolver: le
+  - hosts:
+    - kraftcloud.dev
+    secretName: kraftcloud-tls
+  rules:
+  - host: kraftcloud.dev
+    http:
+      paths:
+      - path: /api
+        pathType: Prefix
+        backend:
+          service:
+            name: kraft-cluster-manage
+            port:
+              number: 5000
+      - path: /resources
+        pathType: Prefix
+        backend:
+          service:
+            name: kraft-resource-manage
+            port:
+              number: 5000
+      - path: /auth
+        pathType: Prefix
+        backend:
+          service:
+            name: kraft-auth
+            port:
+              number: 5000
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: kraft-frontend
+            port:
+              number: 80
