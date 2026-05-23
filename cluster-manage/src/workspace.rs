@@ -351,7 +351,7 @@ pub async fn create(
 
     service(&kubeclient, cluster_name.as_str(), namespace.as_str()).await;
 
-    ingressroute(&kubeclient, cluster_name.as_str(), namespace.as_str(), &ingress_path).await;
+    ingress(&kubeclient, cluster_name.as_str(), namespace.as_str(), &ingress_path).await;
 
     // let int_user_id = user_id.parse::<i32>().unwrap();
     sqlx::query("INSERT INTO workspaces (workspace_name, cluster_name, user_id) VALUES ($1, $2, $3)")
