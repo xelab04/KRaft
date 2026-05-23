@@ -16,10 +16,7 @@ use kube::Client;
 
 mod clusters;
 mod db_connect;
-mod validatename;
 mod jwt;
-mod tlssan;
-mod ingress;
 mod logs;
 mod vcp;
 mod class;
