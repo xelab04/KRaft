@@ -49,7 +49,6 @@ pub fn create_jwt(user_id: String) -> String {
     token.unwrap()
 }
 
-
 pub fn create_cookie(jwt_token: &String) -> Cookie {
     let cookie = Cookie::build("auth_token", jwt_token)
         .path("/")
