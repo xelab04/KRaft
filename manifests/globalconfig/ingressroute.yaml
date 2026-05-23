@@ -38,7 +38,7 @@ kind: Ingress
 metadata:
   name: kraft-ingressroute
   annotations:
-    cert-manager.io/cluster-issuer: "issuer"
+    cert-manager.io/cluster-issuer: "prod-issuer"
 spec:
   ingressClassName: traefik
   tls:
