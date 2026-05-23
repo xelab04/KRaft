@@ -1,7 +1,3 @@
-use std::collections::BTreeMap;
-use k8s_openapi::apimachinery::pkg::util::intstr::IntOrString;
-use k8s_openapi::apimachinery::pkg::apis::meta::v1::ObjectMeta;
-
 use actix_web::web;
 use actix_web::web::Json;
 use actix_web::{HttpRequest, HttpResponse};
@@ -15,10 +11,8 @@ use sqlx;
 use sqlx::PgPool;
 
 use crate::class;
-use crate::validatename;
 use crate::AppConfig;
-
-use crate::class::{AuthUser, Cluster, ClusterCreateForm};
+use crate::class::{AuthUser};
 
 use kube::{
     api::{Api, PostParams},
@@ -272,33 +266,8 @@ pub struct WorkspaceCreate {
     pub name: String
 }
 
-
-pub async fn check_cluster_ownership(pool: &web::Data<PgPool>, user_id: &i32, cluster_name: Option<&String>, cluster_id: Option<&i32>) -> bool {
-    let cluster_belongs_to_user: bool = sqlx::query_scalar("SELECT EXISTS(SELECT 1 FROM clusters WHERE user_id = $1 AND (cluster_name = $2 OR cluster_id = $3))")
-        .bind(&user_id)
-        .bind(&cluster_name)
-        .bind(&cluster_id)
-        .fetch_one(pool.get_ref())
-        .await
-        .expect("Failed to fetch cluster count");
-
-    return cluster_belongs_to_user
-}
-
-pub async fn get_cluster_id_from_name(pool: &web::Data<PgPool>, user_id: &i32, cluster_name: &str) -> i32 {
-    let int_cluster_id = sqlx::query_scalar("SELECT cluster_id FROM clusters WHERE user_id = $1 AND cluster_name = $2")
-        .bind(user_id)
-        .bind(cluster_name)
-        .fetch_one(pool.get_ref())
-        .await
-        .expect("Failed to get cluster id");
-
-    return int_cluster_id;
-}
-
 #[post("/api/create/workspaces")]
 pub async fn create(
-    req: HttpRequest,
     pool: web::Data<PgPool>,
     kubeclient: web::Data<Client>,
     config: web::Data<AppConfig>,
@@ -311,9 +280,9 @@ pub async fn create(
     let namespace = format!("k3k-{}", cluster_name);
     let int_user_id: i32 = user_id.parse().unwrap();
     let ingress_path = format!("{}-wrk.{}", cluster_name, config.host);
-    let int_cluster_id = get_cluster_id_from_name(&pool, &int_user_id, &cluster_name).await;
+    let int_cluster_id = class::get_cluster_id_from_name(&pool, &int_user_id, &cluster_name).await;
 
-    if !check_cluster_ownership(&pool, &int_user_id, Some(&cluster_name), None).await {
+    if !class::check_cluster_ownership(&pool, &int_user_id, Some(&cluster_name), None).await {
         return HttpResponse::NotFound().json(json!({"message": format!("Workspace cluster {} not found for uid {}", cluster_name, int_user_id)}));
     }
 
@@ -346,7 +315,7 @@ pub async fn create(
     println!("cluster workspace to be created for cluster {}", cluster_name);
 
     let workspace_name = format!("workspace-{}", cluster_name);
-    if !validatename::namevalid(&workspace_name) {
+    if !class::namevalid(&workspace_name) {
         return HttpResponse::ImATeapot().finish(); // this shouldn't ever happen
     }
 
@@ -381,7 +350,7 @@ pub async fn create_token_for_terminal(
     let int_cluster_id: i32 = cluster_id.into_inner();
     let created_at = chrono::Utc::now();
 
-    if !check_cluster_ownership(&pool, &int_user_id, None, Some(&int_cluster_id)).await {
+    if !class::check_cluster_ownership(&pool, &int_user_id, None, Some(&int_cluster_id)).await {
         return HttpResponse::NotFound().json(json!({"message": format!("Workspace cluster {} not found for uid {}", int_cluster_id, int_user_id)}));
     }
 
@@ -402,9 +371,6 @@ pub async fn create_token_for_terminal(
 #[post("/api/workspaces/validatetoken/{cluster_id}/{token}")]
 pub async fn validate_terminal_access(
     pool: web::Data<PgPool>,
-    // user: AuthUser,
-    // cluster_id: web::Path<i32>,
-    // token: web::Path<String>
     path: web::Path<(i32, String)>
 ) -> HttpResponse {
 

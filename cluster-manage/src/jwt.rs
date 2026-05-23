@@ -62,25 +62,6 @@ pub fn create_cookie(jwt_token: &str) -> Cookie {
     cookie
 }
 
-// pub fn validate_jwt(jwt: &String) -> bool {
-
-//     let jwt_secret = env::var("JWT_SECRET")
-//         .expect("JWT_SECRET must be set in environment variables");
-
-//     let validation = Validation::new(jsonwebtoken::Algorithm::HS256);
-
-//     let token_data = decode::<JWT>(
-//         &jwt,
-//         &DecodingKey::from_secret(jwt_secret.as_bytes()),
-//         &validation,
-//     );
-
-//     match token_data {
-//         Ok(_) => {return true;}
-//         Err(_) => {return false;}
-//     }
-// }
-
 pub fn extract_user_id_from_jwt(req: &HttpRequest) -> Result<String, JwtError> {
     let JWT_SECRET = std::env::var("JWT_SECRET")
             .expect("JWT_SECRET must be set in environment variables");

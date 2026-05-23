@@ -20,7 +20,6 @@ pub struct LogsType {
 
 #[get("/api/logs")]
 pub async fn getlogs(
-    // req: HttpRequest,
     pool: web::Data<PgPool>,
     client: web::Data<Client>,
     // config: web::Data<AppConfig>,
@@ -39,37 +38,6 @@ pub async fn getlogs(
     if !class::check_cluster_ownership(&pool, &int_user_id, Some(&cluster_name), None).await {
         return HttpResponse::NotFound().json(json!({"status": "error", "message": "Cluster not found under this user"}));;
     }
-
-    // check user owns that cluster
-    // let user_owns_cluster: bool = sqlx::query_scalar("SELECT EXISTS(SELECT 1 FROM clusters WHERE user_id = $1 AND cluster_name = $2)")
-    //     .bind(int_user_id)
-    //     .bind(cluster_name)
-    //     .fetch_one(pool.get_ref())
-    //     .await
-    //     .unwrap_or(false);
-
-    // if !user_owns_cluster {
-    //     return HttpResponse::NotFound().json(json!({"status": "error", "message": "Cluster not found under this user"}));
-    // }
-
-    // let cluster_id_from_db: Result<i64, sqlx::Error> = sqlx::query_scalar("SELECT cluster_id FROM clusters WHERE user_id = ? AND cluster_name = ?")
-    //     .bind(user_id)
-    //     .bind(cluster_name)
-    //     .fetch_one(pool.get_ref())
-    //     .await;
-
-    // let mut cluster_id;
-    // match cluster_id_from_db {
-    //     Ok(id) => {
-    //         cluster_id = id;
-    //     }
-    //     Err(sqlx::Error::RowNotFound) => {
-    //         return HttpResponse::NotFound().json(json!({"status": "error", "message": "Cluster not found"}));
-    //     }
-    //     Err(e) => {
-    //         return HttpResponse::InternalServerError().json(json!({"status": "error", "message": format!("Failed to check cluster: {}", e)}));
-    //     }
-    // }
 
     // default to server
     let logs_returned;

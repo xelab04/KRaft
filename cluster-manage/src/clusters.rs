@@ -16,10 +16,7 @@ use k8s_openapi::apimachinery::pkg::apis::meta::v1::ObjectMeta;
 use tokio::fs;
 
 use crate::class;
-use crate::validatename;
 use crate::AppConfig;
-use crate::tlssan;
-use crate::ingress;
 
 use crate::class::{AuthUser, Cluster, ClusterCreateForm};
 
@@ -49,7 +46,7 @@ pub async fn create(
         for tlssan in tlssan_list.iter() {
             validated_tlssan_list.push(tlssan.trim().to_string());
 
-            if !tlssan::validate_tlssan(tlssan.clone()).await.is_ok() {
+            if !class::validate_tlssan(tlssan.clone()).await.is_ok() {
                 return HttpResponse::BadRequest().json("Invalid TLS-SAN format");
             }
         }
@@ -58,7 +55,7 @@ pub async fn create(
     validated_tlssan_list.push(format!("{}.{}", endpoint_string, config.host));
 
     // validate cluster name
-    if !validatename::namevalid(&cluster_name) {
+    if !class::namevalid(&cluster_name) {
         return HttpResponse::BadRequest().json("Invalid Name");
     }
 
@@ -164,7 +161,7 @@ pub async fn create(
         .unwrap();
 
     for (i, tlssan) in validated_tlssan_list.iter().enumerate() {
-        ingress::traefik(&kubeclient, &cluster_name, &namespace, tlssan, i).await;
+        class::traefik(&kubeclient, &cluster_name, &namespace, tlssan, i).await;
     }
 
     // vcp::create_default_vcp(&kubeclient, &cluster_name, &namespace).await;
@@ -190,20 +187,8 @@ pub async fn clusterdelete(
         return HttpResponse::NotFound().json("Cluster not found");
     }
 
-    // let cluster_count_belonging_to_user: i64 = sqlx::query_scalar("SELECT COUNT(*) FROM clusters WHERE user_id = $1 AND cluster_name = $2")
-    //     .bind(&int_user_id)
-    //     .bind(&raw_cluster_name)
-    //     .fetch_one(pool.get_ref())
-    //     .await
-    //     .expect("Failed to fetch cluster count");
-
-    // if cluster_count_belonging_to_user == 0 {
-    //     return HttpResponse::NotFound().json("Cluster not found");
-    // }
-
     let namespace = format!("k3k-{}", raw_cluster_name);
 
-    // let client = Client::try_default().await.unwrap();
     k3k_rs::cluster::delete(&kubeclient, namespace.as_str(), raw_cluster_name.as_str()).await.expect("cluster not found ");
 
     k3k_rs::namespace::delete(&kubeclient, namespace.as_str()).await.unwrap();
@@ -215,12 +200,8 @@ pub async fn clusterdelete(
         .await;
 
     match r {
-        Ok(_) => {
-            HttpResponse::Ok().json("Success")
-        },
-        Err(e) => {
-            HttpResponse::InternalServerError().json(format!("Failed to delete cluster: {}", e))
-        }
+        Ok(_) => { HttpResponse::Ok().json("Success") },
+        Err(e) => { HttpResponse::InternalServerError().json(format!("Failed to delete cluster from db: {}", e)) }
     }
 }
 
@@ -244,18 +225,6 @@ pub async fn get_kubeconfig(
     if !class::check_cluster_ownership(&pool, &int_user_id, Some(&raw_cluster_name), None).await {
         return HttpResponse::NotFound().json("Cluster not found");
     }
-
-    // check user_id and cluster_name in database
-    // let cluster_belongs_to_user: bool = sqlx::query_scalar("SELECT EXISTS(SELECT 1 FROM clusters WHERE user_id = $1 AND cluster_name = $2)")
-    //     .bind(&int_user_id)
-    //     .bind(&raw_cluster_name)
-    //     .fetch_one(pool.get_ref())
-    //     .await
-    //     .expect("Failed to fetch cluster count");
-
-    // if !cluster_belongs_to_user {
-    //     return HttpResponse::NotFound().json("Cluster not found");
-    // }
 
     // let client = Client::try_default().await.unwrap();
     let kconf;
