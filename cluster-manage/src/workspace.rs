@@ -28,6 +28,54 @@ use kube::{
 use serde_json::json;
 
 
+pub async fn ingress(client: &Client, cluster_name: &str, namespace: &str, ingress_path: &str) {
+
+    let gvk = GroupVersionKind::gvk("networking.k8s.io", "v1", "Ingress");
+    let ar = ApiResource::from_gvk(&gvk);
+
+    let ingress_handler: Api<DynamicObject> = Api::namespaced_with(client.clone(), namespace, &ar);
+
+    let ingress = json!({
+        "apiVersion": "networking.k8s.io/v1",
+        "kind": "Ingress",
+        "metadata": {
+            "name": format!("workspace-{}",cluster_name),
+            "namespace": namespace,
+            "annotations": [{
+                "cert-manager.io/cluster-issuer": "prod-issuer"
+            }]
+        },
+        "spec": {
+            // TODO: make ingress class dynamic
+            "ingressClassName": "traefik",
+            "tls": [{
+                "hosts": [ingress_path],
+                "secretName": format!("{}-tls", cluster_name)
+            }],
+            "rules": [{
+                "host": ingress_path,
+                "http": {
+                    "paths": [{
+                        "path": "/",
+                        "pathType": "prefix",
+                        "backend": {
+                            "service": {
+                                "name": format!("workspace-{}",cluster_name),
+                                    "port": 8080
+                            }
+                        }
+                    }]
+                }
+            }]
+        }
+    });
+
+    let pp = PostParams::default();
+    let ingressroute: DynamicObject = serde_json::from_value(ingress).unwrap();
+
+    let _created = ingress_handler.create(&pp, &ingressroute).await.unwrap();
+}
+
 pub async fn ingressroute(client: &Client, cluster_name: &str, namespace: &str, ingress_path: &str) {
 
     // define CRD type
@@ -306,7 +354,7 @@ pub async fn create(
 
     service(&kubeclient, cluster_name.as_str(), namespace.as_str()).await;
 
-    ingressroute(&kubeclient, cluster_name.as_str(), namespace.as_str(), &ingress_path).await;
+    ingress(&kubeclient, cluster_name.as_str(), namespace.as_str(), &ingress_path).await;
 
     // let int_user_id = user_id.parse::<i32>().unwrap();
     sqlx::query("INSERT INTO workspaces (workspace_name, cluster_name, user_id) VALUES ($1, $2, $3)")
