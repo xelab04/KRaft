@@ -2,10 +2,18 @@ use actix_web::{Error, FromRequest, HttpRequest, web};
 use futures_util::future::{ready, Ready};
 use reqwest;
 use log::{info};
+use regex::Regex;
 
 use sqlx::{FromRow, PgPool};
 use serde::{self, Serialize, Deserialize};
 use crate::{AppConfig, NtfyConfig, jwt};
+
+use kube::{
+    api::{Api, PostParams},
+    core::{DynamicObject, GroupVersionKind, ApiResource},
+    Client,
+};
+use serde_json::json;
 
 
 pub struct AuthUser {
@@ -45,6 +53,72 @@ pub struct ClusterCreateForm {
     pub id: Option<i64>,
     pub name: String,
     pub tlssan_array: Option<Vec<String>>
+}
+
+pub fn namevalid(name: &String) -> bool {
+
+    return name.chars().all(|ch|
+        (ch >= 'a' && ch <= 'z')
+        || (ch >= '0' && ch <= '9')
+        || ch == '-'
+    );
+}
+
+pub async fn traefik(client: &Client, cluster_name: &String, namespace: &String, host: &str, n: usize) -> bool {
+
+    // define CRD type
+    let gvk = GroupVersionKind::gvk("traefik.io", "v1alpha1", "IngressRouteTCP");
+    let ar = ApiResource::from_gvk(&gvk);
+
+    // api
+    let ingress_routes: Api<DynamicObject> = Api::namespaced_with(client.clone(), namespace.as_str(), &ar);
+
+    // json cause im lazy
+    let ingressroute = json!({
+        "apiVersion": "traefik.io/v1alpha1",
+        "kind": "IngressRouteTCP",
+        "metadata": {
+            "name": format!("api-svr-{}-{}-rt",cluster_name,n),
+            "namespace": namespace
+        },
+        "spec": {
+            "entryPoints": ["websecure"],
+            "routes": [
+                {
+                    "match": format!("HostSNI(`{}`)", host),
+                    "services": [
+                        {
+                            "name": format!("k3k-{}-service",cluster_name),
+                            "port": 443
+                        }
+                    ]
+                }
+            ],
+            "tls": { "passthrough": true }
+        }
+    });
+
+    let pp = PostParams::default();
+    let ingressroute: DynamicObject = serde_json::from_value(ingressroute).unwrap();
+
+    let _created = ingress_routes.create(&pp, &ingressroute).await.unwrap();
+
+    true
+}
+
+pub async fn validate_tlssan(tlssan: String) -> Result<bool, String> {
+    if !tlssan.is_ascii() {
+        return Err("Invalid URL".to_string());
+    }
+
+    let domain_pattern = r"^([A-Za-z0-9]([A-Za-z0-9-]{0,61}[A-Za-z0-9])?\.)+[A-Za-z]{2,63}$";
+    let re = Regex::new(domain_pattern).unwrap();
+
+    if !re.is_match(&tlssan) {
+        return Err("Malformed URL".to_string());
+    }
+
+    return Ok(true);
 }
 
 pub fn panic_ntfy(config: &NtfyConfig, message: &str, title: &str) {

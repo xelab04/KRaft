@@ -16,10 +16,7 @@ use k8s_openapi::apimachinery::pkg::apis::meta::v1::ObjectMeta;
 use tokio::fs;
 
 use crate::class;
-use crate::validatename;
 use crate::AppConfig;
-use crate::tlssan;
-use crate::ingress;
 
 use crate::class::{AuthUser, Cluster, ClusterCreateForm};
 
@@ -49,7 +46,7 @@ pub async fn create(
         for tlssan in tlssan_list.iter() {
             validated_tlssan_list.push(tlssan.trim().to_string());
 
-            if !tlssan::validate_tlssan(tlssan.clone()).await.is_ok() {
+            if !class::validate_tlssan(tlssan.clone()).await.is_ok() {
                 return HttpResponse::BadRequest().json("Invalid TLS-SAN format");
             }
         }
@@ -58,7 +55,7 @@ pub async fn create(
     validated_tlssan_list.push(format!("{}.{}", endpoint_string, config.host));
 
     // validate cluster name
-    if !validatename::namevalid(&cluster_name) {
+    if !class::namevalid(&cluster_name) {
         return HttpResponse::BadRequest().json("Invalid Name");
     }
 
@@ -164,7 +161,7 @@ pub async fn create(
         .unwrap();
 
     for (i, tlssan) in validated_tlssan_list.iter().enumerate() {
-        ingress::traefik(&kubeclient, &cluster_name, &namespace, tlssan, i).await;
+        class::traefik(&kubeclient, &cluster_name, &namespace, tlssan, i).await;
     }
 
     // vcp::create_default_vcp(&kubeclient, &cluster_name, &namespace).await;

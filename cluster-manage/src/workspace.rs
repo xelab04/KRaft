@@ -15,7 +15,6 @@ use sqlx;
 use sqlx::PgPool;
 
 use crate::class;
-use crate::validatename;
 use crate::AppConfig;
 
 use crate::class::{AuthUser, Cluster, ClusterCreateForm};
@@ -346,7 +345,7 @@ pub async fn create(
     println!("cluster workspace to be created for cluster {}", cluster_name);
 
     let workspace_name = format!("workspace-{}", cluster_name);
-    if !validatename::namevalid(&workspace_name) {
+    if !class::namevalid(&workspace_name) {
         return HttpResponse::ImATeapot().finish(); // this shouldn't ever happen
     }
 
