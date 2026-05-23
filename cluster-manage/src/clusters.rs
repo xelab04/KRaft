@@ -187,17 +187,6 @@ pub async fn clusterdelete(
         return HttpResponse::NotFound().json("Cluster not found");
     }
 
-    // let cluster_count_belonging_to_user: i64 = sqlx::query_scalar("SELECT COUNT(*) FROM clusters WHERE user_id = $1 AND cluster_name = $2")
-    //     .bind(&int_user_id)
-    //     .bind(&raw_cluster_name)
-    //     .fetch_one(pool.get_ref())
-    //     .await
-    //     .expect("Failed to fetch cluster count");
-
-    // if cluster_count_belonging_to_user == 0 {
-    //     return HttpResponse::NotFound().json("Cluster not found");
-    // }
-
     let namespace = format!("k3k-{}", raw_cluster_name);
 
     // let client = Client::try_default().await.unwrap();
@@ -241,18 +230,6 @@ pub async fn get_kubeconfig(
     if !class::check_cluster_ownership(&pool, &int_user_id, Some(&raw_cluster_name), None).await {
         return HttpResponse::NotFound().json("Cluster not found");
     }
-
-    // check user_id and cluster_name in database
-    // let cluster_belongs_to_user: bool = sqlx::query_scalar("SELECT EXISTS(SELECT 1 FROM clusters WHERE user_id = $1 AND cluster_name = $2)")
-    //     .bind(&int_user_id)
-    //     .bind(&raw_cluster_name)
-    //     .fetch_one(pool.get_ref())
-    //     .await
-    //     .expect("Failed to fetch cluster count");
-
-    // if !cluster_belongs_to_user {
-    //     return HttpResponse::NotFound().json("Cluster not found");
-    // }
 
     // let client = Client::try_default().await.unwrap();
     let kconf;
