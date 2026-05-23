@@ -29,13 +29,11 @@ use kube::Client;
 
 #[actix_web::get("/auth/user/details")]
 pub async fn details(
-    req: HttpRequest,
     pool: web::Data<PgPool>,
     user: AuthUser,
     useruuid_param: Option<web::Query<UserUUID>>
 ) -> HttpResponse {
 
-    // If uuid is sent, then set that, otherwise default to jwt
     let jwt_user_id = &user.user_id;
 
     // check if is admin
@@ -101,19 +99,18 @@ pub async fn user_delete (
     uuid_query_param: Option<web::Query<UserUUID>>,
 ) -> HttpResponse {
 
-    let user_jwt = user.user_id;
-
-    // let client = Client::try_default().await.unwrap();
+    let user_id = user.user_id;
+    let int_user_id = user_id.parse::<i32>().unwrap();
 
     let is_admin: bool = sqlx::query_scalar("SELECT EXISTS(SELECT 1 FROM users WHERE user_id = $1 and admin = true)")
-        .bind(&user_jwt)
+        .bind(&int_user_id)
         .fetch_one(pool.as_ref())
         .await
         .unwrap_or(false);
 
 
     let cluster_names: Vec<String> = sqlx::query_scalar("SELECT cluster_name FROM clusters WHERE user_id = $1")
-        .bind(&user_jwt)
+        .bind(&int_user_id)
         .fetch_all(pool.as_ref())
         .await
         .unwrap_or_default();
@@ -127,7 +124,7 @@ pub async fn user_delete (
             Ok(_) => {
                 println!("Cluster {} deleted successfully", cluster_name);
                 sqlx::query("DELETE FROM clusters WHERE user_id = $1 AND cluster_name = $2")
-                    .bind(&user_jwt)
+                    .bind(&int_user_id)
                     .bind(&cluster_name)
                     .execute(pool.as_ref())
                     .await
@@ -142,7 +139,7 @@ pub async fn user_delete (
 
     // Delete user from database
     sqlx::query("DELETE FROM users WHERE user_id = $1")
-        .bind(&user_jwt)
+        .bind(&int_user_id)
         .execute(pool.as_ref())
         .await
         .unwrap_or_default();

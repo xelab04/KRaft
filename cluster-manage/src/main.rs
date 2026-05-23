@@ -16,12 +16,8 @@ use kube::Client;
 
 mod clusters;
 mod db_connect;
-mod validatename;
 mod jwt;
-mod tlssan;
-mod ingress;
 mod logs;
-mod vcp;
 mod class;
 mod workspace;
 
@@ -78,6 +74,7 @@ pub fn get_ntfy_config() -> Option<NtfyConfig> {
 #[actix_rt::main]
 async fn main() -> io::Result<()> {
     env::set_var("RUST_LOG", "actix_web=debug,actix_server=info");
+    env_logger::init();
 
     let environment = std::env::var("ENVIRONMENT").unwrap_or_else(|_| "PROD".to_string());
     let host = std::env::var("HOST").unwrap_or_else(|_| "kraftcloud.dev".to_string());
@@ -90,7 +87,6 @@ async fn main() -> io::Result<()> {
         host: host.clone(),
         ntfy: ntfy_config,
     };
-    env_logger::init();
 
     let default_panic = std::panic::take_hook();
     fn get_message(info: &PanicHookInfo) -> String {
@@ -110,7 +106,6 @@ async fn main() -> io::Result<()> {
     std::panic::set_hook(Box::new(move |info| {
         if let Some(ntfy) = &panic_ntfy_config {
             let message = get_message(info);
-
             class::panic_ntfy(ntfy, &message, "Panic Occured");
         }
         default_panic(info)
