@@ -20,7 +20,6 @@ pub struct LogsType {
 
 #[get("/api/logs")]
 pub async fn getlogs(
-    // req: HttpRequest,
     pool: web::Data<PgPool>,
     client: web::Data<Client>,
     // config: web::Data<AppConfig>,

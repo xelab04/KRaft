@@ -189,7 +189,6 @@ pub async fn clusterdelete(
 
     let namespace = format!("k3k-{}", raw_cluster_name);
 
-    // let client = Client::try_default().await.unwrap();
     k3k_rs::cluster::delete(&kubeclient, namespace.as_str(), raw_cluster_name.as_str()).await.expect("cluster not found ");
 
     k3k_rs::namespace::delete(&kubeclient, namespace.as_str()).await.unwrap();
@@ -201,12 +200,8 @@ pub async fn clusterdelete(
         .await;
 
     match r {
-        Ok(_) => {
-            HttpResponse::Ok().json("Success")
-        },
-        Err(e) => {
-            HttpResponse::InternalServerError().json(format!("Failed to delete cluster: {}", e))
-        }
+        Ok(_) => { HttpResponse::Ok().json("Success") },
+        Err(e) => { HttpResponse::InternalServerError().json(format!("Failed to delete cluster from db: {}", e)) }
     }
 }
 
