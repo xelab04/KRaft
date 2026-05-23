@@ -40,7 +40,10 @@ pub async fn ingress(client: &Client, cluster_name: &str, namespace: &str, ingre
         "kind": "Ingress",
         "metadata": {
             "name": format!("workspace-{}",cluster_name),
-            "namespace": namespace
+            "namespace": namespace,
+            "annotations": [{
+                "cert-manager.io/cluster-issuer": "prod-issuer"
+            }]
         },
         "spec": {
             // TODO: make ingress class dynamic
