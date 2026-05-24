@@ -1,0 +1,265 @@
+use log::info;
+use regex::Regex;
+use reqwest;
+
+use crate::Models::Config::{AppConfig, MailConfig, NtfyConfig};
+
+use kube::{
+    Client,
+    api::{Api, PostParams},
+    core::{ApiResource, DynamicObject, GroupVersionKind},
+};
+use serde_json::json;
+
+use std::env;
+
+use argon2::password_hash::{PasswordHash, SaltString};
+use argon2::{Argon2, PasswordHasher, PasswordVerifier, password_hash::Salt};
+use mail_builder::MessageBuilder;
+use mail_send::SmtpClientBuilder;
+use rand::rngs::OsRng;
+
+pub fn generate_email_config() -> Option<MailConfig> {
+    let email_config = MailConfig {
+        mail_encryption: env::var("MAIL_ENCRYPTION").ok()?,
+        mail_from_address: env::var("MAIL_FROM_ADDRESS").ok()?,
+        mail_from_name: env::var("MAIL_FROM_NAME").ok()?,
+        mail_host: env::var("MAIL_HOST").ok()?,
+        mail_mailer: env::var("MAIL_MAILER").ok()?,
+        mail_port: env::var("MAIL_PORT").ok()?,
+        mail_username: env::var("MAIL_USERNAME").ok(),
+        mail_password: env::var("MAIL_PASSWORD").ok(),
+    };
+
+    Some(email_config)
+}
+
+pub fn get_ntfy_config() -> Option<NtfyConfig> {
+    let host = std::env::var("NTFY_HOST").ok()?;
+    let basic_auth = std::env::var("NTFY_BASIC_AUTH").ok();
+    let token = std::env::var("NTFY_TOKEN").ok();
+
+    Some(NtfyConfig {
+        host,
+        basic_auth,
+        token,
+    })
+}
+
+pub fn generate_appconfig() -> AppConfig {
+    let email_config = generate_email_config();
+    let host = std::env::var("HOST").unwrap_or_else(|_| "kraftcloud.dev".to_string());
+    let mail_verification: bool = std::env::var("MAIL_VERIFICATION")
+        .unwrap_or_else(|_| "false".to_string())
+        .parse()
+        .unwrap_or(false);
+    let ntfy_config = get_ntfy_config();
+    let environment = std::env::var("ENVIRONMENT").unwrap_or_else(|_| "PROD".to_string());
+    let jwt_secret =
+        std::env::var("JWT_SECRET").expect("JWT_SECRET must be set in environment variables");
+
+    let conf: AppConfig = AppConfig {
+        email: email_config,
+        host,
+        mail_verification,
+        environment,
+        ntfy: ntfy_config,
+        jwt_secret,
+    };
+
+    conf
+}
+
+pub async fn traefik(
+    client: &Client,
+    cluster_name: &String,
+    namespace: &String,
+    host: &str,
+    n: usize,
+) -> bool {
+    // define CRD type
+    let gvk = GroupVersionKind::gvk("traefik.io", "v1alpha1", "IngressRouteTCP");
+    let ar = ApiResource::from_gvk(&gvk);
+
+    // api
+    let ingress_routes: Api<DynamicObject> =
+        Api::namespaced_with(client.clone(), namespace.as_str(), &ar);
+
+    // json cause im lazy
+    let ingressroute = json!({
+        "apiVersion": "traefik.io/v1alpha1",
+        "kind": "IngressRouteTCP",
+        "metadata": {
+            "name": format!("api-svr-{}-{}-rt",cluster_name,n),
+            "namespace": namespace
+        },
+        "spec": {
+            "entryPoints": ["websecure"],
+            "routes": [
+                {
+                    "match": format!("HostSNI(`{}`)", host),
+                    "services": [
+                        {
+                            "name": format!("k3k-{}-service",cluster_name),
+                            "port": 443
+                        }
+                    ]
+                }
+            ],
+            "tls": { "passthrough": true }
+        }
+    });
+
+    let pp = PostParams::default();
+    let ingressroute: DynamicObject = serde_json::from_value(ingressroute).unwrap();
+
+    let _created = ingress_routes.create(&pp, &ingressroute).await.unwrap();
+
+    true
+}
+
+pub async fn validate_tlssan(tlssan: String) -> Result<bool, String> {
+    if !tlssan.is_ascii() {
+        return Err("Invalid URL".to_string());
+    }
+
+    let domain_pattern = r"^([A-Za-z0-9]([A-Za-z0-9-]{0,61}[A-Za-z0-9])?\.)+[A-Za-z]{2,63}$";
+    let re = Regex::new(domain_pattern).unwrap();
+
+    if !re.is_match(&tlssan) {
+        return Err("Malformed URL".to_string());
+    }
+
+    Ok(true)
+}
+
+pub fn panic_ntfy(config: &NtfyConfig, message: &str, title: &str) {
+    let client = reqwest::blocking::Client::new();
+
+    let mut request = client
+        .post(&config.host)
+        .header("Title", title)
+        .body(message.to_string());
+
+    if let Some(auth) = &config.basic_auth {
+        request = request.header("Authorization", format!("Basic {auth}"));
+    }
+    if let Some(auth) = &config.token {
+        request = request.header("Authorization", format!("Bearer {auth}"));
+    }
+
+    match request.send() {
+        Ok(r) => match r.error_for_status() {
+            Ok(_) => {
+                info!("Ntfy panic message sent");
+            }
+            Err(e) => {
+                info!("Error message; {}", e);
+            }
+        },
+        Err(_) => {
+            info!("Error sending ntfy panic message, ironic")
+        }
+    }
+}
+
+pub async fn send_ntfy_notif(
+    host: &str,
+    message: &str,
+    title: &str,
+    basic_auth: &Option<String>,
+    token: &Option<String>,
+) -> Result<(), String> {
+    let client = reqwest::Client::new();
+    let mut request = client
+        .post(host)
+        .header("Title", title)
+        .body(message.to_string());
+
+    if let Some(auth) = basic_auth {
+        request = request.header("Authorization", format!("Basic {auth}"));
+    }
+    if let Some(auth) = token {
+        request = request.header("Authorization", format!("Bearer {auth}"));
+    }
+
+    let r = request.send().await.unwrap();
+
+    info!("{:?}", r);
+
+    match r.error_for_status() {
+        Ok(_) => Ok(()),
+        Err(e) => Err(e.to_string()),
+    }
+}
+
+pub fn namevalid(name: &str) -> bool {
+    name.chars()
+        .all(|ch: char| ch.is_ascii_lowercase() || ch.is_ascii_digit() || ch == '-')
+}
+
+pub fn check_passwords_match(clear_pwd: &String, hashed: &str) -> bool {
+    let parsed_hash = match PasswordHash::new(hashed) {
+        Ok(hash) => hash,
+        Err(_e) => {
+            return false;
+        }
+    };
+
+    Argon2::default()
+        .verify_password(clear_pwd.as_bytes(), &parsed_hash)
+        .is_ok()
+}
+
+pub fn hash_password(clear_pwd: &String) -> String {
+    let salt_str = &SaltString::generate(&mut OsRng);
+    let salt: Salt = salt_str.into();
+
+    let argon2 = Argon2::default();
+    let password_hash = argon2
+        .hash_password(clear_pwd.as_bytes(), salt)
+        .expect("Error hashing password.");
+
+    password_hash.to_string()
+}
+
+pub async fn send_mail(
+    mail_config: &MailConfig,
+    recipient_email: &str,
+    subject: &str,
+    body: &str,
+) -> Result<(), String> {
+    let mail = MessageBuilder::new()
+        .from((
+            mail_config.mail_from_name.as_str(),
+            mail_config.mail_from_address.as_str(),
+        ))
+        .to(recipient_email)
+        .subject(subject)
+        .text_body(body);
+
+    let int_port: u16 = mail_config
+        .mail_port
+        .parse()
+        .expect("Port should be an integer value");
+
+    let mut smtp_client = SmtpClientBuilder::new(mail_config.mail_host.as_str(), int_port).unwrap();
+    if mail_config.mail_encryption == "tls" {
+        smtp_client = smtp_client.implicit_tls(false);
+    }
+    if let (Some(username), Some(password)) =
+        (&mail_config.mail_username, &mail_config.mail_password)
+    {
+        smtp_client = smtp_client.credentials((username.as_str(), password.as_str()));
+    }
+
+    smtp_client
+        .connect()
+        .await
+        .unwrap()
+        .send(mail)
+        .await
+        .unwrap();
+
+    Ok(())
+}

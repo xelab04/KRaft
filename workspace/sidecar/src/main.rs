@@ -7,7 +7,7 @@ use std::env;
 async fn validate_token(token: &str, cluster_id: &str) -> bool {
     let host_config = env::var("HOST").unwrap();
 
-    let local_host = format!("http://kraft-mono.kraft.svc.cluster.local:5000");
+    let local_host = format!("http://kraft-core.kraft.svc.cluster.local:5000");
 
     println!("validating token {}", token);
 
