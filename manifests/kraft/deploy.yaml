@@ -3,26 +3,24 @@ kind: Deployment
 metadata:
   creationTimestamp: null
   labels:
-    app: kraft-auth
+    app: kraft-core
     project: kraft
-  name: kraft-auth
+  name: kraft-core
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: kraft-auth
-  strategy: {}
+      app: kraft-core
   template:
     metadata:
-      creationTimestamp: null
       labels:
-        app: kraft-auth
+        app: kraft-core
     spec:
       serviceAccountName: kraftsa
       automountServiceAccountToken: true
       containers:
-      - image: registry.alexbissessur.dev/kraft-auth:latest
-        name: kraft-auth
+      - image: registry.alexbissessur.dev/kraft-core:latest
+        name: kraft-core
         ports:
         - containerPort: 5000
         resources: {}
@@ -30,10 +28,9 @@ spec:
         envFrom:
         - configMapRef:
             name: global-config
-        # - secretRef:
-        #     name: betacode
         - secretRef:
             name: jwtsecret
         - secretRef:
             name: database-secrets
-status: {}
+        - secretRef:
+            name: ntfysecret
