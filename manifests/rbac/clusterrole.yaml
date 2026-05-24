@@ -29,8 +29,12 @@ rules:
   verbs: ["get","list"]
 
 - apiGroups: [""]
-  resources: ["namespaces", "secrets", "ingresses", "services"]
+  resources: ["namespaces", "secrets", "services"]
   verbs: ["get","list", "create", "delete"]
+
+- apiGroups: ["networking.k8s.io"]
+  resources: ["ingresses"]
+  verbs: ["get", "list", "create", "delete"]
 
 - apiGroups: ["apps"]
   resources: ["statefulsets"]
