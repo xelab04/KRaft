@@ -33,7 +33,7 @@ rules:
   verbs: ["get","list", "create", "delete"]
 
 - apiGroups: ["networking.k8s.io"]
-  resources: ["ingresses"]
+  resources: ["ingresses", "networkpolicies"]
   verbs: ["get", "list", "create", "delete"]
 
 - apiGroups: ["apps"]
