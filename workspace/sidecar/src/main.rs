@@ -1,5 +1,5 @@
 // main.rs
-use actix_web::{web, App, HttpServer, HttpRequest, HttpResponse, middleware};
+use actix_web::{App, HttpRequest, HttpResponse, HttpServer, middleware, web};
 use actix_ws::Message;
 use futures_util::{SinkExt, StreamExt};
 use std::env;
@@ -7,11 +7,20 @@ use std::env;
 async fn validate_token(token: &str, cluster_id: &str) -> bool {
     let host_config = env::var("HOST").unwrap();
 
+    let local_host = format!("http://kraft-mono.kraft.svc.cluster.local:5000");
+
     println!("validating token {}", token);
 
     let client = reqwest::Client::new();
     let res = client
-        .post(format!("https://{}/api/workspaces/validatetoken/{}/{}", host_config, cluster_id, token))
+        // .post(format!(
+        //     "https://{}/api/workspaces/validatetoken/{}/{}",
+        //     host_config, cluster_id, token
+        // ))
+        .post(format!(
+            "{}/api/workspaces/validate_token/{}/{}",
+            local_host, cluster_id, token
+        ))
         .send()
         .await;
 
@@ -21,7 +30,11 @@ async fn validate_token(token: &str, cluster_id: &str) -> bool {
                 println!("Verifying token successful: {}", token);
                 true
             } else {
-                println!("Verifying token unsuccessful: {}", token);
+                println!(
+                    "Verifying token unsuccessful: {} status {}",
+                    token,
+                    r.status()
+                );
                 false
             }
         }
@@ -39,7 +52,7 @@ async fn terminal(req: HttpRequest, stream: web::Payload) -> HttpResponse {
 
     // grab token from query string
     let token = match web::Query::<std::collections::HashMap<String, String>>::from_query(
-        req.query_string()
+        req.query_string(),
     ) {
         Ok(q) => match q.get("token") {
             Some(t) => t.clone(),
@@ -60,13 +73,11 @@ async fn terminal(req: HttpRequest, stream: web::Payload) -> HttpResponse {
     let ttyd_url = env::var("TTYD_URL").unwrap_or("ws://localhost:7681/ws".into());
 
     actix_web::rt::spawn(async move {
-
         use tokio_tungstenite::tungstenite::client::IntoClientRequest;
         let mut request = ttyd_url.into_client_request().unwrap();
-        request.headers_mut().insert(
-            "Sec-WebSocket-Protocol",
-            "tty".parse().unwrap()
-        );
+        request
+            .headers_mut()
+            .insert("Sec-WebSocket-Protocol", "tty".parse().unwrap());
 
         let Ok((ttyd_ws, _)) = tokio_tungstenite::connect_async(request).await else {
             session.close(None).await.ok();
@@ -81,12 +92,16 @@ async fn terminal(req: HttpRequest, stream: web::Payload) -> HttpResponse {
             while let Some(Ok(msg)) = client_stream.next().await {
                 let out = match msg {
                     Message::Binary(b) => tokio_tungstenite::tungstenite::Message::Binary(b.into()),
-                    Message::Text(t) => tokio_tungstenite::tungstenite::Message::Text(t.to_string()),
+                    Message::Text(t) => {
+                        tokio_tungstenite::tungstenite::Message::Text(t.to_string())
+                    }
                     Message::Close(_) => break,
                     Message::Ping(b) => tokio_tungstenite::tungstenite::Message::Ping(b.into()),
                     _ => continue,
                 };
-                if ttyd_tx.send(out).await.is_err() { break; }
+                if ttyd_tx.send(out).await.is_err() {
+                    break;
+                }
             }
         });
 
@@ -96,16 +111,16 @@ async fn terminal(req: HttpRequest, stream: web::Payload) -> HttpResponse {
                 let res = match msg {
                     tokio_tungstenite::tungstenite::Message::Binary(b) => {
                         session_clone.binary(b).await
-                    },
-                    tokio_tungstenite::tungstenite::Message::Text(t) => {
-                        session_clone.text(t).await
-                    },
+                    }
+                    tokio_tungstenite::tungstenite::Message::Text(t) => session_clone.text(t).await,
                     tokio_tungstenite::tungstenite::Message::Ping(b) => {
                         session_clone.ping(&b).await
-                    },
+                    }
                     _ => continue,
                 };
-                if res.is_err() { break; }
+                if res.is_err() {
+                    break;
+                }
             }
         });
 
@@ -121,17 +136,19 @@ async fn terminal(req: HttpRequest, stream: web::Payload) -> HttpResponse {
 // yeet all connections to ttyd
 async fn proxy_http(req: HttpRequest) -> HttpResponse {
     let ttyd = env::var("TTYD_HTTP_URL").unwrap_or("http://localhost:7681".into());
-    let path = req.uri().path_and_query().map(|p| p.as_str()).unwrap_or("/");
+    let path = req
+        .uri()
+        .path_and_query()
+        .map(|p| p.as_str())
+        .unwrap_or("/");
 
     let client = reqwest::Client::new();
     match client.get(format!("{}{}", ttyd, path)).send().await {
         Ok(res) => {
-            let status = actix_web::http::StatusCode::from_u16(
-                res.status().as_u16()
-            ).unwrap();
+            let status = actix_web::http::StatusCode::from_u16(res.status().as_u16()).unwrap();
             let body = res.bytes().await.unwrap_or_default();
             HttpResponse::build(status).body(body)
-        },
+        }
         Err(_) => HttpResponse::BadGateway().finish(),
     }
 }
