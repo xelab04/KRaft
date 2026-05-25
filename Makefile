@@ -11,7 +11,7 @@ resourcemanage:
 	podman push registry.alexbissessur.dev/kraft-resource-manage
 
 kraft:
-	cd kraft && podman build . -t registry.alexbissessur.dev/kraft-core
+	cd kraft-core && podman build . -t registry.alexbissessur.dev/kraft-core
 	podman push registry.alexbissessur.dev/kraft-core
 
 workspace-proxy:
