@@ -19,7 +19,9 @@ mod Models;
 use Controllers::{ClusterController, UserController, WorkspaceController};
 use kube::Client;
 
-use crate::Controllers::{AuthController, JWTController, LogsController, utils};
+use crate::Controllers::{
+    AuthController, JWTController, LogsController, ResourceController, utils,
+};
 mod db_connect;
 
 pub async fn update_cookie_middleware<B>(
@@ -115,6 +117,8 @@ async fn main() -> io::Result<()> {
             .service(AuthController::changepwd)
             .service(UserController::details)
             .service(UserController::user_delete)
+            .service(ResourceController::get_cluster_use)
+            .service(ResourceController::get_namespace_use)
     })
     .bind("0.0.0.0:5000")?
     .run()

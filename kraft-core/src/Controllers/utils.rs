@@ -263,3 +263,29 @@ pub async fn send_mail(
 
     Ok(())
 }
+
+pub fn convert_cpu(value: &str) -> i32 {
+    let r: i32;
+    if value.ends_with("n") {
+        r = value.strip_suffix("n").unwrap().parse::<i32>().unwrap() / 1000000;
+    } else if value.ends_with("m") {
+        r = value.strip_suffix("m").unwrap().parse::<i32>().unwrap();
+    } else {
+        r = value.parse::<i32>().unwrap() * 1000;
+    }
+    r
+}
+
+pub fn convert_memory(value: &str) -> i32 {
+    let r: i32;
+    if value.ends_with("Ki") {
+        r = value.strip_suffix("Ki").unwrap().parse::<i32>().unwrap() / 1000;
+    } else if value.ends_with("Mi") {
+        r = value.strip_suffix("Mi").unwrap().parse::<i32>().unwrap();
+    } else if value.ends_with("Gi") {
+        r = value.strip_suffix("Gi").unwrap().parse::<i32>().unwrap() * 1000;
+    } else {
+        r = value.parse::<i32>().unwrap() / 1000000;
+    }
+    r
+}
