@@ -4,8 +4,8 @@
     "body": {
         "mimeType": "No Body"
     },
-    "url": "http://127.0.0.1:5000/api/get/kubeconfig/k-1-easterhegg",
-    "sortOrder": 6,
+    "url": "https://kraftcloud.dev/resources/cluster",
+    "sortOrder": 0,
     "parameters": [],
     "pathParameters": []
 }

@@ -6,7 +6,7 @@
         "text": "{\n    \"username\": \"alex\",\n    \"email\": \"alexbissessur@email.com\",\n    \"password\": \"password\",\n    \"betacode\": \"meow\"\n}"
     },
     "url": "http://127.0.0.1:5000/auth/register",
-    "sortOrder": 0,
+    "sortOrder": 1,
     "parameters": [],
     "pathParameters": [],
     "headers": [
