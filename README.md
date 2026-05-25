@@ -1,5 +1,5 @@
 # KRaft
-<!-- [![justforfunnoreally.dev badge](https://img.shields.io/badge/justforfunnoreally-dev-9ff)](https://justforfunnoreally.dev) -->
+![written_in_rust badge](https://img.shields.io/badge/rust%F0%9F%8F%B3%EF%B8%8F%E2%80%8D%E2%9A%A7%EF%B8%8F-gray?label=written%20in&labelColor=orange)  [![justforfunnoreally.dev badge](https://img.shields.io/badge/justforfunnoreally-dev-9ff)](https://justforfunnoreally.dev)  ![Website](https://img.shields.io/website?url=https%3A%2F%2Fkraftcloud.dev)
 
 Have **you** ever wanted to run a workshop on Kubernetes? Or just run a lab somewhere? Nothing super permanent or important -- you'll delete it when your workshop or tests are done. And you probably want to leave it on the cloud to keep it OS-agnostic -- you don't want users on Windows, Mac, or Linux struggling with the hundred different ways to run Kubernetes.
 
