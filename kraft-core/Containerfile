@@ -1,24 +1,56 @@
-FROM registry.suse.com/bci/rust:1.95 AS build
+# syntax=docker/dockerfile:1.24
+
+FROM --platform=$BUILDPLATFORM rust:1.95-bookworm AS builder
+ARG BUILDARCH
+ARG TARGETARCH
+# renovate: datasource=github-releases depName=ziglang/zig
+ARG ZIG_VERSION=0.16.0
+# renovate: datasource=github-releases depName=rust-cross/cargo-zigbuild
+ARG CARGO_ZIGBUILD_VERSION=0.22.3
+
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends libclang-dev clang \
+    && rm -rf /var/lib/apt/lists/*
+
+RUN case "${BUILDARCH}" in \
+        amd64) HOST_TARGET=x86_64-unknown-linux-musl; ZIG_ARCH=x86_64 ;; \
+        arm64) HOST_TARGET=aarch64-unknown-linux-musl; ZIG_ARCH=aarch64 ;; \
+        *) echo "Unsupported BUILDARCH: ${BUILDARCH}" >&2; exit 1 ;; \
+    esac \
+    && curl -fsSL "https://ziglang.org/download/${ZIG_VERSION}/zig-${ZIG_ARCH}-linux-${ZIG_VERSION}.tar.xz" \
+       | tar -xJ -C /opt \
+    && ln -s "/opt/zig-${ZIG_ARCH}-linux-${ZIG_VERSION}/zig" /usr/local/bin/zig \
+    && curl -fsSL "https://github.com/rust-cross/cargo-zigbuild/releases/download/v${CARGO_ZIGBUILD_VERSION}/cargo-zigbuild-${HOST_TARGET}.tar.xz" \
+       | tar -xJO "cargo-zigbuild-${HOST_TARGET}/cargo-zigbuild" > /usr/local/bin/cargo-zigbuild \
+    && chmod +x /usr/local/bin/cargo-zigbuild
 
 WORKDIR /app
+COPY Cargo.toml Cargo.lock ./
+COPY src/ src/
 
-RUN zypper -n in openssl-devel
-RUN cargo install cargo-chef
+RUN --mount=type=cache,target=/usr/local/cargo/registry,id=cargo-registry-${TARGETARCH},sharing=locked \
+    --mount=type=cache,target=/usr/local/cargo/git,id=cargo-git-${TARGETARCH},sharing=locked \
+    --mount=type=cache,target=/root/.cache,id=root-cache-${TARGETARCH},sharing=locked \
+    set -eux && \
+    case "${TARGETARCH}" in \
+        amd64) RUST_TARGET=x86_64-unknown-linux-gnu ;; \
+        arm64) RUST_TARGET=aarch64-unknown-linux-gnu ;; \
+        *) echo "Unsupported TARGETARCH: ${TARGETARCH}" >&2; exit 1 ;; \
+    esac && \
+    rustup target add "$RUST_TARGET" && \
+    cargo zigbuild --release --target "$RUST_TARGET" && \
+    cp "target/${RUST_TARGET}/release/kraft" /kraft
 
-COPY Cargo.lock Cargo.toml ./
-RUN mkdir src
-RUN touch src/main.rs
-RUN cargo chef prepare --recipe-path recipe.json
-RUN cargo chef cook --release --recipe-path recipe.json
+FROM debian:bookworm-slim AS runtime-prep
+RUN groupadd -g 10001 nonroot \
+    && useradd -u 10001 -g 10001 -M -s /sbin/nologin nonroot \
+    && install -d -o 10001 -g 10001 /home/nonroot
 
-COPY . ./
-
-RUN cargo build --release
-
-FROM registry.suse.com/bci/bci-base:latest
-
-RUN zypper -n in openssl-devel wget
-
-COPY --from=build /app/target/release/kraft /usr/local/bin/kraft
-
-CMD ["kraft"]
+FROM gcr.io/distroless/cc-debian12
+COPY --from=runtime-prep /etc/passwd /etc/passwd
+COPY --from=runtime-prep /etc/group  /etc/group
+COPY --from=runtime-prep --chown=10001:10001 /home/nonroot /home/nonroot
+COPY --from=builder /kraft /usr/local/bin/kraft
+WORKDIR /home/nonroot
+USER 10001:10001
+ENTRYPOINT ["/usr/local/bin/kraft"]
