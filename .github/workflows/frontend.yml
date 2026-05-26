@@ -1,0 +1,41 @@
+name: Frontend CI
+
+on:
+  pull_request:
+    paths:
+      - "frontend/**"
+      - ".github/workflows/frontend.yml"
+  push:
+    branches: [main]
+    paths:
+      - "frontend/**"
+      - ".github/workflows/frontend.yml"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  htmlhint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - name: Run htmlhint
+        working-directory: frontend
+        run: npx --yes htmlhint@1 "**/*.html"
+
+  nginx-config:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate nginx.conf
+        run: |
+          docker run --rm \
+            -v "$PWD/frontend/nginx.conf:/etc/nginx/nginx.conf:ro" \
+            nginx:alpine nginx -t
