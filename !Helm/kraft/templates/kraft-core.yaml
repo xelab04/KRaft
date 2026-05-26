@@ -19,7 +19,7 @@ spec:
       serviceAccountName: kraftsa
       automountServiceAccountToken: true
       containers:
-      - image: ghcr.io/xelab04/kraft-core:latest
+      - image: {{.Values.images.core}}
         name: kraft-core
         ports:
         - containerPort: 5000
@@ -31,9 +31,11 @@ spec:
         - secretRef:
             name: jwtsecret
         - secretRef:
-            name: database-secrets
+            name: {{ .Values.database.secret }}
+        {{- if .Values.ntfy.enabled}}
         - secretRef:
-            name: ntfysecret
+            name: {{.Values.ntfy.secret}}
+        {{- end}}
 
 ---
 

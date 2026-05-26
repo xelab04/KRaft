@@ -1,7 +1,7 @@
 apiVersion: v2
 
 name: kraft
-description: A Helm chart for KRaft
+description: A Helm chart for deploying the KRaft cloud service provider thing onto your own hardware.
 
 type: application
 version: 0.1.0

@@ -1,15 +1,17 @@
 database:
-  existingSecret: "kraft-db-secret"
+  # set to your own secret name to use an existing secret
+  secret: ""
   # database: "kraft"
   # host: "kraft-db"
-  # password: dontuseme
-  # rootPassword: changeme
+  # password: "dontuseme"
+  # rootPassword: "changeme"
   # port: 5432
-  # user: kraft
+  # user: "kraft"
 
 networking:
-  clusterIssuer: "staging-cluster-issuer"
-  issuer: "staging-issuer"
+  clusterIssuer: ""
+  # clusterIssuer: "staging-cluster-issuer"
+  # issuer: "staging-issuer"
   ingressClassName: "traefik"
 
 images:
@@ -22,13 +24,14 @@ workspaces:
 
 ntfy:
   enabled: false
-  url: "https://notify.alexbissessur.dev"
-  topic: "kraft"
-  basicAuth: "dXNlcm5hbWU6cGFzc3dvcmQ="
-  token: "somekindatoken"
+  secret: ""
+  # url: "https://notify.example.com"
+  # topic: "kraft"
+  # basicAuth: "dXNlcm5hbWU6cGFzc3dvcmQ="
+  # token: "somekindatoken"
 
 config:
   environment: "PROD"
-  host: "kraftcloud.dev"
+  host: "kraft.example.com"
   betacode: "ENABLED"
   workspacesEnabled: false

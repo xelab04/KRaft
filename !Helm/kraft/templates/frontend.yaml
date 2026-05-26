@@ -19,7 +19,7 @@ spec:
         app: kraft-frontend
     spec:
       containers:
-      - image: ghcr.io/xelab04/kraft-frontend:latest
+      - image: {{.Values.images.frontend}}
         name: kraft-frontend
         ports:
         - containerPort: 80
