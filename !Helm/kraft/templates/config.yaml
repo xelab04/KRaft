@@ -1,0 +1,65 @@
+apiVersion: v1
+data:
+  ENVIRONMENT: {{.Values.config.environment}}
+  HOST: {{.Values.config.host}}
+  BETACODE: {{.Values.config.betacode}}
+  WORKSPACES_ENABLED: {{.Values.config.workspacesEnabled}}
+
+kind: ConfigMap
+metadata:
+  name: global-config
+
+---
+
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: kraft-ingressroute
+  annotations:
+    {{- if and .Values.networking.issuer .Values.networking.clusterIssuer }}
+      {{- fail "networking.issuer and networking.clusterIssuer are mutually exclusive, set only one" }}
+    {{- else if and (not .Values.networking.issuer) (not .Values.networking.clusterIssuer) }}
+      {{- fail "one of networking.issuer or networking.clusterIssuer must be set" }}
+    {{- else if .Values.networking.issuer }}
+    cert-manager.io/issuer: {{ .Values.networking.issuer }}
+    {{- else }}
+    cert-manager.io/cluster-issuer: {{ .Values.networking.clusterIssuer }}
+    {{- end }}
+spec:
+  ingressClassName: {{.Values.networking.ingressClassName}}
+  tls:
+  - hosts:
+    - {{.Values.config.host}}
+    secretName: kraftcloud-tls
+  rules:
+  - host: {{.Values.config.host}}
+    http:
+      paths:
+      - path: /api
+        pathType: Prefix
+        backend:
+          service:
+            name: kraft-core
+            port:
+              number: 5000
+      - path: /resources
+        pathType: Prefix
+        backend:
+          service:
+            name: kraft-core
+            port:
+              number: 5000
+      - path: /auth
+        pathType: Prefix
+        backend:
+          service:
+            name: kraft-core
+            port:
+              number: 5000
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: kraft-frontend
+            port:
+              number: 80

@@ -1,18 +1,34 @@
-betaCode: kraftbyalex
-
-environment: "PROD"
-
-host: "kraftcloud.dev"
-
 database:
-  database: "kraft"
-  host: "kraft-db" # this points to the hosted db by default
-  password: dontuseme
-  rootPassword: changeme
-  port: 3306
-  user: kraft
+  existingSecret: "kraft-db-secret"
+  # database: "kraft"
+  # host: "kraft-db"
+  # password: dontuseme
+  # rootPassword: changeme
+  # port: 5432
+  # user: kraft
 
-  hosted:
-    enabled: true
-    image: registry.opensuse.org/opensuse/mariadb:11.8
-    size: "4Gi"
+networking:
+  clusterIssuer: "staging-cluster-issuer"
+  issuer: "staging-issuer"
+  ingressClassName: "traefik"
+
+images:
+  frontend: "ghcr.io/xelab04/kraft-frontend:latest"
+  core: "ghcr.io/xelab04/kraft-core:latest"
+
+workspaces:
+  # you might want to disable the bottomless pit of vulnerabilities
+  enabled: true
+
+ntfy:
+  enabled: false
+  url: "https://notify.alexbissessur.dev"
+  topic: "kraft"
+  basicAuth: "dXNlcm5hbWU6cGFzc3dvcmQ="
+  token: "somekindatoken"
+
+config:
+  environment: "PROD"
+  host: "kraftcloud.dev"
+  betacode: "ENABLED"
+  workspacesEnabled: false

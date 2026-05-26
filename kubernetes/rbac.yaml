@@ -1,3 +1,29 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  # annotations:
+  #   kubernetes.io/enforce-mountable-secrets: "true"
+  name: kraftsa
+imagePullSecrets:
+- name: regcred
+
+---
+
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: kraft-rolebinding
+subjects:
+- kind: ServiceAccount
+  name: kraftsa
+  namespace: kraft
+roleRef:
+  kind: ClusterRole
+  name: kraftrole
+  apiGroup: rbac.authorization.k8s.io
+
+---
+
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
@@ -8,7 +34,7 @@ rules:
   verbs: ["get", "watch", "list", "delete", "edit", "create", "patch"]
 
 - apiGroups: ["traefik.io"]
-  resources: ["ingressroutetcps"]
+  resources: ["ingressroutetcps", "ingressroutes"]
   verbs: ["create", "delete", "list", "watch"]
 
 - apiGroups: [""]
@@ -17,7 +43,7 @@ rules:
   # hmmmmm, deleting perms aren't ideal...
 
 - apiGroups: [""]
-  resources: ["nodes", "services"]
+  resources: ["nodes"]
   verbs: ["get","list"]
 
 - apiGroups: ["longhorn.io"]
@@ -29,8 +55,16 @@ rules:
   verbs: ["get","list"]
 
 - apiGroups: [""]
-  resources: ["namespaces", "secrets", "ingress"]
+  resources: ["namespaces", "secrets", "services"]
   verbs: ["get","list", "create", "delete"]
+
+- apiGroups: ["networking.k8s.io"]
+  resources: ["ingresses", "networkpolicies"]
+  verbs: ["get", "list", "create", "delete"]
+
+- apiGroups: ["apps"]
+  resources: ["statefulsets"]
+  verbs: ["get", "list", "create", "delete"]
 
 - apiGroups: [""]
   resources: ["pods/log"]
