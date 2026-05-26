@@ -24,8 +24,6 @@ jobs:
             context: kraft-core
           - image: kraft-frontend
             context: frontend
-          - image: kraft-resource-manage
-            context: resource-manage
           - image: kraft-workspace-proxy
             context: workspace/sidecar
     steps:
