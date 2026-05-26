@@ -7,7 +7,7 @@ metadata:
     project: kraft
   name: kraft-resource-manage
 spec:
-  replicas: 1
+  replicas: 0
   selector:
     matchLabels:
       app: kraft-resource-manage
@@ -35,3 +35,22 @@ spec:
       #   secret:
       #     secretName: kubeconfig
 status: {}
+
+---
+
+# apiVersion: v1
+# kind: Service
+# metadata:
+#   creationTimestamp: null
+#   labels:
+#     app: kraft-resource-manage
+#   name: kraft-resource-manage
+# spec:
+#   ports:
+#   - port: 5000
+#     protocol: TCP
+#     targetPort: 5000
+#   selector:
+#     app: kraft-resource-manage
+# status:
+#   loadBalancer: {}
