@@ -21,7 +21,7 @@ spec:
   quota:
     hard:
       cpu: 600m
-      memory: 1Gi
+      memory: 1500Mi
       requests.storage: 4Gi
       # requests:
 
