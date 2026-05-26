@@ -3,26 +3,24 @@ kind: Deployment
 metadata:
   creationTimestamp: null
   labels:
-    app: kraft-cluster-manage
+    app: kraft-core
     project: kraft
-  name: kraft-cluster-manage
+  name: kraft-core
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: kraft-cluster-manage
-  strategy: {}
+      app: kraft-core
   template:
     metadata:
-      creationTimestamp: null
       labels:
-        app: kraft-cluster-manage
+        app: kraft-core
     spec:
       serviceAccountName: kraftsa
       automountServiceAccountToken: true
       containers:
-      - image: "xelab04/kraft-cluster-manage:{{ .Chart.AppVersion }}"
-        name: kraft-cluster-manage
+      - image: ghcr.io/xelab04/kraft-core:latest
+        name: kraft-core
         ports:
         - containerPort: 5000
         resources: {}
@@ -34,4 +32,24 @@ spec:
             name: jwtsecret
         - secretRef:
             name: database-secrets
-status: {}
+        - secretRef:
+            name: ntfysecret
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  creationTimestamp: null
+  labels:
+    app: kraft-core
+  name: kraft-core
+spec:
+  ports:
+  - port: 5000
+    protocol: TCP
+    targetPort: 5000
+  selector:
+    app: kraft-core
+status:
+  loadBalancer: {}

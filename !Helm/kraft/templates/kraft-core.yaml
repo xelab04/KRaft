@@ -1,0 +1,55 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  creationTimestamp: null
+  labels:
+    app: kraft-core
+    project: kraft
+  name: kraft-core
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: kraft-core
+  template:
+    metadata:
+      labels:
+        app: kraft-core
+    spec:
+      serviceAccountName: kraftsa
+      automountServiceAccountToken: true
+      containers:
+      - image: ghcr.io/xelab04/kraft-core:latest
+        name: kraft-core
+        ports:
+        - containerPort: 5000
+        resources: {}
+
+        envFrom:
+        - configMapRef:
+            name: global-config
+        - secretRef:
+            name: jwtsecret
+        - secretRef:
+            name: database-secrets
+        - secretRef:
+            name: ntfysecret
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  creationTimestamp: null
+  labels:
+    app: kraft-core
+  name: kraft-core
+spec:
+  ports:
+  - port: 5000
+    protocol: TCP
+    targetPort: 5000
+  selector:
+    app: kraft-core
+status:
+  loadBalancer: {}
