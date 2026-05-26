@@ -9,7 +9,7 @@ ARG ZIG_VERSION=0.16.0
 ARG CARGO_ZIGBUILD_VERSION=0.22.3
 
 RUN apt-get update \
-    && apt-get install -y --no-install-recommends libclang-dev clang \
+    && apt-get install -y --no-install-recommends libclang-dev clang pkg-config libssl-dev \
     && rm -rf /var/lib/apt/lists/*
 
 RUN case "${BUILDARCH}" in \
