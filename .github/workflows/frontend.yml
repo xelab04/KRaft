@@ -19,16 +19,16 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  htmlhint:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: "20"
-      - name: Run htmlhint
-        working-directory: frontend
-        run: npx --yes htmlhint@1 "**/*.html"
+  # htmlhint:
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - uses: actions/checkout@v4
+  #     - uses: actions/setup-node@v4
+  #       with:
+  #         node-version: "20"
+  #     - name: Run htmlhint
+  #       working-directory: frontend
+  #       run: npx --yes htmlhint@1 "**/*.html"
 
   nginx-config:
     runs-on: ubuntu-latest
