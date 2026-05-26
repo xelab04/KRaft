@@ -1,5 +1,5 @@
 use actix_web::{HttpResponse, web};
-use log::{info, error};
+use log::{error, info};
 use serde_json;
 use serde_json::json;
 use sqlx::PgPool;

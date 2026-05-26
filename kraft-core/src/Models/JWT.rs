@@ -5,7 +5,7 @@ pub struct JWT {
     pub sub: String,
     pub roles: String,
     pub exp: usize,
-    pub iat: usize
+    pub iat: usize,
 }
 
 #[derive(Debug, Deserialize, Serialize)]
