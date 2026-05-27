@@ -4,7 +4,7 @@ data:
   ENVIRONMENT: {{.Values.config.environment}}
   HOST: {{.Values.config.host}}
   BETACODE: {{.Values.config.betacode}}
-  WORKSPACES_ENABLED: {{.Values.config.workspacesEnabled}}
+  WORKSPACES_ENABLED: {{.Values.config.workspacesEnabled | quote}}
 
 kind: ConfigMap
 metadata:
