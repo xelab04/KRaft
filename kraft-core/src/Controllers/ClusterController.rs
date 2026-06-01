@@ -80,13 +80,29 @@ pub async fn create(
                 NodePort: None,
                 Ingress: None,
             }),
-            serverLimit: Some(BTreeMap::from([
-                ("cpu".to_string(), IntOrString::String("100m".to_string())),
-                (
-                    "memory".to_string(),
-                    IntOrString::String("600Mi".to_string()),
-                ),
-            ])),
+            serverResources: Some(k3k_rs::cluster::ResourcesSpec {
+                limits: Some(BTreeMap::from([
+                    ("cpu".to_string(), IntOrString::String("400m".to_string())),
+                    (
+                        "memory".to_string(),
+                        IntOrString::String("600Mi".to_string()),
+                    ),
+                ])),
+                requests: Some(BTreeMap::from([
+                    ("cpu".to_string(), IntOrString::String("100m".to_string())),
+                    (
+                        "memory".to_string(),
+                        IntOrString::String("400Mi".to_string()),
+                    ),
+                ])),
+            }),
+            // serverLimit: Some(BTreeMap::from([
+            //     ("cpu".to_string(), IntOrString::String("100m".to_string())),
+            //     (
+            //         "memory".to_string(),
+            //         IntOrString::String("600Mi".to_string()),
+            //     ),
+            // ])),
             workerLimit: Some(BTreeMap::from([
                 ("cpu".to_string(), IntOrString::String("30m".to_string())),
                 (
@@ -120,7 +136,7 @@ pub async fn create(
                 name: Some(namespace.to_string()),
                 labels: Some(BTreeMap::from([(
                     "policy.k3k.io/policy-name".to_string(),
-                    "kraft-vpc".to_string(),
+                    "workshop-vpc".to_string(),
                 )])),
                 ..Default::default()
             },
