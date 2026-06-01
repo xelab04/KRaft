@@ -267,7 +267,12 @@ pub async fn send_mail(
 pub fn convert_cpu(value: &str) -> i32 {
     let r: i32;
     if value.ends_with("n") {
-        r = value.strip_suffix("n").unwrap().parse::<i32>().unwrap() / 1000000;
+        r = value
+            .strip_suffix("n")
+            .unwrap()
+            .parse::<i32>()
+            .unwrap_or(i32::MAX)
+            / 1000000;
     } else if value.ends_with("m") {
         r = value.strip_suffix("m").unwrap().parse::<i32>().unwrap();
     } else {
