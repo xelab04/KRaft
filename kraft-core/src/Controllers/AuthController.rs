@@ -7,7 +7,7 @@ use actix_web::{
     cookie::{Cookie, SameSite},
     web,
 };
-use log::error;
+use log::{error, info};
 use serde_json::{self, json};
 use sqlx::PgPool;
 use uuid;
@@ -59,7 +59,7 @@ pub async fn changepwd(
         password::update(&pool, &new_hashed_password, &int_user_id)
             .await
             .expect("error updating password");
-
+        info!("user {} changed password", user_id);
         HttpResponse::Ok().json(json!({ "status": "success" }))
     } else {
         HttpResponse::Forbidden().json(json!({"message": "Invalid password"}))
@@ -134,6 +134,7 @@ pub async fn login(
                 );
             }
 
+            info!("user {} logged in", found_user.user_id.unwrap());
             HttpResponse::Ok()
                 .cookie(cookie)
                 .json(json!({ "status": "success", "uuid": &found_user.uuid }))
@@ -239,6 +240,7 @@ pub async fn register(
                 }
             }
 
+            info!("new account for user {}", user_id);
             HttpResponse::Ok()
                 .cookie(cookie)
                 .json(json!({ "status": "success" }))
