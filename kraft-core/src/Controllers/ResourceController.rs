@@ -7,8 +7,9 @@ use k8s_openapi::api::core::v1::Node;
 use kube::ResourceExt;
 use kube::{
     Api, Client,
-    core::{ApiResource, DynamicObject},
+    core::{ApiResource, DynamicObject, GroupVersionKind},
 };
+use log::info;
 use serde_json::json;
 
 async fn get_pod_use(client: &Client, namespace: &str) -> namespace_resources {
