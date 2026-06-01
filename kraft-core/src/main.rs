@@ -54,7 +54,7 @@ where
 #[actix_rt::main]
 async fn main() -> io::Result<()> {
     unsafe {
-        env::set_var("RUST_LOG", "actix_web=debug,actix_server=info");
+        env::set_var("RUST_LOG", "actix_web=debug,actix_server=info,info");
     }
 
     rustls::crypto::ring::default_provider()
@@ -64,7 +64,8 @@ async fn main() -> io::Result<()> {
     let panic_ntfy_config = utils::get_ntfy_config();
 
     let config = utils::generate_appconfig();
-    env_logger::init();
+    // env_logger::init();
+    env_logger::init_from_env(env_logger::Env::default().default_filter_or("info"));
 
     let default_panic = std::panic::take_hook();
     fn get_message(info: &PanicHookInfo) -> String {
