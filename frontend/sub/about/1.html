@@ -67,6 +67,31 @@
                         class="underline"
                         >here</a
                     >.
+                    <br />
+                    Once you have kubectl installed (verified by `kubectl
+                    version` in the terminal), you need to make sure it can get
+                    your kubeconfig file. This is done by setting the KUBECONFIG
+                    environment variable to the absolute path of the downloaded
+                    file (eg: /home/alex/Downloads/kubeconfig-dl.yaml).
+                    Alternatively you can move the file to ~/.kube/config which
+                    kubectl checks by default anyways. Refer to the above guide
+                    for non-Linux systems.
+                </div>
+                <div class="font-bold mt-8">2.1 Working with Workspaces</div>
+                <div>
+                    A feature in open beta right now is workspaces. A workspace
+                    is a container with all the tools you could want to work
+                    with, including but not limited to: kubectl, kubecolor,
+                    kubectl completion, fish, and k9s. You can load into a
+                    workspace from the cluster view page. You have to extend the
+                    cluster view and will find a button to load it.
+                    <br />
+                    The workspace will load you into a terminal on a new tab. It
+                    might take a second for it to load, and if you have a cursor
+                    visible but no terminal prompt, you can try pressing enter
+                    or ctrl+c to get your prompt back. Note that there is a
+                    timeout on inactivity and if it passes, you will have to
+                    load the workspace again from the KRaft page.
                 </div>
             </div>
 
