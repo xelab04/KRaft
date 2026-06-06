@@ -1,3 +1,4 @@
+use k3k_rs::cluster::ExposeIngress;
 use log::{error, info};
 use std::collections::BTreeMap;
 
@@ -78,7 +79,10 @@ pub async fn create(
             expose: Some(k3k_rs::cluster::ExposeSpec {
                 LoadBalancer: None,
                 NodePort: None,
-                Ingress: None,
+                Ingress: Some(ExposeIngress {
+                    ingressClassName: Some(String::from("traefik")),
+                    annotations: None,
+                }),
             }),
             serverResources: Some(k3k_rs::cluster::ResourcesSpec {
                 limits: Some(BTreeMap::from([
@@ -193,7 +197,8 @@ pub async fn create(
     .unwrap();
 
     for (i, tlssan) in validated_tlssan_list.iter().enumerate() {
-        utils::traefik(&kubeclient, &cluster_name, &namespace, tlssan, i).await;
+        k3k_rs::ingress_create();
+        // utils::traefik(&kubeclient, &cluster_name, &namespace, tlssan, i).await;
     }
 
     // vcp::create_default_vcp(&kubeclient, &cluster_name, &namespace).await;
