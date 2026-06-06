@@ -91,6 +91,9 @@ pub async fn user_delete(
         info!("Deleting cluster {}", cluster_name);
         let namespace = format!("k3k-{}", cluster_name);
         let r = k3k_rs::cluster::delete(&client, &namespace, &cluster_name).await;
+        let _r2 = k3k_rs::namespace::delete(&client, namespace.as_str())
+            .await
+            .unwrap();
         match r {
             Ok(_) => {
                 info!("Cluster {} deleted successfully", cluster_name);
