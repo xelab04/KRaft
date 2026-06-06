@@ -1,102 +1,137 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>KRaft</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>KRaft</title>
+        <script src="https://cdn.tailwindcss.com"></script>
 
-    <script>
-      function sleep(ms) {
-          return new Promise(resolve => setTimeout(resolve, ms));
-      }
+        <script>
+            function sleep(ms) {
+                return new Promise((resolve) => setTimeout(resolve, ms));
+            }
 
-      function submitForm() {
-        const name = document.getElementById('cluster_name').value;
-        let tlssan = document.getElementById('tlssan').value;
-        tlssan = tlssan.replace(/\s/g, "");
+            function submitForm() {
+                const name = document.getElementById("cluster_name").value;
+                let tlssan = document.getElementById("tlssan").value;
+                tlssan = tlssan.replace(/\s/g, "");
 
-        let tlssan_array = []
-        if (tlssan != "") {
-          tlssan_array = tlssan.split(',');
-        }
+                let tlssan_array = [];
+                if (tlssan != "") {
+                    tlssan_array = tlssan.split(",");
+                }
 
-        console.log("meow");
+                console.log("meow");
 
-        fetch('/api/create/clusters', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({ name, tlssan_array })
-        })
-        .then(response => response.json())
-        .then(data => {
-          console.log(data);
-          if (data.status == "error") {
-            document.getElementById('error-message').textContent = data.message;
-          } else {
-            document.getElementById('error-message').textContent = 'Success!';
-            sleep(2000);
-            window.location.href = `/`;
-          }
-        })
-        .catch(error => {
-          document.getElementById('error-message').textContent = 'An error occurred somewhere between here and the server.';
-          console.error('Error:', error);
-        });
-        return false;
-      }
+                fetch("/api/create/clusters", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({ name, tlssan_array }),
+                })
+                    .then((response) => response.json())
+                    .then((data) => {
+                        console.log(data);
+                        if (data.status == "error") {
+                            document.getElementById(
+                                "error-message",
+                            ).textContent = data.message;
+                        } else {
+                            document.getElementById(
+                                "error-message",
+                            ).textContent =
+                                "Success! Please refer to the README for useful information on running your cluster!";
+                            sleep(3000);
+                            window.location.href = `/`;
+                        }
+                    })
+                    .catch((error) => {
+                        document.getElementById("error-message").textContent =
+                            "An error occurred somewhere between here and the server.";
+                        console.error("Error:", error);
+                    });
+                return false;
+            }
 
-      function userCheck() {
-        fetch('/auth/validate-jwt', {
-          method: 'GET',
-        })
-        .then(response => response.json())
-        .then(data => {
-          console.log("Data:", data);
-          if (data.status == "error") {
-            document.getElementById('error-message').textContent = data.message;
-            // redirect to login page
-            window.location.href = `/sub/login.html`;
-          } else {
-            // document.getElementById('error-message').textContent = 'Success!';
-            return true;
-          }
-        })
-        .catch(error => {
-          document.getElementById('error-message').textContent = 'An error occurred somewhere between here and the server.';
-        });
-      }
+            function userCheck() {
+                fetch("/auth/validate-jwt", {
+                    method: "GET",
+                })
+                    .then((response) => response.json())
+                    .then((data) => {
+                        console.log("Data:", data);
+                        if (data.status == "error") {
+                            document.getElementById(
+                                "error-message",
+                            ).textContent = data.message;
+                            // redirect to login page
+                            window.location.href = `/sub/login.html`;
+                        } else {
+                            // document.getElementById('error-message').textContent = 'Success!';
+                            return true;
+                        }
+                    })
+                    .catch((error) => {
+                        document.getElementById("error-message").textContent =
+                            "An error occurred somewhere between here and the server.";
+                    });
+            }
 
-      userCheck();
-    </script>
+            userCheck();
+        </script>
+    </head>
+    <body
+        class="bg-black h-screen w-screen flex items-center justify-center m-0 p-0"
+    >
+        <div
+            class="m-8 rounded-md shadow-lg max-w-2xl w-full mx-4 outline-white-500 h-[60vh]"
+        >
+            <!-- bg-zinc-800 -->
+            <div class="flex items-center mb-4">
+                <a href="/"
+                    ><h1 class="text-white font-mono text-3xl">KRaft</h1></a
+                >
+                <h3 class="text-white font-mono text-sm ml-2 self-end mb-1">
+                    by Alex
+                </h3>
+            </div>
+            <div class="text-white font-mono flex flex-col mt-8">
+                <a href="#" class="text-2xl underline block"
+                    >[&gt;] Create a cluster</a
+                >
+            </div>
+            <!-- form, asking for cluster name, optionally domain to access on -->
+            <form
+                class="text-white text-xl font-mono flex flex-col mt-8"
+                onsubmit="return submitForm();"
+            >
+                <label for="cluster_name">Cluster name*:</label><br />
+                <input
+                    class="text-gray-800"
+                    type="text"
+                    id="cluster_name"
+                    name="cluster_name"
+                    required
+                /><br />
 
-</head>
-<body class="bg-black h-screen w-screen flex items-center justify-center m-0 p-0">
-    <div class=" m-8 rounded-md shadow-lg max-w-2xl w-full mx-4 outline-white-500 h-[60vh]">
-        <!-- bg-zinc-800 -->
-        <div class="flex items-center mb-4">
-            <a href="/"><h1 class="text-white font-mono text-3xl">KRaft</h1></a>
-            <h3 class="text-white font-mono text-sm ml-2 self-end mb-1">by Alex</h3>
+                <label for="tlssan">TLS-SAN (comma-separated)</label><br />
+                <input
+                    class="text-gray-800"
+                    type="text"
+                    id="tlssan"
+                    name="tlssan"
+                />
+
+                <input type="submit" value="Submit" />
+            </form>
+
+            <div
+                class="text-2xl bg-red-300 font-mono mt-8 text-center"
+                id="error-message"
+            >
+                <!-- will be filled with error message -->
+            </div>
         </div>
-        <div class="text-white font-mono flex flex-col mt-8">
-            <a href="#" class="text-2xl underline block">[&gt;] Create a cluster</a>
-        </div>
-        <!-- form, asking for cluster name, optionally domain to access on -->
-        <form class="text-white text-xl font-mono flex flex-col mt-8" onsubmit="return submitForm();">
-            <label for="cluster_name">Cluster name*:</label><br>
-            <input class="text-gray-800" type="text" id="cluster_name" name="cluster_name" required><br>
-
-            <label for="tlssan">TLS-SAN (comma-separated)</label><br>
-            <input class="text-gray-800" type="text" id="tlssan" name="tlssan">
-
-            <input type="submit" value="Submit">
-        </form>
-
-        <div class="text-2xl bg-red-300 font-mono mt-8 text-center" id="error-message">
-            <!-- will be filled with error message -->
-        </div>
-    </div>
-</body>
+    </body>
 </html>
