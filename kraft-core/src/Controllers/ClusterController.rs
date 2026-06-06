@@ -196,8 +196,15 @@ pub async fn create(
     .await
     .unwrap();
 
-    for (i, tlssan) in validated_tlssan_list.iter().enumerate() {
-        k3k_rs::ingress_create();
+    for (_i, tlssan) in validated_tlssan_list.iter().enumerate() {
+        let _ = k3k_rs::ingress::ingress_create(
+            &kubeclient,
+            &cluster_name,
+            &namespace,
+            tlssan,
+            "traefik",
+        )
+        .await;
         // utils::traefik(&kubeclient, &cluster_name, &namespace, tlssan, i).await;
     }
 
