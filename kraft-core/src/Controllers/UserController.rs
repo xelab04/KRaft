@@ -6,7 +6,7 @@ use sqlx::PgPool;
 
 use crate::{
     Controllers::{
-        DBHelper::{clusters, user},
+        DBHelper::{clusters, user, workspaces},
         JWTController, utils,
     },
     Models::User::{AuthUser, User, UserUUID},
@@ -110,6 +110,8 @@ pub async fn user_delete(
 
     // Delete user from database
     info!("deleting user with user id: {} from database", int_user_id);
+    workspaces::token_delete(&pool, &int_user_id).await.unwrap();
+    workspaces::delete(&pool, &int_user_id).await.unwrap();
     user::delete(&pool, &int_user_id).await.unwrap();
     let delete_cookie = JWTController::del_cookie();
 
