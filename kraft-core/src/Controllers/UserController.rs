@@ -109,7 +109,8 @@ pub async fn user_delete(
     }
 
     // Delete user from database
-    user::delete(&pool, &int_user_id).await.unwrap_or_default();
+    info!("deleting user with user id: {} from database", int_user_id);
+    user::delete(&pool, &int_user_id).await.unwrap();
     let delete_cookie = JWTController::del_cookie();
 
     // return HttpResponse::Ok().finish();
