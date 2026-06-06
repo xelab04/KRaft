@@ -240,7 +240,7 @@ pub async fn statefulset(
                     "containers": [
                         {
                             "name": "workspace-proxy",
-                            "image": "registry.alexbissessur.dev/kraft-workspace-proxy:latest",
+                            "image": "ghcr.io/xelab04/kraft-workspace-proxy:latest",
                             "imagePullPolicy": "Always",
                             "env": [
                                 {
@@ -269,7 +269,7 @@ pub async fn statefulset(
                         },
                         {
                             "name": "workspace",
-                            "image": "registry.alexbissessur.dev/kraft-workspace:latest",
+                            "image": "ghcr.io/xelab04/kraft-workspace:latest",
                             "imagePullPolicy": "Always",
                             "ports": [{
                                 "containerPort": 7681,
