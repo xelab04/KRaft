@@ -27,7 +27,14 @@ use kube::{
 };
 use serde_json::json;
 
-pub async fn ingress(client: &Client, cluster_name: &str, namespace: &str, ingress_path: &str) {
+pub async fn ingress(
+    client: &Client,
+    cluster_name: &str,
+    namespace: &str,
+    ingress_path: &str,
+    ingress_class: &str,
+    cluster_issuer: &str
+) {
     let gvk = GroupVersionKind::gvk("networking.k8s.io", "v1", "Ingress");
     let ar = ApiResource::from_gvk(&gvk);
 
@@ -54,11 +61,11 @@ pub async fn ingress(client: &Client, cluster_name: &str, namespace: &str, ingre
             "name": ingress_name,
             "namespace": namespace,
             "annotations": {
-                "cert-manager.io/cluster-issuer": "prod-issuer"
+                "cert-manager.io/cluster-issuer": cluster_issuer
             }
         },
         "spec": {
-            "ingressClassName": "traefik",
+            "ingressClassName": ingress_class,
             "tls": [{
                 "hosts": [ingress_path],
                 "secretName": format!("{}-tls", cluster_name)
@@ -85,51 +92,6 @@ pub async fn ingress(client: &Client, cluster_name: &str, namespace: &str, ingre
     let ingressroute: DynamicObject = serde_json::from_value(ingress).unwrap();
 
     let _created = ingress_handler.create(&pp, &ingressroute).await.unwrap();
-}
-
-pub async fn _ingressroute(
-    client: &Client,
-    cluster_name: &str,
-    namespace: &str,
-    ingress_path: &str,
-) {
-    // define CRD type
-    let gvk = GroupVersionKind::gvk("traefik.io", "v1alpha1", "IngressRoute");
-    let ar = ApiResource::from_gvk(&gvk);
-
-    // api
-    let ingress_routes: Api<DynamicObject> = Api::namespaced_with(client.clone(), namespace, &ar);
-
-    // json cause im lazy
-    let ingressroute = json!({
-        "apiVersion": "traefik.io/v1alpha1",
-        "kind": "IngressRoute",
-        "metadata": {
-            "name": format!("workspace-{}",cluster_name),
-            "namespace": namespace
-        },
-        "spec": {
-            "entryPoints": ["websecure", "web"],
-            "routes": [
-                {
-                    "kind": "Rule",
-                    "match": format!("Host(`{}`)", ingress_path),
-                    "services": [
-                        {
-                            "name": format!("workspace-{}",cluster_name),
-                            "port": 8080
-                        }
-                    ]
-                }
-            ],
-            "tls": { "certResolver": "le" }
-        }
-    });
-
-    let pp = PostParams::default();
-    let ingressroute: DynamicObject = serde_json::from_value(ingressroute).unwrap();
-
-    let _created = ingress_routes.create(&pp, &ingressroute).await.unwrap();
 }
 
 pub async fn service(client: &Client, cluster_name: &str, namespace: &str) {
@@ -379,6 +341,8 @@ pub async fn core_workspace_create(
     pool: &web::Data<Pool<Postgres>>,
     host: &str,
     ingress_path: &str,
+    ingress_class: &str,
+    cluster_issuer: &str,
     workspace_name: &str,
     cluster_name: &str,
     namespace: &str,
@@ -391,7 +355,15 @@ pub async fn core_workspace_create(
 
     service(&kubeclient, cluster_name, namespace).await;
 
-    ingress(kubeclient, cluster_name, namespace, ingress_path).await;
+    ingress(
+        kubeclient,
+        cluster_name,
+        namespace,
+        ingress_path,
+        ingress_class,
+        cluster_issuer
+    )
+    .await;
 
     workspaces::create(pool, workspace_name, &cluster_name, user_id)
         .await
@@ -437,6 +409,8 @@ pub async fn create(
         &pool,
         &config.host,
         ingress_path.as_str(),
+        &config.network_config.ingress_class,
+        &config.network_config.cluster_issuer,
         workspace_name.as_str(),
         cluster_name.as_str(),
         namespace.as_str(),

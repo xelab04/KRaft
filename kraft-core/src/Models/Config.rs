@@ -1,3 +1,5 @@
+use crate::Models::Cluster::ClusterResourceConfig;
+
 #[derive(Clone)]
 pub struct AppConfig {
     pub environment: String,
@@ -6,6 +8,14 @@ pub struct AppConfig {
     pub mail_verification: bool,
     pub email: Option<MailConfig>,
     pub jwt_secret: String,
+    pub resource_config: ClusterResourceConfig,
+    pub network_config: NetworkingConfig
+}
+
+#[derive(Clone, Debug)]
+pub struct NetworkingConfig {
+    pub ingress_class: String,
+    pub cluster_issuer: String
 }
 
 #[derive(Clone, Debug)]

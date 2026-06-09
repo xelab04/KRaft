@@ -2134,6 +2134,7 @@ dependencies = [
  "rustls",
  "serde",
  "serde_json",
+ "serde_yaml",
  "sqlx",
  "tokio",
  "uuid",

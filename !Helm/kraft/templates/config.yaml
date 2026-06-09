@@ -4,6 +4,8 @@ data:
   HOST: {{.Values.config.host}}
   BETACODE: {{.Values.config.betacode}}
   WORKSPACES_ENABLED: {{.Values.config.workspacesEnabled}}
+  INGRESS_CLASS: {{.Values.networking.ingressClassName}}
+  CLUSTER_ISSUER: {{.Values.networking.clusterIssuer}}
 
 kind: ConfigMap
 metadata:

@@ -1,8 +1,11 @@
-use log::info;
+use log::{info, warn};
 use regex::Regex;
 use reqwest;
 
-use crate::Models::Config::{AppConfig, MailConfig, NtfyConfig};
+use crate::Models::{
+    Cluster::ClusterResourceConfig,
+    Config::{AppConfig, MailConfig, NetworkingConfig, NtfyConfig},
+};
 
 use kube::{
     Client,
@@ -47,75 +50,50 @@ pub fn get_ntfy_config() -> Option<NtfyConfig> {
 }
 
 pub fn generate_appconfig() -> AppConfig {
-    let email_config = generate_email_config();
-    let host = std::env::var("HOST").unwrap_or_else(|_| "kraftcloud.dev".to_string());
+    let email = generate_email_config();
+    let host = std::env::var("HOST").unwrap_or_else(|_| {
+        warn!("HOST not specified, defaulting to kraftcloud.dev");
+        "kraftcloud.dev".to_string()
+    });
     let mail_verification: bool = std::env::var("MAIL_VERIFICATION")
         .unwrap_or_else(|_| "false".to_string())
         .parse()
         .unwrap_or(false);
-    let ntfy_config = get_ntfy_config();
-    let environment = std::env::var("ENVIRONMENT").unwrap_or_else(|_| "PROD".to_string());
+    let ntfy = get_ntfy_config();
+    let environment = std::env::var("ENVIRONMENT").unwrap_or_else(|_| {
+        warn!("ENVIRONMENT not specified, defaulting to prod");
+        "PROD".to_string()
+    });
     let jwt_secret =
         std::env::var("JWT_SECRET").expect("JWT_SECRET must be set in environment variables");
+    let ingress_class = std::env::var("INGRESS_CLASS").unwrap_or_else(|_| {
+        warn!("INGRESS_CLASS not specified, defaulting to traefik");
+        String::from("traefik")
+    });
+    let cluster_issuer = std::env::var("CLUSTER_ISSUER").expect("CLUSTER_ISSUER not set in environment variables");
+
+    let f = std::fs::File::open("/config/resourceconfig.yaml")
+        .expect("Could not open /config/resourceconfig.yaml");
+    let resource_config: ClusterResourceConfig =
+        serde_yaml::from_reader(f).expect("Invalid yaml in /config/resourceconfig.yaml");
+
+    let network_config = NetworkingConfig{
+        ingress_class,
+        cluster_issuer
+    };
 
     let conf: AppConfig = AppConfig {
-        email: email_config,
+        email,
         host,
         mail_verification,
         environment,
-        ntfy: ntfy_config,
+        ntfy,
         jwt_secret,
+        resource_config,
+        network_config
     };
 
     conf
-}
-
-pub async fn traefik(
-    client: &Client,
-    cluster_name: &String,
-    namespace: &String,
-    host: &str,
-    n: usize,
-) -> bool {
-    // define CRD type
-    let gvk = GroupVersionKind::gvk("traefik.io", "v1alpha1", "IngressRouteTCP");
-    let ar = ApiResource::from_gvk(&gvk);
-
-    // api
-    let ingress_routes: Api<DynamicObject> =
-        Api::namespaced_with(client.clone(), namespace.as_str(), &ar);
-
-    // json cause im lazy
-    let ingressroute = json!({
-        "apiVersion": "traefik.io/v1alpha1",
-        "kind": "IngressRouteTCP",
-        "metadata": {
-            "name": format!("api-svr-{}-{}-rt",cluster_name,n),
-            "namespace": namespace
-        },
-        "spec": {
-            "entryPoints": ["websecure"],
-            "routes": [
-                {
-                    "match": format!("HostSNI(`{}`)", host),
-                    "services": [
-                        {
-                            "name": format!("k3k-{}-service",cluster_name),
-                            "port": 443
-                        }
-                    ]
-                }
-            ],
-            "tls": { "passthrough": true }
-        }
-    });
-
-    let pp = PostParams::default();
-    let ingressroute: DynamicObject = serde_json::from_value(ingressroute).unwrap();
-
-    let _created = ingress_routes.create(&pp, &ingressroute).await.unwrap();
-
-    true
 }
 
 pub async fn validate_tlssan(tlssan: String) -> Result<bool, String> {

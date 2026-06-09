@@ -25,6 +25,11 @@ spec:
         - containerPort: 5000
         resources: {}
 
+        volumeMounts:
+          - name: resourceconfig
+            mountPath: "/config"
+            readOnly: true
+
         envFrom:
         - configMapRef:
             name: global-config
@@ -34,3 +39,8 @@ spec:
             name: database-secrets
         - secretRef:
             name: ntfysecret
+
+      volumes:
+      - name: resourceconfig
+        configMap:
+          name: clusterresources
