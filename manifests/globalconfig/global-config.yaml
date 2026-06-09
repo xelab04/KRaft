@@ -10,3 +10,27 @@ kind: ConfigMap
 metadata:
   creationTimestamp: null
   name: global-config
+
+---
+
+apiVersion: v1
+data:
+  resourceconfig.yaml: |
+    clusterResources:
+      servers:
+        requests:
+          cpu: 100m
+          memory: 400Mi
+        limits:
+          cpu: 400m
+          memory: 600Mi
+      workers:
+        requests:
+          cpu: 30m
+          memory: 75Mi
+        limits:
+          cpu: 30m
+          memory: 75Mi
+kind: ConfigMap
+metadata:
+  name: clusterresources

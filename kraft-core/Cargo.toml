@@ -31,3 +31,4 @@ uuid = { version = "1.23.1", features = ["v4"] }
 mail-builder = "0.4.4"
 mail-send = "0.6.0"
 rand = "0.8.6"
+serde_yaml = "0.9.34"
