@@ -61,11 +61,6 @@ pub async fn create(
         return HttpResponse::BadRequest().json("Cluster with the same name already exists");
     }
 
-    let f = std::fs::File::open("/config/resourceconfig.yaml")
-        .expect("Could not open /config/resourceconfig.yaml");
-    let resource_config: ClusterResourceConfig =
-        serde_yaml::from_reader(f).expect("Invalid yaml in /config/resourceconfig.yaml");
-
     let cluster_schema = k3k_rs::cluster::Cluster {
         metadata: kube::core::ObjectMeta {
             name: Some(cluster_name.clone()),
@@ -88,21 +83,45 @@ pub async fn create(
                 limits: Some(BTreeMap::from([
                     (
                         "cpu".to_string(),
-                        resource_config.cluster_resources.servers.limits.cpu,
+                        config
+                            .resource_config
+                            .cluster_resources
+                            .servers
+                            .limits
+                            .cpu
+                            .clone(),
                     ),
                     (
                         "memory".to_string(),
-                        resource_config.cluster_resources.servers.limits.memory,
+                        config
+                            .resource_config
+                            .cluster_resources
+                            .servers
+                            .limits
+                            .memory
+                            .clone(),
                     ),
                 ])),
                 requests: Some(BTreeMap::from([
                     (
                         "cpu".to_string(),
-                        resource_config.cluster_resources.servers.requests.cpu,
+                        config
+                            .resource_config
+                            .cluster_resources
+                            .servers
+                            .requests
+                            .cpu
+                            .clone(),
                     ),
                     (
                         "memory".to_string(),
-                        resource_config.cluster_resources.servers.requests.memory,
+                        config
+                            .resource_config
+                            .cluster_resources
+                            .servers
+                            .requests
+                            .memory
+                            .clone(),
                     ),
                 ])),
             }),
@@ -110,21 +129,45 @@ pub async fn create(
                 limits: Some(BTreeMap::from([
                     (
                         "cpu".to_string(),
-                        resource_config.cluster_resources.workers.limits.cpu,
+                        config
+                            .resource_config
+                            .cluster_resources
+                            .workers
+                            .limits
+                            .cpu
+                            .clone(),
                     ),
                     (
                         "memory".to_string(),
-                        resource_config.cluster_resources.workers.limits.memory,
+                        config
+                            .resource_config
+                            .cluster_resources
+                            .workers
+                            .limits
+                            .memory
+                            .clone(),
                     ),
                 ])),
                 requests: Some(BTreeMap::from([
                     (
                         "cpu".to_string(),
-                        resource_config.cluster_resources.workers.requests.cpu,
+                        config
+                            .resource_config
+                            .cluster_resources
+                            .workers
+                            .requests
+                            .cpu
+                            .clone(),
                     ),
                     (
                         "memory".to_string(),
-                        resource_config.cluster_resources.workers.requests.memory,
+                        config
+                            .resource_config
+                            .cluster_resources
+                            .workers
+                            .requests
+                            .memory
+                            .clone(),
                     ),
                 ])),
             }),

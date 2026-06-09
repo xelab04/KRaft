@@ -1,3 +1,5 @@
+use crate::Models::Cluster::ClusterResourceConfig;
+
 #[derive(Clone)]
 pub struct AppConfig {
     pub environment: String,
@@ -6,6 +8,7 @@ pub struct AppConfig {
     pub mail_verification: bool,
     pub email: Option<MailConfig>,
     pub jwt_secret: String,
+    pub resource_config: ClusterResourceConfig,
 }
 
 #[derive(Clone, Debug)]
