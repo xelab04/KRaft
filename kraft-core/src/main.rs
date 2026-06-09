@@ -1,9 +1,9 @@
 #[macro_use]
 extern crate actix_web;
 
+use log::{error, info};
 use rustls;
 use std::{env, io, panic::PanicHookInfo};
-use log::{info, error};
 
 use actix_web::{
     App, Error, HttpServer,

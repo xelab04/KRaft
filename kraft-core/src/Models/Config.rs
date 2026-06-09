@@ -9,13 +9,13 @@ pub struct AppConfig {
     pub email: Option<MailConfig>,
     pub jwt_secret: String,
     pub resource_config: ClusterResourceConfig,
-    pub network_config: NetworkingConfig
+    pub network_config: NetworkingConfig,
 }
 
 #[derive(Clone, Debug)]
 pub struct NetworkingConfig {
     pub ingress_class: String,
-    pub cluster_issuer: String
+    pub cluster_issuer: String,
 }
 
 #[derive(Clone, Debug)]

@@ -70,16 +70,17 @@ pub fn generate_appconfig() -> AppConfig {
         warn!("INGRESS_CLASS not specified, defaulting to traefik");
         String::from("traefik")
     });
-    let cluster_issuer = std::env::var("CLUSTER_ISSUER").expect("CLUSTER_ISSUER not set in environment variables");
+    let cluster_issuer =
+        std::env::var("CLUSTER_ISSUER").expect("CLUSTER_ISSUER not set in environment variables");
 
     let f = std::fs::File::open("/config/resourceconfig.yaml")
         .expect("Could not open /config/resourceconfig.yaml");
     let resource_config: ClusterResourceConfig =
         serde_yaml::from_reader(f).expect("Invalid yaml in /config/resourceconfig.yaml");
 
-    let network_config = NetworkingConfig{
+    let network_config = NetworkingConfig {
         ingress_class,
-        cluster_issuer
+        cluster_issuer,
     };
 
     let conf: AppConfig = AppConfig {
@@ -90,7 +91,7 @@ pub fn generate_appconfig() -> AppConfig {
         ntfy,
         jwt_secret,
         resource_config,
-        network_config
+        network_config,
     };
 
     conf
