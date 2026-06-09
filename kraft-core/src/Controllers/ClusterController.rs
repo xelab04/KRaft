@@ -4,7 +4,6 @@ use std::collections::BTreeMap;
 use actix_web::web;
 use actix_web::web::Json;
 use actix_web::{HttpRequest, HttpResponse};
-use k8s_openapi::apimachinery::pkg::util::intstr::IntOrString;
 
 use sqlx;
 use sqlx::PgPool;
@@ -20,7 +19,7 @@ use crate::Controllers::DBHelper::*;
 use crate::Controllers::utils;
 use crate::Models::Config::AppConfig;
 
-use crate::Models::Cluster::{Cluster, ClusterCreateForm};
+use crate::Models::Cluster::{Cluster, ClusterCreateForm, ClusterResourceConfig};
 use crate::Models::User::AuthUser;
 
 #[post("/api/create/clusters")]
@@ -62,6 +61,11 @@ pub async fn create(
         return HttpResponse::BadRequest().json("Cluster with the same name already exists");
     }
 
+    let f = std::fs::File::open("/config/resourceconfig.yaml")
+        .expect("Could not open /config/resourceconfig.yaml");
+    let resource_config: ClusterResourceConfig =
+        serde_yaml::from_reader(f).expect("Invalid yaml in /config/resourceconfig.yaml");
+
     let cluster_schema = k3k_rs::cluster::Cluster {
         metadata: kube::core::ObjectMeta {
             name: Some(cluster_name.clone()),
@@ -82,34 +86,48 @@ pub async fn create(
             }),
             serverResources: Some(k3k_rs::cluster::ResourcesSpec {
                 limits: Some(BTreeMap::from([
-                    ("cpu".to_string(), IntOrString::String("400m".to_string())),
+                    (
+                        "cpu".to_string(),
+                        resource_config.cluster_resources.servers.limits.cpu,
+                    ),
                     (
                         "memory".to_string(),
-                        IntOrString::String("600Mi".to_string()),
+                        resource_config.cluster_resources.servers.limits.memory,
                     ),
                 ])),
                 requests: Some(BTreeMap::from([
-                    ("cpu".to_string(), IntOrString::String("100m".to_string())),
+                    (
+                        "cpu".to_string(),
+                        resource_config.cluster_resources.servers.requests.cpu,
+                    ),
                     (
                         "memory".to_string(),
-                        IntOrString::String("400Mi".to_string()),
+                        resource_config.cluster_resources.servers.requests.memory,
                     ),
                 ])),
             }),
-            // serverLimit: Some(BTreeMap::from([
-            //     ("cpu".to_string(), IntOrString::String("100m".to_string())),
-            //     (
-            //         "memory".to_string(),
-            //         IntOrString::String("600Mi".to_string()),
-            //     ),
-            // ])),
-            workerLimit: Some(BTreeMap::from([
-                ("cpu".to_string(), IntOrString::String("30m".to_string())),
-                (
-                    "memory".to_string(),
-                    IntOrString::String("75Mi".to_string()),
-                ),
-            ])),
+            workerResources: Some(k3k_rs::cluster::ResourcesSpec {
+                limits: Some(BTreeMap::from([
+                    (
+                        "cpu".to_string(),
+                        resource_config.cluster_resources.workers.limits.cpu,
+                    ),
+                    (
+                        "memory".to_string(),
+                        resource_config.cluster_resources.workers.limits.memory,
+                    ),
+                ])),
+                requests: Some(BTreeMap::from([
+                    (
+                        "cpu".to_string(),
+                        resource_config.cluster_resources.workers.requests.cpu,
+                    ),
+                    (
+                        "memory".to_string(),
+                        resource_config.cluster_resources.workers.requests.memory,
+                    ),
+                ])),
+            }),
             sync: Some(k3k_rs::cluster::SyncSpec {
                 ingresses: Some(k3k_rs::cluster::SyncResourceSpec {
                     enabled: true,
