@@ -9,6 +9,7 @@ pub struct AppConfig {
     pub email: Option<MailConfig>,
     pub jwt_secret: String,
     pub resource_config: ClusterResourceConfig,
+    pub ingress_class: String,
 }
 
 #[derive(Clone, Debug)]

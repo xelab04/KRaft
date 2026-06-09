@@ -27,7 +27,7 @@ use kube::{
 };
 use serde_json::json;
 
-pub async fn ingress(client: &Client, cluster_name: &str, namespace: &str, ingress_path: &str) {
+pub async fn ingress(client: &Client, cluster_name: &str, namespace: &str, ingress_path: &str, ingress_class: &str) {
     let gvk = GroupVersionKind::gvk("networking.k8s.io", "v1", "Ingress");
     let ar = ApiResource::from_gvk(&gvk);
 
@@ -58,7 +58,7 @@ pub async fn ingress(client: &Client, cluster_name: &str, namespace: &str, ingre
             }
         },
         "spec": {
-            "ingressClassName": "traefik",
+            "ingressClassName": ingress_class,
             "tls": [{
                 "hosts": [ingress_path],
                 "secretName": format!("{}-tls", cluster_name)
@@ -379,6 +379,7 @@ pub async fn core_workspace_create(
     pool: &web::Data<Pool<Postgres>>,
     host: &str,
     ingress_path: &str,
+    ingress_class: &str,
     workspace_name: &str,
     cluster_name: &str,
     namespace: &str,
@@ -391,7 +392,7 @@ pub async fn core_workspace_create(
 
     service(&kubeclient, cluster_name, namespace).await;
 
-    ingress(kubeclient, cluster_name, namespace, ingress_path).await;
+    ingress(kubeclient, cluster_name, namespace, ingress_path, ingress_class).await;
 
     workspaces::create(pool, workspace_name, &cluster_name, user_id)
         .await
@@ -437,6 +438,7 @@ pub async fn create(
         &pool,
         &config.host,
         ingress_path.as_str(),
+        &config.ingress_class,
         workspace_name.as_str(),
         cluster_name.as_str(),
         namespace.as_str(),

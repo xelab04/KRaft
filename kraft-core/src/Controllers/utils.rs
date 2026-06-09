@@ -1,4 +1,4 @@
-use log::info;
+use log::{info, warn};
 use regex::Regex;
 use reqwest;
 
@@ -50,16 +50,26 @@ pub fn get_ntfy_config() -> Option<NtfyConfig> {
 }
 
 pub fn generate_appconfig() -> AppConfig {
-    let email_config = generate_email_config();
-    let host = std::env::var("HOST").unwrap_or_else(|_| "kraftcloud.dev".to_string());
+    let email = generate_email_config();
+    let host = std::env::var("HOST").unwrap_or_else(|_| {
+        warn!("HOST not specified, defaulting to kraftcloud.dev");
+        "kraftcloud.dev".to_string()
+    });
     let mail_verification: bool = std::env::var("MAIL_VERIFICATION")
         .unwrap_or_else(|_| "false".to_string())
         .parse()
         .unwrap_or(false);
-    let ntfy_config = get_ntfy_config();
-    let environment = std::env::var("ENVIRONMENT").unwrap_or_else(|_| "PROD".to_string());
+    let ntfy = get_ntfy_config();
+    let environment = std::env::var("ENVIRONMENT").unwrap_or_else(|_| {
+        warn!("ENVIRONMENT not specified, defaulting to prod");
+        "PROD".to_string()
+    });
     let jwt_secret =
         std::env::var("JWT_SECRET").expect("JWT_SECRET must be set in environment variables");
+    let ingress_class = std::env::var("INGRESS_CLASS").unwrap_or_else(|_| {
+        warn!("INGRESS_CLASS not specified, defaulting to traefik");
+        String::from("traefik")
+    });
 
     let f = std::fs::File::open("/config/resourceconfig.yaml")
         .expect("Could not open /config/resourceconfig.yaml");
@@ -67,13 +77,14 @@ pub fn generate_appconfig() -> AppConfig {
         serde_yaml::from_reader(f).expect("Invalid yaml in /config/resourceconfig.yaml");
 
     let conf: AppConfig = AppConfig {
-        email: email_config,
+        email,
         host,
         mail_verification,
         environment,
-        ntfy: ntfy_config,
+        ntfy,
         jwt_secret,
         resource_config,
+        ingress_class,
     };
 
     conf

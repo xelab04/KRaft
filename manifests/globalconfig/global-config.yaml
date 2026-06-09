@@ -4,6 +4,7 @@ data:
   ENVIRONMENT: 'PROD'
   HOST: 'kraftcloud.dev'
   BETACODE: 'ENABLED'
+  INGRESS_CLASS: 'traefik'
   # JWT_SECRET: 'something-goes-here'
 
 kind: ConfigMap
