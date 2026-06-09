@@ -1,6 +1,6 @@
+use k8s_openapi::apimachinery::pkg::util::intstr::IntOrString;
 use serde::{self, Deserialize, Serialize};
 use sqlx::FromRow;
-use k8s_openapi::apimachinery::pkg::util::intstr::IntOrString;
 
 #[derive(Serialize, Deserialize, FromRow)]
 pub struct Cluster {
@@ -16,25 +16,25 @@ pub struct ClusterCreateForm {
     pub tlssan_array: Option<Vec<String>>,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct ClusterResourceConfig {
     pub cluster_resources: ClusterResources,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Clone)]
 pub struct ClusterResources {
     pub servers: ResourceCategory,
     pub workers: ResourceCategory,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Clone)]
 pub struct ResourceCategory {
     pub requests: ResourceValues,
     pub limits: ResourceValues,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Clone)]
 pub struct ResourceValues {
     pub cpu: IntOrString,
     pub memory: IntOrString,

@@ -2,7 +2,10 @@ use log::info;
 use regex::Regex;
 use reqwest;
 
-use crate::Models::Config::{AppConfig, MailConfig, NtfyConfig};
+use crate::Models::{
+    Cluster::ClusterResourceConfig,
+    Config::{AppConfig, MailConfig, NtfyConfig},
+};
 
 use kube::{
     Client,
@@ -58,6 +61,11 @@ pub fn generate_appconfig() -> AppConfig {
     let jwt_secret =
         std::env::var("JWT_SECRET").expect("JWT_SECRET must be set in environment variables");
 
+    let f = std::fs::File::open("/config/resourceconfig.yaml")
+        .expect("Could not open /config/resourceconfig.yaml");
+    let resource_config: ClusterResourceConfig =
+        serde_yaml::from_reader(f).expect("Invalid yaml in /config/resourceconfig.yaml");
+
     let conf: AppConfig = AppConfig {
         email: email_config,
         host,
@@ -65,6 +73,7 @@ pub fn generate_appconfig() -> AppConfig {
         environment,
         ntfy: ntfy_config,
         jwt_secret,
+        resource_config,
     };
 
     conf
