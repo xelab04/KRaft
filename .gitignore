@@ -2,3 +2,4 @@ database.sqlite
 target
 __pycache__
 .ropeproject
+argo-app.yaml

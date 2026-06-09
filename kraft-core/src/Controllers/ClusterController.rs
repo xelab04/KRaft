@@ -5,7 +5,6 @@ use std::collections::BTreeMap;
 use actix_web::web;
 use actix_web::web::Json;
 use actix_web::{HttpRequest, HttpResponse};
-use k8s_openapi::apimachinery::pkg::util::intstr::IntOrString;
 
 use sqlx;
 use sqlx::PgPool;
@@ -21,7 +20,7 @@ use crate::Controllers::utils;
 use crate::Controllers::{DBHelper::*, WorkspaceController};
 use crate::Models::Config::AppConfig;
 
-use crate::Models::Cluster::{Cluster, ClusterCreateForm};
+use crate::Models::Cluster::{Cluster, ClusterCreateForm, ClusterResourceConfig};
 use crate::Models::User::AuthUser;
 
 #[post("/api/create/clusters")]
@@ -80,40 +79,102 @@ pub async fn create(
                 LoadBalancer: None,
                 NodePort: None,
                 Ingress: Some(ExposeIngress {
-                    ingressClassName: Some(String::from("traefik")),
+                    ingressClassName: Some(config.network_config.ingress_class.clone()),
                     annotations: None,
                 }),
             }),
             serverResources: Some(k3k_rs::cluster::ResourcesSpec {
                 limits: Some(BTreeMap::from([
-                    ("cpu".to_string(), IntOrString::String("400m".to_string())),
+                    (
+                        "cpu".to_string(),
+                        config
+                            .resource_config
+                            .cluster_resources
+                            .servers
+                            .limits
+                            .cpu
+                            .clone(),
+                    ),
                     (
                         "memory".to_string(),
-                        IntOrString::String("600Mi".to_string()),
+                        config
+                            .resource_config
+                            .cluster_resources
+                            .servers
+                            .limits
+                            .memory
+                            .clone(),
                     ),
                 ])),
                 requests: Some(BTreeMap::from([
-                    ("cpu".to_string(), IntOrString::String("100m".to_string())),
+                    (
+                        "cpu".to_string(),
+                        config
+                            .resource_config
+                            .cluster_resources
+                            .servers
+                            .requests
+                            .cpu
+                            .clone(),
+                    ),
                     (
                         "memory".to_string(),
-                        IntOrString::String("400Mi".to_string()),
+                        config
+                            .resource_config
+                            .cluster_resources
+                            .servers
+                            .requests
+                            .memory
+                            .clone(),
                     ),
                 ])),
             }),
-            // serverLimit: Some(BTreeMap::from([
-            //     ("cpu".to_string(), IntOrString::String("100m".to_string())),
-            //     (
-            //         "memory".to_string(),
-            //         IntOrString::String("600Mi".to_string()),
-            //     ),
-            // ])),
-            workerLimit: Some(BTreeMap::from([
-                ("cpu".to_string(), IntOrString::String("30m".to_string())),
-                (
-                    "memory".to_string(),
-                    IntOrString::String("75Mi".to_string()),
-                ),
-            ])),
+            workerResources: Some(k3k_rs::cluster::ResourcesSpec {
+                limits: Some(BTreeMap::from([
+                    (
+                        "cpu".to_string(),
+                        config
+                            .resource_config
+                            .cluster_resources
+                            .workers
+                            .limits
+                            .cpu
+                            .clone(),
+                    ),
+                    (
+                        "memory".to_string(),
+                        config
+                            .resource_config
+                            .cluster_resources
+                            .workers
+                            .limits
+                            .memory
+                            .clone(),
+                    ),
+                ])),
+                requests: Some(BTreeMap::from([
+                    (
+                        "cpu".to_string(),
+                        config
+                            .resource_config
+                            .cluster_resources
+                            .workers
+                            .requests
+                            .cpu
+                            .clone(),
+                    ),
+                    (
+                        "memory".to_string(),
+                        config
+                            .resource_config
+                            .cluster_resources
+                            .workers
+                            .requests
+                            .memory
+                            .clone(),
+                    ),
+                ])),
+            }),
             sync: Some(k3k_rs::cluster::SyncSpec {
                 ingresses: Some(k3k_rs::cluster::SyncResourceSpec {
                     enabled: true,
@@ -140,7 +201,7 @@ pub async fn create(
                 name: Some(namespace.to_string()),
                 labels: Some(BTreeMap::from([(
                     "policy.k3k.io/policy-name".to_string(),
-                    "workshop-vpc".to_string(),
+                    "kraft-vpc".to_string(),
                 )])),
                 ..Default::default()
             },
@@ -202,10 +263,9 @@ pub async fn create(
             &cluster_name,
             &namespace,
             tlssan,
-            "traefik",
+            &config.network_config.ingress_class,
         )
         .await;
-        // utils::traefik(&kubeclient, &cluster_name, &namespace, tlssan, i).await;
     }
 
     let ingress_path = format!("{}-wrk.{}", cluster_name, config.host);
@@ -217,6 +277,8 @@ pub async fn create(
         &pool,
         &config.host,
         ingress_path.as_str(),
+        &config.network_config.ingress_class,
+        &config.network_config.cluster_issuer,
         workspace_name.as_str(),
         cluster_name.as_str(),
         namespace.as_str(),

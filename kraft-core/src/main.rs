@@ -3,7 +3,7 @@ extern crate actix_web;
 
 use rustls;
 use std::{env, io, panic::PanicHookInfo};
-// use log::{info, error};
+use log::{info, error};
 
 use actix_web::{
     App, Error, HttpServer,
@@ -56,16 +56,15 @@ async fn main() -> io::Result<()> {
     unsafe {
         env::set_var("RUST_LOG", "actix_web=debug,actix_server=info,info");
     }
+    env_logger::init_from_env(env_logger::Env::default().default_filter_or("info"));
+    info!("written in rust 🏳️‍⚧️");
 
     rustls::crypto::ring::default_provider()
         .install_default()
         .expect("failed to set crypto provider to rustls");
 
     let panic_ntfy_config = utils::get_ntfy_config();
-
     let config = utils::generate_appconfig();
-    // env_logger::init();
-    env_logger::init_from_env(env_logger::Env::default().default_filter_or("info"));
 
     let default_panic = std::panic::take_hook();
     fn get_message(info: &PanicHookInfo) -> String {

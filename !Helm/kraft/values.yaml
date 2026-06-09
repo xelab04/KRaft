@@ -7,6 +7,22 @@ database:
   # port: 5432
   # user: kraft
 
+clusterResources:
+  servers:
+    requests:
+      cpu: 100m
+      memory: 400Mi
+    limits:
+      cpu: 400m
+      memory: 600Mi
+  workers:
+    requests:
+      cpu: 30m
+      memory: 75Mi
+    limits:
+      cpu: 30m
+      memory: 75Mi
+
 networking:
   clusterIssuer: "staging-cluster-issuer"
   issuer: "staging-issuer"
