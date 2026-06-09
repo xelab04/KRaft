@@ -1,3 +1,4 @@
+use k3k_rs::cluster::ExposeIngress;
 use log::{error, info};
 use std::collections::BTreeMap;
 
@@ -15,8 +16,8 @@ use kube::Client;
 
 // use crate::class;
 // use crate::AppConfig;
-use crate::Controllers::DBHelper::*;
 use crate::Controllers::utils;
+use crate::Controllers::{DBHelper::*, WorkspaceController};
 use crate::Models::Config::AppConfig;
 
 use crate::Models::Cluster::{Cluster, ClusterCreateForm, ClusterResourceConfig};
@@ -77,7 +78,10 @@ pub async fn create(
             expose: Some(k3k_rs::cluster::ExposeSpec {
                 LoadBalancer: None,
                 NodePort: None,
-                Ingress: None,
+                Ingress: Some(ExposeIngress {
+                    ingressClassName: Some(String::from("traefik")),
+                    annotations: None,
+                }),
             }),
             serverResources: Some(k3k_rs::cluster::ResourcesSpec {
                 limits: Some(BTreeMap::from([
@@ -243,19 +247,44 @@ pub async fn create(
     }
 
     let int_user_id = user_id.parse::<i32>().unwrap();
-    sqlx::query(
-        "INSERT INTO clusters (cluster_name, user_id, cluster_endpoint) VALUES ($1, $2, $3)",
+    let cluster_id: i32 = sqlx::query_scalar(
+        "INSERT INTO clusters (cluster_name, user_id, cluster_endpoint) VALUES ($1, $2, $3) RETURNING cluster_id",
     )
     .bind(&cluster_name)
     .bind(int_user_id)
     .bind(&endpoint_string)
-    .execute(pool.get_ref())
+    .fetch_one(pool.get_ref())
     .await
     .unwrap();
 
-    for (i, tlssan) in validated_tlssan_list.iter().enumerate() {
-        utils::traefik(&kubeclient, &cluster_name, &namespace, tlssan, i).await;
+    for (_i, tlssan) in validated_tlssan_list.iter().enumerate() {
+        let _ = k3k_rs::ingress::ingress_create(
+            &kubeclient,
+            &cluster_name,
+            &namespace,
+            tlssan,
+            "traefik",
+        )
+        .await;
+        // utils::traefik(&kubeclient, &cluster_name, &namespace, tlssan, i).await;
     }
+
+    let ingress_path = format!("{}-wrk.{}", cluster_name, config.host);
+    let workspace_name = format!("workspace-{}", cluster_name);
+
+    info!("Creating a workspace for cluster: {}", cluster_name);
+    WorkspaceController::core_workspace_create(
+        &kubeclient,
+        &pool,
+        &config.host,
+        ingress_path.as_str(),
+        workspace_name.as_str(),
+        cluster_name.as_str(),
+        namespace.as_str(),
+        &int_user_id,
+        &cluster_id,
+    )
+    .await;
 
     // vcp::create_default_vcp(&kubeclient, &cluster_name, &namespace).await;
 
