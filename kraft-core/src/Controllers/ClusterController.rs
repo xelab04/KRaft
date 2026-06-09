@@ -201,7 +201,7 @@ pub async fn create(
                 name: Some(namespace.to_string()),
                 labels: Some(BTreeMap::from([(
                     "policy.k3k.io/policy-name".to_string(),
-                    "workshop-vpc".to_string(),
+                    "kraft-vpc".to_string(),
                 )])),
                 ..Default::default()
             },
