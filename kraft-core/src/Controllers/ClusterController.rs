@@ -278,6 +278,7 @@ pub async fn create(
         &config.host,
         ingress_path.as_str(),
         &config.network_config.ingress_class,
+        &config.network_config.cluster_issuer,
         workspace_name.as_str(),
         cluster_name.as_str(),
         namespace.as_str(),

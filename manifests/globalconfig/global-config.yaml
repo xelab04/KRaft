@@ -5,6 +5,7 @@ data:
   HOST: 'kraftcloud.dev'
   BETACODE: 'ENABLED'
   INGRESS_CLASS: 'traefik'
+  CLUSTER_ISSUER: 'kraft-issuer'
   # JWT_SECRET: 'something-goes-here'
 
 kind: ConfigMap
