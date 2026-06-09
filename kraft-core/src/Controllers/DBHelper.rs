@@ -205,6 +205,24 @@ pub mod workspaces {
     use chrono::Utc;
     use sqlx::PgPool;
 
+    pub async fn token_delete(pool: &web::Data<PgPool>, user_id: &i32) -> Result<(), sqlx::Error> {
+        sqlx::query("DELETE FROM workspace_tokens WHERE user_id = $1")
+            .bind(user_id)
+            .execute(pool.as_ref())
+            .await?;
+
+        Ok(())
+    }
+
+    pub async fn delete(pool: &web::Data<PgPool>, user_id: &i32) -> Result<(), sqlx::Error> {
+        sqlx::query("DELETE FROM workspaces WHERE user_id = $1")
+            .bind(user_id)
+            .execute(pool.as_ref())
+            .await?;
+
+        Ok(())
+    }
+
     pub async fn exists(
         pool: &web::Data<PgPool>,
         user_id: &i32,

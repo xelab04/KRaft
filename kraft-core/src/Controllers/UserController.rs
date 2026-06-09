@@ -6,7 +6,7 @@ use sqlx::PgPool;
 
 use crate::{
     Controllers::{
-        DBHelper::{clusters, user},
+        DBHelper::{clusters, user, workspaces},
         JWTController, utils,
     },
     Models::User::{AuthUser, User, UserUUID},
@@ -91,6 +91,9 @@ pub async fn user_delete(
         info!("Deleting cluster {}", cluster_name);
         let namespace = format!("k3k-{}", cluster_name);
         let r = k3k_rs::cluster::delete(&client, &namespace, &cluster_name).await;
+        let _r2 = k3k_rs::namespace::delete(&client, namespace.as_str())
+            .await
+            .unwrap();
         match r {
             Ok(_) => {
                 info!("Cluster {} deleted successfully", cluster_name);
@@ -106,7 +109,10 @@ pub async fn user_delete(
     }
 
     // Delete user from database
-    user::delete(&pool, &int_user_id).await.unwrap_or_default();
+    info!("deleting user with user id: {} from database", int_user_id);
+    workspaces::token_delete(&pool, &int_user_id).await.unwrap();
+    workspaces::delete(&pool, &int_user_id).await.unwrap();
+    user::delete(&pool, &int_user_id).await.unwrap();
     let delete_cookie = JWTController::del_cookie();
 
     // return HttpResponse::Ok().finish();

@@ -5,6 +5,8 @@ use actix_web::web::to;
 use k3k_rs::cluster;
 use kube::core::ErrorResponse;
 use serde::{self, Deserialize, Serialize};
+use sqlx::Pool;
+use sqlx::Postgres;
 
 use chrono;
 use log::info;
@@ -184,7 +186,7 @@ pub async fn statefulset(
     cluster_name: &str,
     namespace: &str,
     cluster_id: &i32,
-    appconfig: &AppConfig,
+    host: &str,
 ) {
     // define CRD type
     let gvk = GroupVersionKind::gvk("apps", "v1", "StatefulSet");
@@ -238,12 +240,12 @@ pub async fn statefulset(
                     "containers": [
                         {
                             "name": "workspace-proxy",
-                            "image": "registry.alexbissessur.dev/kraft-workspace-proxy:latest",
+                            "image": "ghcr.io/xelab04/kraft-workspace-proxy:latest",
                             "imagePullPolicy": "Always",
                             "env": [
                                 {
                                     "name": "HOST",
-                                    "value": appconfig.host
+                                    "value": String::from(host)
                                 },
                                 {
                                     "name": "CLUSTER_ID",
@@ -267,7 +269,7 @@ pub async fn statefulset(
                         },
                         {
                             "name": "workspace",
-                            "image": "registry.alexbissessur.dev/kraft-workspace:latest",
+                            "image": "ghcr.io/xelab04/kraft-workspace:latest",
                             "imagePullPolicy": "Always",
                             "ports": [{
                                 "containerPort": 7681,
@@ -372,6 +374,30 @@ pub struct WorkspaceCreate {
     pub name: String,
 }
 
+pub async fn core_workspace_create(
+    kubeclient: &Client,
+    pool: &web::Data<Pool<Postgres>>,
+    host: &str,
+    ingress_path: &str,
+    workspace_name: &str,
+    cluster_name: &str,
+    namespace: &str,
+    user_id: &i32,
+    cluster_id: &i32,
+) {
+    netpol(&kubeclient, cluster_name, namespace).await;
+
+    statefulset(kubeclient, cluster_name, namespace, cluster_id, host).await;
+
+    service(&kubeclient, cluster_name, namespace).await;
+
+    ingress(kubeclient, cluster_name, namespace, ingress_path).await;
+
+    workspaces::create(pool, workspace_name, &cluster_name, user_id)
+        .await
+        .expect("failed adding workspace to db");
+}
+
 #[post("/api/create/workspaces")]
 pub async fn create(
     pool: web::Data<PgPool>,
@@ -385,6 +411,7 @@ pub async fn create(
     let namespace = format!("k3k-{}", cluster_name);
     let int_user_id: i32 = user_id.parse().unwrap();
     let ingress_path = format!("{}-wrk.{}", cluster_name, config.host);
+    let workspace_name = format!("workspace-{}", cluster_name);
     let int_cluster_id = clusters::cluster_id(&pool, &int_user_id, &cluster_name)
         .await
         .unwrap();
@@ -401,37 +428,22 @@ pub async fn create(
         cluster_name
     );
 
-    let workspace_name = format!("workspace-{}", cluster_name);
     if !utils::namevalid(&workspace_name) {
         return HttpResponse::ImATeapot().finish(); // this shouldn't ever happen
     }
 
-    netpol(&kubeclient, cluster_name.as_str(), namespace.as_str()).await;
-
-    statefulset(
+    core_workspace_create(
         &kubeclient,
+        &pool,
+        &config.host,
+        ingress_path.as_str(),
+        workspace_name.as_str(),
         cluster_name.as_str(),
         namespace.as_str(),
+        &int_user_id,
         &int_cluster_id,
-        &config,
     )
     .await;
-
-    service(&kubeclient, cluster_name.as_str(), namespace.as_str()).await;
-
-    ingress(
-        &kubeclient,
-        cluster_name.as_str(),
-        namespace.as_str(),
-        &ingress_path,
-    )
-    .await;
-
-    // let int_user_id = user_id.parse::<i32>().unwrap();
-
-    workspaces::create(&pool, &workspace_name, &cluster_name, &int_user_id)
-        .await
-        .expect("failed adding workspace to db");
 
     HttpResponse::Ok().json(json!({"path": ingress_path}))
 }
