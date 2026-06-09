@@ -33,6 +33,7 @@ pub async fn ingress(
     namespace: &str,
     ingress_path: &str,
     ingress_class: &str,
+    cluster_issuer: &str
 ) {
     let gvk = GroupVersionKind::gvk("networking.k8s.io", "v1", "Ingress");
     let ar = ApiResource::from_gvk(&gvk);
@@ -60,7 +61,7 @@ pub async fn ingress(
             "name": ingress_name,
             "namespace": namespace,
             "annotations": {
-                "cert-manager.io/cluster-issuer": "prod-issuer"
+                "cert-manager.io/cluster-issuer": cluster_issuer
             }
         },
         "spec": {
@@ -341,6 +342,7 @@ pub async fn core_workspace_create(
     host: &str,
     ingress_path: &str,
     ingress_class: &str,
+    cluster_issuer: &str,
     workspace_name: &str,
     cluster_name: &str,
     namespace: &str,
@@ -359,6 +361,7 @@ pub async fn core_workspace_create(
         namespace,
         ingress_path,
         ingress_class,
+        cluster_issuer
     )
     .await;
 
@@ -407,6 +410,7 @@ pub async fn create(
         &config.host,
         ingress_path.as_str(),
         &config.network_config.ingress_class,
+        &config.network_config.cluster_issuer,
         workspace_name.as_str(),
         cluster_name.as_str(),
         namespace.as_str(),
