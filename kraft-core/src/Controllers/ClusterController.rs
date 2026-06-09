@@ -79,7 +79,7 @@ pub async fn create(
                 LoadBalancer: None,
                 NodePort: None,
                 Ingress: Some(ExposeIngress {
-                    ingressClassName: Some(String::from("traefik")),
+                    ingressClassName: Some(config.ingress_class.clone()),
                     annotations: None,
                 }),
             }),
@@ -263,10 +263,9 @@ pub async fn create(
             &cluster_name,
             &namespace,
             tlssan,
-            "traefik",
+            &config.ingress_class,
         )
         .await;
-        // utils::traefik(&kubeclient, &cluster_name, &namespace, tlssan, i).await;
     }
 
     let ingress_path = format!("{}-wrk.{}", cluster_name, config.host);
@@ -278,6 +277,7 @@ pub async fn create(
         &pool,
         &config.host,
         ingress_path.as_str(),
+        &config.ingress_class,
         workspace_name.as_str(),
         cluster_name.as_str(),
         namespace.as_str(),
