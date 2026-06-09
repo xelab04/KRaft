@@ -57,6 +57,7 @@ async fn main() -> io::Result<()> {
         env::set_var("RUST_LOG", "actix_web=debug,actix_server=info,info");
     }
     env_logger::init_from_env(env_logger::Env::default().default_filter_or("info"));
+    info!("KRaft, created by Alex");
     info!("written in rust 🏳️‍⚧️");
 
     rustls::crypto::ring::default_provider()
