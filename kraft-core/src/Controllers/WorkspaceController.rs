@@ -406,7 +406,7 @@ pub async fn create(
         &pool,
         &config.host,
         ingress_path.as_str(),
-        &config.ingress_class,
+        &config.network_config.ingress_class,
         workspace_name.as_str(),
         cluster_name.as_str(),
         namespace.as_str(),
