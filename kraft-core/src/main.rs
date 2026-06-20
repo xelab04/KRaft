@@ -115,6 +115,7 @@ async fn main() -> io::Result<()> {
             .service(AuthController::logout)
             .service(AuthController::register)
             .service(AuthController::validate_jwt)
+            .service(AuthController::validate_admin)
             .service(AuthController::changepwd)
             .service(UserController::details)
             .service(UserController::user_delete)

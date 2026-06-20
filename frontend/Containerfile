@@ -1,8 +1,10 @@
 FROM registry.opensuse.org/opensuse/nginx:latest
 
 COPY ./index.html /srv/www/htdocs
+COPY ./admin.html /srv/www/htdocs
 
 COPY ./sub /srv/www/htdocs/sub
+COPY ./admin /srv/www/htdocs/admin
 
 # COPY ./assets /srv/www/htdocs/assets
 # RUN rm /srv/www/htdocs/assets/88x31.gif
