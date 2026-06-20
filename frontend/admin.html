@@ -10,8 +10,17 @@
         fetch("/auth/validate-admin", {
             method: "GET",
         })
-            .then((response) => response.json())
+            .then((response) => {
+              if (response.status === 401 || response.status === 403) {
+                document.getElementById("error-message").textContent = "Access denied. Admins only.";
+                window.location.href = `/sub/login.html`;
+                return null;
+              }
+              return response.json();
+            })
             .then((data) => {
+                if (!data) return;
+
                 console.log("Data:", data);
                 if (data.status == "error") {
                     document.getElementById(
