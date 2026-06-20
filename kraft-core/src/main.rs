@@ -119,6 +119,7 @@ async fn main() -> io::Result<()> {
             .service(AuthController::changepwd)
             .service(UserController::details)
             .service(UserController::user_delete)
+            .service(UserController::list)
             .service(ResourceController::get_cluster_use)
             .service(ResourceController::get_namespace_use)
             .service(BetacodeController::create)
