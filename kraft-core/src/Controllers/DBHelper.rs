@@ -292,4 +292,33 @@ pub mod betacode {
 
         Ok(betacodes)
     }
+
+    pub async fn update(pool: &web::Data<PgPool>, betacode: &Betacode) -> Result<(), sqlx::Error> {
+        let _r = sqlx::query("UPDATE betacode SET enabled = ($1) WHERE betacode = ($2)")
+            .bind(&betacode.enabled)
+            .bind(&betacode.betacode)
+            .execute(pool.as_ref())
+            .await?;
+
+        Ok(())
+    }
+
+    pub async fn create(pool: &web::Data<PgPool>, betacode: &Betacode) -> Result<(), sqlx::Error> {
+        let _r = sqlx::query("INSERT INTO betacode (betacode, enabled) VALUES ($1, $2)")
+            .bind(&betacode.betacode)
+            .bind(&betacode.enabled)
+            .execute(pool.as_ref())
+            .await?;
+
+        Ok(())
+    }
+
+    pub async fn delete(pool: &web::Data<PgPool>, betacode: &Betacode) -> Result<(), sqlx::Error> {
+        let _r = sqlx::query("DELETE FROM betacode WHERE betacode = ($1)")
+            .bind(&betacode.betacode)
+            .execute(pool.as_ref())
+            .await?;
+
+        Ok(())
+    }
 }
