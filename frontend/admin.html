@@ -10,33 +10,34 @@
         fetch("/auth/validate-admin", {
             method: "GET",
         })
-            .then((response) => {
-              if (response.status === 401 || response.status === 403) {
-                document.getElementById("error-message").textContent = "Access denied. Admins only.";
-                window.location.href = `/sub/login.html`;
-                return null;
-              }
-              return response.json();
-            })
-            .then((data) => {
-                if (!data) return;
+          .then((response) => {
+            if (response.status === 401 || response.status === 403) {
+              // document.getElementById("error-message").textContent = "Access denied. Admins only.";
+              window.location.href = `/sub/login`;
+              return null;
+            }
+            return response.json();
+          })
+          .then((data) => {
+            if (!data) return;
 
-                console.log("Data:", data);
-                if (data.status == "error") {
-                    document.getElementById(
-                        "error-message",
-                    ).textContent = data.message;
-                    // redirect to login page
-                    window.location.href = `/sub/login.html`;
-                } else {
-                    // document.getElementById('error-message').textContent = 'Success!';
-                    return true;
-                }
-            })
-            .catch((error) => {
-                document.getElementById("error-message").textContent =
-                    "An error occurred somewhere between here and the server.";
-            });
+            console.log("Data:", data);
+            if (data.status == "error") {
+                document.getElementById(
+                    "error-message",
+                ).textContent = data.message;
+                // redirect to login page
+                window.location.href = `/sub/login`;
+            } else {
+                // document.getElementById('error-message').textContent = 'Success!';
+                return true;
+            }
+          })
+          .catch((error) => {
+            console.log("not supposed to reach here");
+            // document.getElementById("error-message").textContent =
+            //     "An error occurred somewhere between here and the server.";
+          });
     }
 
     adminCheck();
@@ -54,10 +55,10 @@
             <h3 class="text-white font-mono text-sm ml-2 self-end mb-1">by Alex</h3>
         </div>
         <div class="text-white font-mono flex flex-col mt-8">
-            <a href="./admin/betacode.html" class="text-2xl underline block">[&gt;] Betacodes</a>
-            <a href="./admin/users.html" class="text-2xl underline block mt-6">[&gt;] Users</a>
-            <a href="./admin/clusters.html" class="text-2xl underline block mt-6">[&gt;] Clusters</a>
-            <a href="./admin/workspaces.html" class="text-2xl underline block mt-6">[&gt;] Workspaces</a>
+            <a href="./admin/betacode" class="text-2xl underline block">[&gt;] Betacodes</a>
+            <a href="./admin/users" class="text-2xl underline block mt-6">[&gt;] Users</a>
+            <a href="./admin/clusters" class="text-2xl underline block mt-6">[&gt;] Clusters</a>
+            <a href="./admin/workspaces" class="text-2xl underline block mt-6">[&gt;] Workspaces</a>
         </div>
     </div>
 
