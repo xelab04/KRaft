@@ -292,3 +292,18 @@ pub async fn validate_jwt(req: HttpRequest, app_config: web::Data<AppConfig>) ->
         })),
     }
 }
+
+#[actix_web::get("/auth/validate-admin")]
+pub async fn validate_admin(
+    _req: HttpRequest,
+    app_config: web::Data<AppConfig>,
+    pool: web::Data<PgPool>,
+    user: AuthUser,
+) -> HttpResponse {
+    let user_id: i32 = user.user_id.parse().unwrap();
+    if !user::is_admin(&pool, &user_id).await.unwrap_or(false) {
+        return HttpResponse::Forbidden().finish();
+    }
+
+    return HttpResponse::Ok().finish();
+}
