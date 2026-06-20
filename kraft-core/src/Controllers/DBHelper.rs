@@ -277,3 +277,19 @@ pub mod workspaces {
         Ok(())
     }
 }
+
+pub mod betacode {
+    use crate::Models::Betacode::Betacode;
+    use actix_web::web;
+    use sqlx;
+    use sqlx::PgPool;
+
+    pub async fn list(pool: &web::Data<PgPool>) -> Result<Vec<Betacode>, sqlx::Error> {
+        let betacodes: Vec<Betacode> =
+            sqlx::query_as::<_, Betacode>("SELECT betacode, enabled FROM betacode")
+                .fetch_all(pool.as_ref())
+                .await?;
+
+        Ok(betacodes)
+    }
+}

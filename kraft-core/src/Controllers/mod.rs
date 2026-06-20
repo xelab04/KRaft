@@ -1,3 +1,4 @@
+pub mod AdminController;
 pub mod AuthController;
 pub mod ClusterController;
 pub mod DBHelper;
