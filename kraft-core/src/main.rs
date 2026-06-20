@@ -20,7 +20,7 @@ use Controllers::{ClusterController, UserController, WorkspaceController};
 use kube::Client;
 
 use crate::Controllers::{
-    AuthController, JWTController, LogsController, ResourceController, utils,
+    AuthController, BetacodeController, JWTController, LogsController, ResourceController, utils,
 };
 mod db_connect;
 
@@ -120,6 +120,10 @@ async fn main() -> io::Result<()> {
             .service(UserController::user_delete)
             .service(ResourceController::get_cluster_use)
             .service(ResourceController::get_namespace_use)
+            .service(BetacodeController::create)
+            .service(BetacodeController::update)
+            .service(BetacodeController::new)
+            .service(BetacodeController::delete)
     })
     .bind("0.0.0.0:5000")?
     .run()
