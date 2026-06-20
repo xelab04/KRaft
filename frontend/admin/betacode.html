@@ -8,13 +8,74 @@
     <script src="https://unpkg.com/alpinejs" defer></script>
 </head>
 <body class="bg-black h-screen w-screen flex flex-col items-center justify-center m-0 p-0"
-      x-data="clusterManager()">
+      x-data="betacodeManager()">
     <div class="p-8 rounded-md shadow-lg max-w-2xl w-full mx-4 outline-white-500 h-[60vh]">
         <!-- bg-zinc-800 -->
         <div class="flex items-center mb-4">
-            <a href="/"><h1 class="text-white font-mono text-3xl">Meow</h1></a>
+            <a href="/"><h1 class="text-white font-mono text-3xl">KRaft</h1></a>
             <h3 class="text-white font-mono text-sm ml-2 self-end mb-1">by Alex</h3>
         </div>
+        <div class="text-white font-mono flex flex-col mt-8">
+            <a href="#" class="text-2xl underline block mt-6">[&gt;] View Betacodes</a>
+        </div>
+
+        <table class="w-full table-fixed text-white font-mono mt-8">
+            <thead>
+                <tr>
+                    <th class="px-4 py-2 border border-gray-500" colspan="3">Code</th>
+                    <th class="px-4 py-2 border border-gray-500" colspan="1">Enabled</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                <template x-for="betacode in betacodes" :key="betacode.betacode">
+                    <tr>
+                        <td class="px-4 py-2 border border-gray-500" x-text="betacode.betacode" colspan="3"></td>
+
+                        <td class="px-4 py-2 border border-gray-500" colspan="1">
+                            <input type="checkbox" class="onoffswitch-checkbox" :id="betacode.betacode" :checked="betacode.enabled" @change="toggleBetacode(betacode.betacode, $event.target.checked)">
+                        </td>
+                    </tr>
+                </template>
+
+                <!-- Show non-existent loading -->
+                <tr x-show="loading">
+                    <td colspan="3" class="px-4 py-2 border border-gray-500 text-center">
+                        Loading betacodes...
+                    </td>
+                </tr>
+
+                <!-- No clusters? -->
+                <tr x-show="!loading && betacodes.length === 0">
+                    <td colspan="3" class="px-4 py-2 border border-gray-500 text-center">
+                        No betacodes found
+                    </td>
+                </tr>
+
+                <tr>
+                    <td colspan="3" class="px-4 py-2 border border-gray-500 text-center">
+                        <input
+                            class="text-gray-800"
+                            type="text"
+                            id="betacode"
+                            name="betacode"
+                        />
+                    </td>
+                    <td class="px-4 py-2 border border-gray-500">
+                        <button class="hover:bg-gray-500 underline" @click="createBetacode()">
+                            Submit
+                        </button>
+                    </td>
+                </tr>
+            </tbody>
+
+        </table>
+
+
+        <div class="text-2xl bg-red-300 font-mono mt-8 text-center" id="error-message">
+            <!-- will be filled with error message -->
+        </div>
+
     </div>
 
 
@@ -22,5 +83,128 @@
     <div class="absolute bottom-4 hidden">
         <img src="assets/88x31.gif" alt="88x31 banner" width="88" height="31" />
     </div>
+
+    <script>
+        function betacodeManager() {
+            return {
+                betacodes: [],
+                loading: true,
+                error: null,
+
+                toggleBetacode(betacode, checked) {
+                  fetch("/api/admin/betacode/update", {
+                    method: "PUT",
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ betacode: betacode, enabled: checked })
+                  })
+                  .then((response) => {
+                    if (!response.ok) {
+                      document.getElementById("error-message").textContent =
+                          "Error changing the state of the beta code.";
+                    }
+                  })
+
+                },
+
+                deleteBetacode(betacode) {
+                  fetch("/api/admin/betacode/delete", {
+                    // TODO yes i coulda used delete, but that means recompiling and I'm running outa charge
+                    method: "POST",
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ betacode: betacode, enabled: false })
+                  })
+                  .then((response) => {
+                    if (!response.ok) {
+                      document.getElementById("error-message").textContent =
+                          "Error deleting the beta code.";
+                    }
+                  })
+
+                },
+
+                createBetacode() {
+                  betacode = document.getElementById("betacode").value;
+
+                  fetch("/api/admin/betacode/new", {
+                    method: "POST",
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ betacode: betacode, enabled: true })
+                  })
+                  .then((response) => {
+                    if (!response.ok) {
+                      document.getElementById("error-message").textContent =
+                          "Error creating the beta code.";
+                    } else {
+                      document.getElementById("betacode").value = "";
+                      location.reload();
+                    }
+                  })
+
+                },
+
+                adminCheck() {
+                    fetch("/auth/validate-admin", {
+                        method: "GET",
+                    })
+                      .then((response) => {
+                        if (response.status === 401 || response.status === 403) {
+                          // document.getElementById("error-message").textContent = "Access denied. Admins only.";
+                          window.location.href = `/sub/login`;
+                          return null;
+                        }
+                        return response.json();
+                      })
+                      .then((data) => {
+                        if (!data) return;
+
+                        console.log("Data:", data);
+                        if (data.status == "error") {
+                            document.getElementById(
+                                "error-message",
+                            ).textContent = data.message;
+                            // redirect to login page
+                            window.location.href = `/sub/login`;
+                        } else {
+                            // document.getElementById('error-message').textContent = 'Success!';
+                            return true;
+                        }
+                      })
+                      .catch((error) => {
+                        console.log("not supposed to reach here");
+                        // document.getElementById("error-message").textContent =
+                        //     "An error occurred somewhere between here and the server.";
+                      });
+                },
+
+                async getBetacodes() {
+                    try {
+                        this.loading = true;
+                        const response = await fetch('/api/admin/betacode/list');
+
+                        if (!response.ok) {
+                            throw new Error(`HTTP error! status: ${response.status}`);
+                        }
+
+                        const data = await response.json();
+
+                        console.log(data);
+
+                        this.betacodes = data;
+                        this.error = null;
+                    } catch (error) {
+                        console.error('Error fetching clusters:', error);
+                        this.error = error.message;
+                    } finally {
+                        this.loading = false;
+                    }
+                },
+
+                init() {
+                  this.adminCheck()
+                  this.getBetacodes();
+                }
+            }
+        }
+    </script>
 </body>
 </html>
