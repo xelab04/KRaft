@@ -10,9 +10,11 @@
 <body class="bg-black h-screen w-screen flex flex-col items-center justify-center m-0 p-0"
       x-data="betacodeManager()">
     <div class="p-8 rounded-md shadow-lg max-w-2xl w-full mx-4 outline-white-500 h-[60vh]">
-        <!-- bg-zinc-800 -->
         <div class="flex items-center mb-4">
-            <a href="/"><h1 class="text-white font-mono text-3xl">KRaft</h1></a>
+            <a href="/admin"><h1 class="text-white font-mono text-3xl">KRaft</h1></a>
+            <h3 class="text-white font-mono text-sm ml-2 self-end mb-1">Admin View</h3>
+        </div>
+        <div class="flex items-center mb-4">
             <h3 class="text-white font-mono text-sm ml-2 self-end mb-1">by Alex</h3>
         </div>
         <div class="text-white font-mono flex flex-col mt-8">
@@ -22,18 +24,25 @@
         <table class="w-full table-fixed text-white font-mono mt-8">
             <thead>
                 <tr>
-                    <th class="px-4 py-2 border border-gray-500" colspan="3">Code</th>
+                    <th class="px-4 py-2 border border-gray-500" colspan="2">Code</th>
                     <th class="px-4 py-2 border border-gray-500" colspan="1">Enabled</th>
+                    <th class="px-4 py-2 border border-gray-500" colspan="1"></th>
                 </tr>
             </thead>
 
             <tbody>
                 <template x-for="betacode in betacodes" :key="betacode.betacode">
                     <tr>
-                        <td class="px-4 py-2 border border-gray-500" x-text="betacode.betacode" colspan="3"></td>
+                        <td class="px-4 py-2 border border-gray-500" x-text="betacode.betacode" colspan="2"></td>
 
                         <td class="px-4 py-2 border border-gray-500" colspan="1">
                             <input type="checkbox" class="onoffswitch-checkbox" :id="betacode.betacode" :checked="betacode.enabled" @change="toggleBetacode(betacode.betacode, $event.target.checked)">
+                        </td>
+
+                        <td class="px-4 py-2 border border-gray-500" colspan="1">
+                            <button class="hover:bg-gray-500 underline" @click="deleteBetacode(betacode.betacode)">
+                                Delete
+                            </button>
                         </td>
                     </tr>
                 </template>
@@ -117,6 +126,8 @@
                     if (!response.ok) {
                       document.getElementById("error-message").textContent =
                           "Error deleting the beta code.";
+                    } else {
+                      location.reload();
                     }
                   })
 
