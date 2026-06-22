@@ -1,3 +1,4 @@
+use rand::{distributions::Alphanumeric, Rng};
 use log::{error, info};
 use std::collections::BTreeMap;
 
@@ -96,37 +97,58 @@ pub async fn delete(
 
 pub async fn first_startup(pool: &PgPool) -> Result<(), sqlx::Error> {
 
-    // if a beta code exists, it means the initial admin *must* have been created already
-    let betacode_exists: bool = sqlx::query_scalar("SELECT EXISTS ( SELECT betacode FROM betacode LIMIT 1 )")
+    let valid_betacode: Option<String> = sqlx::query_scalar("SELECT betacode FROM betacode WHERE enabled=true LIMIT 1")
+        .fetch_optional(pool)
+        .await?;
+    let admin_user_exists: bool = sqlx::query_scalar("SELECT EXISTS ( SELECT 1 FROM users LIMIT 1 )")
         .fetch_one(pool)
         .await?;
-    let user_exists: bool = sqlx::query_scalar("SELECT EXISTS ( SELECT 1 FROM users LIMIT 1 )")
-        .fetch_one(pool)
-        .await?;
-    if betacode_exists || user_exists {
-        info!("a beta code or user already exists, skipping first-user preparation");
+    // TODO
+    //
+    // if there is something in the beta code table but there are no users...
+    // do we generate yet another beta code? -> restart looping before registration will make MANY codes
+    // --- do we output a funtional code? -> have to check and find a functional beta code, or generate one otherwise
+    // do we check that at least one code must be valid at start? -> no, you might want registration to be closed
+
+    // if there are no admin users, and no valid beta codes, generate one and output it
+    if !admin_user_exists && valid_betacode.is_none() {
+        info!("no admin user and no valid beta codes exists, generating one");
+        let code = generate_code(pool).await.unwrap();
+        output_code(&code);
+        return Ok(());
     }
 
-    use rand::{distributions::Alphanumeric, Rng};
+    // if there are no admin users, and a valid beta code, output it
+    // this prevents code generation on crashloop for example
+    if let Some(code) = valid_betacode {
+        info!("no admin user but valid beta code exists, reusing it");
+        output_code(&code);
+        return Ok(());
+    }
 
-    let betacode_text: String = rand::thread_rng()
-        .sample_iter(&Alphanumeric)
-        .take(7)
-        .map(char::from)
-        .collect();
+    async fn generate_code(pool: &PgPool) -> Result<String, sqlx::Error> {
+        let betacode_text: String = rand::thread_rng()
+            .sample_iter(&Alphanumeric)
+            .take(7)
+            .map(char::from)
+            .collect();
 
-    let _r = sqlx::query("INSERT INTO betacode (betacode, enabled) VALUES ($1, $2)")
-        .bind(&betacode_text)
-        .bind(true)
-        .execute(pool)
-        .await?;
+        let _r = sqlx::query("INSERT INTO betacode (betacode, enabled) VALUES ($1, $2)")
+            .bind(&betacode_text)
+            .bind(true)
+            .execute(pool)
+            .await?;
+        Ok(betacode_text)
+    }
 
-    info!("------------");
-    info!("use the following registration code to create the first account");
-    info!("this account will gain full admin privileges");
-    info!("the registration code will be disabled after use");
-    info!("registration code: {}", betacode_text);
-    info!("------------");
+    fn output_code(betacode_text: &String) {
+        info!("------------");
+        info!("use the following registration code to create the first account");
+        info!("this account will gain full admin privileges");
+        info!("the registration code will be disabled after use");
+        info!("registration code: {}", betacode_text);
+        info!("------------");
+    }
 
     Ok(())
 }
