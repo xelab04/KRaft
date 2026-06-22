@@ -166,6 +166,28 @@ pub mod user {
         Ok(same_users)
     }
 
+    pub async fn same_email(
+        pool: &web::Data<PgPool>,
+        email: &str,
+    ) -> Result<bool, sqlx::Error> {
+        let same_users: bool =
+            sqlx::query_scalar("SELECT EXISTS(SELECT 1 FROM users WHERE email = $1)")
+                .bind(email)
+                .fetch_one(pool.get_ref())
+                .await?;
+        Ok(same_users)
+    }
+
+    pub async fn is_first_user(
+        pool: &web::Data<PgPool>
+    ) -> Result<bool, sqlx::Error> {
+        let same_users: bool =
+            sqlx::query_scalar("SELECT EXISTS(SELECT 1 FROM users LIMIT 1)")
+                .fetch_one(pool.get_ref())
+                .await?;
+        Ok(same_users)
+    }
+
     pub async fn validate(pool: &web::Data<PgPool>, db_token: &str) -> Result<(), sqlx::Error> {
         let _r =
             sqlx::query("UPDATE users SET verified_email = true WHERE verification_code = ($1)")
@@ -330,5 +352,14 @@ pub mod betacode {
             .await?;
 
         Ok(())
+    }
+
+    pub async fn verify(pool: &web::Data<PgPool>, betacode: &str) -> Result<bool, sqlx::Error> {
+        let matches: bool = sqlx::query_scalar("SELECT EXISTS (SELECT 1 FROM betacode WHERE enabled = TRUE AND betacode = ($1))")
+            .bind(betacode)
+            .fetch_one(pool.get_ref())
+            .await?;
+
+        Ok(matches)
     }
 }

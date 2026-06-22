@@ -93,3 +93,40 @@ pub async fn delete(
         }
     }
 }
+
+pub async fn first_startup(pool: &PgPool) -> Result<(), sqlx::Error> {
+
+    // if a beta code exists, it means the initial admin *must* have been created already
+    let betacode_exists: bool = sqlx::query_scalar("SELECT EXISTS ( SELECT betacode FROM betacode LIMIT 1 )")
+        .fetch_one(pool)
+        .await?;
+    let user_exists: bool = sqlx::query_scalar("SELECT EXISTS ( SELECT 1 FROM users LIMIT 1 )")
+        .fetch_one(pool)
+        .await?;
+    if betacode_exists || user_exists {
+        info!("a beta code or user already exists, skipping first-user preparation");
+    }
+
+    use rand::{distributions::Alphanumeric, Rng};
+
+    let betacode_text: String = rand::thread_rng()
+        .sample_iter(&Alphanumeric)
+        .take(7)
+        .map(char::from)
+        .collect();
+
+    let _r = sqlx::query("INSERT INTO betacode (betacode, enabled) VALUES ($1, $2)")
+        .bind(&betacode_text)
+        .bind(true)
+        .execute(pool)
+        .await?;
+
+    info!("------------");
+    info!("use the following registration code to create the first account");
+    info!("this account will gain full admin privileges");
+    info!("the registration code will be disabled after use");
+    info!("registration code: {}", betacode_text);
+    info!("------------");
+
+    Ok(())
+}
