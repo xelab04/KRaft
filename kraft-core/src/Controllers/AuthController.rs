@@ -17,8 +17,9 @@ use uuid;
 // use crate::class::{AppConfig, AuthUser, Claims, PasswordChange, PasswordParams, User};
 // use crate::util::send_mail;
 
-use crate::Controllers::DBHelper::{password, user};
+use crate::Controllers::DBHelper::{betacode as betacode_db, password, user};
 use crate::Controllers::{JWTController, utils};
+use crate::Models::Betacode::Betacode;
 use crate::Models::Config::AppConfig;
 use crate::Models::JWT::Claims;
 use crate::Models::Password::PasswordChange;
@@ -153,31 +154,29 @@ pub async fn register(
     let user = &payload.username;
     let email = &payload.email;
     let user_password = &payload.user_password;
-    let default = &"".to_string();
-    let betacode = &payload.betacode.as_ref().map_or(default, |s| s); //.as_ref().map_or("", |s| s.as_str());
+    let betacode = &payload.betacode.clone().unwrap_or_default(); //.unwrap_or_default();
+    let is_first_user: bool = user::is_first_user(&pool).await.unwrap();
+    let is_admin = is_first_user;
 
     let betacode_enabled: bool = !std::env::var("BETACODE")
         .unwrap_or("".to_string())
         .is_empty();
 
-    if betacode_enabled {
-        let all_beta_codes: Vec<String> =
-            sqlx::query_scalar("SELECT betacode FROM betacode WHERE enabled = TRUE")
-                .fetch_all(pool.get_ref())
-                .await
-                .unwrap();
-        if !all_beta_codes.contains(betacode) {
+    if betacode_enabled || is_first_user {
+        let valid = betacode_db::verify(&pool, &betacode).await.unwrap();
+        if !valid {
             return HttpResponse::Forbidden()
-                .json(json!({ "status": "error", "message": "Invalid beta code" }));
+                .json(json!({ "status": "error", "message": "Invalid registration code" }));
+        }
+        if is_first_user {
+            let b = betacode.clone();
+            let betacode_struct = Betacode{betacode: b , enabled: false};
+            betacode_db::update(&pool, &betacode_struct).await.unwrap();
         }
     }
 
-    let same_users: i64 = sqlx::query_scalar("SELECT COUNT(*) FROM users WHERE email = ($1)")
-        .bind(email)
-        .fetch_one(pool.get_ref())
-        .await
-        .unwrap();
-    if same_users > 0 {
+    let email_clash = user::same_email(&pool, &email).await.unwrap();
+    if email_clash {
         return HttpResponse::Conflict()
             .json(json!({ "status": "error", "message": "User already exists with that email" }));
     }
@@ -202,7 +201,7 @@ pub async fn register(
         .bind(betacode)
         .bind(user_uuid)
         .bind(&email_validation)
-        .bind(false)
+        .bind(is_admin)
         .bind(false)
         .fetch_one(pool.get_ref())
         .await;
@@ -212,6 +211,28 @@ pub async fn register(
             let user_id: i32 = uid;
             // if user created succesfully, generate cookie
             // let user_id = pg_result.last_insert_id();
+
+            // send out ntfy notifications of user creation
+            if let Some(ntfy_config) = &app_config.ntfy {
+                let title: String;
+                let message: String;
+                if is_admin {
+                    title = format!("Admin {username} has been created");
+                    message = format!("New admin {username} has been created");
+                } else {
+                    title = format!("User {username} has been created");
+                    message = format!("New user {username} has been created");
+                }
+                utils::send_ntfy_notif(
+                    &ntfy_config.host,
+                    message.as_str(),
+                    title.as_str(),
+                    &ntfy_config.basic_auth,
+                    &ntfy_config.token,
+                )
+                .await
+                .unwrap()
+            }
 
             let jwt_token =
                 JWTController::create_jwt(&pool, &app_config, &user_id.to_string()).await;
@@ -241,9 +262,14 @@ pub async fn register(
             }
 
             info!("new account for user {}", user_id);
+            let mut redirect = "/";
+            if is_admin {
+                info!("account is being promoted to admin");
+                redirect = "/admin";
+            }
             HttpResponse::Ok()
                 .cookie(cookie)
-                .json(json!({ "status": "success" }))
+                .json(json!({ "status": "success", "redirect": redirect }))
         }
         Err(e) => {
             error!("Error inserting user: {}", e);

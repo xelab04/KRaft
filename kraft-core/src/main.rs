@@ -20,7 +20,7 @@ use Controllers::{ClusterController, UserController, WorkspaceController};
 use kube::Client;
 
 use crate::Controllers::{
-    AuthController, BetacodeController, JWTController, LogsController, ResourceController, utils,
+    AuthController, BetacodeController, DBHelper, JWTController, LogsController, ResourceController, utils,
 };
 mod db_connect;
 
@@ -94,6 +94,10 @@ async fn main() -> io::Result<()> {
     // Will panic here if the db is unreachable :P
     let db_pool = db_connect::get_db_pool().await.unwrap();
     let client = Client::try_default().await.unwrap();
+
+    // check if a user already exists
+    // and if a beta code already exists
+    BetacodeController::first_startup(&db_pool).await.unwrap();
 
     HttpServer::new(move || {
         App::new()
