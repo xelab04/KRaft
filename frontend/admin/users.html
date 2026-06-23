@@ -27,6 +27,7 @@
                     <th class="px-4 py-2 border border-gray-500" colspan="1">Username</th>
                     <th class="px-4 py-2 border border-gray-500" colspan="2">Email</th>
                     <th class="px-4 py-2 border border-gray-500" colspan="1">Betacode</th>
+                    <th class="px-4 py-2 border border-gray-500" colspan="1"></th>
                 </tr>
             </thead>
 
@@ -36,18 +37,11 @@
                         <td class="px-4 py-2 border border-gray-500" x-text="user.username" colspan="1"></td>
                         <td class="px-4 py-2 border border-gray-500 text-black hover:text-white" x-text="user.email" colspan="2"></td>
                         <td class="px-4 py-2 border border-gray-500" x-text="user.betacode" colspan="1"></td>
-
-                        <!--
-                        <td class="px-4 py-2 border border-gray-500" colspan="1">
-                            <input type="checkbox" class="onoffswitch-checkbox" :id="betacode.betacode" :checked="betacode.enabled" @change="toggleBetacode(betacode.betacode, $event.target.checked)">
-                        </td>
-
-                        <td class="px-4 py-2 border border-gray-500" colspan="1">
-                            <button class="hover:bg-gray-500 underline" @click="deleteBetacode(betacode.betacode)">
-                                Delete
+                        <td class="px-4 py-2 border border-gray-500">
+                            <button class="hover:bg-gray-500 underline" @click="toggleViewUser(user)">
+                                Expand
                             </button>
                         </td>
-                        -->
                     </tr>
                 </template>
 
@@ -59,7 +53,7 @@
                 </tr>
 
                 <!-- No clusters? -->
-                <tr x-show="!loading && betacodes.length === 0">
+                <tr x-show="!loading && users.length === 0">
                     <td colspan="3" class="px-4 py-2 border border-gray-500 text-center">
                         No users found, this does not seem possible
                     </td>
@@ -86,6 +80,18 @@
 
         </table>
 
+        <div class="text-lg text-white mt-8" x-show="viewUser">
+            <div class="text-xl block font-mono flex flex-col mt-8">User</div>
+            <div class="px-6" x-text="viewUser.username"></div>
+
+            <template x-for="cluster in viewUser.clusters" :key="cluster.id">
+                <div>
+                    <div class="text-xl block font-mono flex flex-col mt-8">Cluster Name</div>
+                    <div class="px-6" x-text="cluster.name"></div>
+                </div>
+            </template>
+        </div>
+
 
         <div class="text-2xl bg-red-300 font-mono mt-8 text-center" id="error-message">
             <!-- will be filled with error message -->
@@ -103,61 +109,10 @@
         function userManager() {
             return {
                 users: [],
+                clusters: [],
                 loading: true,
                 error: null,
-
-                toggleBetacode(betacode, checked) {
-                  fetch("/api/admin/betacode/update", {
-                    method: "PUT",
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ betacode: betacode, enabled: checked })
-                  })
-                  .then((response) => {
-                    if (!response.ok) {
-                      document.getElementById("error-message").textContent =
-                          "Error changing the state of the beta code.";
-                    }
-                  })
-
-                },
-
-                deleteBetacode(betacode) {
-                  fetch("/api/admin/betacode/delete", {
-                    // TODO yes i coulda used delete, but that means recompiling and I'm running outa charge
-                    method: "POST",
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ betacode: betacode, enabled: false })
-                  })
-                  .then((response) => {
-                    if (!response.ok) {
-                      document.getElementById("error-message").textContent =
-                          "Error deleting the beta code.";
-                    } else {
-                      location.reload();
-                    }
-                  })
-
-                },
-
-                createBetacode() {
-                  betacode = document.getElementById("betacode").value;
-
-                  fetch("/api/admin/betacode/new", {
-                    method: "POST",
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ betacode: betacode, enabled: true })
-                  })
-                  .then((response) => {
-                    if (!response.ok) {
-                      document.getElementById("error-message").textContent =
-                          "Error creating the beta code.";
-                    } else {
-                      document.getElementById("betacode").value = "";
-                      location.reload();
-                    }
-                  })
-
-                },
+                viewUser: false,
 
                 adminCheck() {
                     fetch("/auth/validate-admin", {
@@ -203,8 +158,17 @@
                         }
 
                         const data = await response.json();
+                        // for each user, now fetch their clusters and add to their struct
 
-                        console.log(data);
+                        await Promise.all(
+                            data.map(async (user) => {
+                                const clusterResponse = await fetch(`/api/admin/get/clusters/${user.uuid}`);
+                                if (!clusterResponse.ok) {
+                                    throw new Error(`HTTP error! status: ${clusterResponse.status}`);
+                                }
+                                user.clusters = await clusterResponse.json();
+                            })
+                        );
 
                         this.users = data;
                         this.error = null;
@@ -214,6 +178,18 @@
                     } finally {
                         this.loading = false;
                     }
+                },
+
+                async toggleViewUser(currentUser) {
+                  if (this.viewUser == null) {
+                    this.viewUser = currentUser;
+                    return;
+                  } else if (currentUser.uuid === this.viewUser.uuid) {
+                    this.viewUser = null;
+                    // if clicking on the same button
+                  } else {
+                    this.viewUser = currentUser;
+                  }
                 },
 
                 init() {
