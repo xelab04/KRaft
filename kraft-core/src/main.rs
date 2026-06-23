@@ -126,6 +126,7 @@ async fn main() -> io::Result<()> {
             .service(UserController::list)
             .service(ResourceController::get_cluster_use)
             .service(ResourceController::get_namespace_use)
+            .service(ClusterController::admin_list)
             .service(BetacodeController::create)
             .service(BetacodeController::update)
             .service(BetacodeController::new)

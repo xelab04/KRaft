@@ -106,7 +106,7 @@ pub mod password {
 }
 
 pub mod user {
-    use crate::Models::User::User;
+    use crate::{Controllers::DBHelper::user, Models::User::User};
     use actix_web::web;
     use sqlx::PgPool;
 
@@ -135,9 +135,19 @@ pub mod user {
         Ok(user_data)
     }
 
+    pub async fn get_id_from_uuid(pool: &web::Data<PgPool>, uuid: &str) -> Result<i32, sqlx::Error> {
+        let user_id: i32 = sqlx::query_scalar("SELECT user_id FROM users WHERE uuid=($1)")
+            .bind(uuid)
+            .fetch_one(pool.as_ref())
+            .await?;
+
+        Ok(user_id)
+    }
+
+    /// used by the admin to list all users
     pub async fn list_users(pool: &web::Data<PgPool>) -> Result<Vec<User>, sqlx::Error> {
         let user_list = sqlx::query_as::<_, User>(
-            "SELECT user_id, username, email, password as user_password, betacode, uuid FROM users",
+            "SELECT user_id, username, email, 'password' as user_password, betacode, uuid FROM users",
         )
         .fetch_all(pool.as_ref())
         .await?;
