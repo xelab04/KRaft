@@ -7,37 +7,20 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
     function adminCheck() {
-        fetch("/auth/validate-admin", {
-            method: "GET",
-        })
-          .then((response) => {
-            if (response.status === 401 || response.status === 403) {
-              // document.getElementById("error-message").textContent = "Access denied. Admins only.";
-              window.location.href = `/sub/login`;
-              return null;
-            }
-            return response.json();
-          })
-          .then((data) => {
-            if (!data) return;
-
-            console.log("Data:", data);
-            if (data.status == "error") {
-                document.getElementById(
-                    "error-message",
-                ).textContent = data.message;
-                // redirect to login page
-                window.location.href = `/sub/login`;
-            } else {
-                // document.getElementById('error-message').textContent = 'Success!';
-                return true;
-            }
-          })
-          .catch((error) => {
-            console.log("not supposed to reach here");
-            // document.getElementById("error-message").textContent =
-            //     "An error occurred somewhere between here and the server.";
-          });
+      fetch("/auth/validate-admin", {
+        method: "GET",
+      })
+      .then((response) => {
+        console.log("response");
+        if (response.status === 401 || response.status === 403) {
+          window.location.href = `/sub/login`;
+        } else if (response.status === 200) {
+          return true;                    }
+      })
+      .catch((error) => {
+        console.log(error);
+        console.log("not supposed to reach here");
+      });
     }
 
     adminCheck();
