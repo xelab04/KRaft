@@ -164,6 +164,16 @@
             Sign out
         </button>
 
+        <div x-show="isAdmin">
+            <div class="text-white font-mono flex flex-col mt-8">
+                <a href="#" class="text-2xl underline block">[&gt;] Admin</a>
+            </div>
+
+            <div class="text-white font-mono mt-2 text-xl">
+                <a href="/admin">go to admin panel</a>
+            </div>
+        </div>
+
         <div class="text-white font-mono flex flex-col mt-8">
             <a href="#" class="text-2xl underline block">[&gt;] Password</a>
         </div>
@@ -207,8 +217,36 @@
         return {
           user: null,
           error: null,
+          isAdmin: false,
 
-          async userFetch() {
+          adminCheck() {
+            fetch("/auth/validate-admin", {
+              method: "GET",
+            })
+            .then((response) => {
+              if (response.status === 401 || response.status === 403) {
+                // document.getElementById("error-message").textContent = "Access denied. Admins only.";
+                window.location.href = `/sub/login`;
+                this.isAdmin = false;
+                return null;
+              }
+              return response.json();
+            })
+            .then((data) => {
+              if (!data) return;
+              console.log("Data:", data);
+              if (data.status == "error") {
+                  this.isAdmin = false;
+              } else {
+                  return true;
+              }
+            })
+            .catch((error) => {
+              console.log("not supposed to reach here");
+            });
+          },
+
+          userFetch() {
 
             fetch('/auth/user/details')
               .then(response => response.json())
@@ -233,6 +271,7 @@
 
           init() {
             this.userFetch()
+            this.adminCheck()
           }
 
         }
