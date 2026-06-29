@@ -78,6 +78,34 @@
         window.location.href = `/`;
       }
 
+      function adminCheck() {
+          fetch("/auth/validate-admin", {
+              method: "GET",
+          })
+            .then((response) => {
+              if (response.status === 401 || response.status === 403) {
+                return null;
+              }
+              return response.json();
+            })
+            .then((data) => {
+              if (!data) return false;
+
+              console.log("Data:", data);
+              if (data.status == "error") {
+                  document.getElementById(
+                      "error-message",
+                  ).textContent = data.message;
+                  return false;
+              } else {
+                  return true;
+              }
+            })
+            .catch((error) => {
+              console.log("not supposed to reach here");
+            });
+      }
+
       function userCheck() {
         fetch('/auth/validate-jwt', {
           method: 'GET',
