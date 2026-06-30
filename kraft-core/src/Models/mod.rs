@@ -4,4 +4,5 @@ pub mod Config;
 pub mod JWT;
 pub mod Password;
 pub mod Resources;
+pub mod Towonel;
 pub mod User;

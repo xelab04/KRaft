@@ -51,8 +51,9 @@ pub fn get_ntfy_config() -> Option<NtfyConfig> {
 
 pub fn get_towonel_config() -> Option<TowonelConfig> {
     let token = std::env::var("TOWONEL_TOKEN").ok()?;
+    let hub = std::env::var("TOWONEL_HUB").ok()?;
 
-    Some(TowonelConfig { token })
+    Some(TowonelConfig { token, hub })
 }
 
 pub fn generate_appconfig() -> AppConfig {

@@ -10,6 +10,7 @@ pub struct AppConfig {
     pub jwt_secret: String,
     pub resource_config: ClusterResourceConfig,
     pub network_config: NetworkingConfig,
+    pub towonel_config: Option<TowonelConfig>,
 }
 
 #[derive(Clone, Debug)]
@@ -23,6 +24,12 @@ pub struct NtfyConfig {
     pub host: String,
     pub basic_auth: Option<String>,
     pub token: Option<String>,
+}
+
+#[derive(Clone, Debug)]
+pub struct TowonelConfig {
+    pub token: String,
+    pub hub: String,
 }
 
 #[derive(Clone)]
