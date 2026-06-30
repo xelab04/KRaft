@@ -39,6 +39,8 @@ spec:
             name: database-secrets
         - secretRef:
             name: ntfysecret
+        - secretRef:
+            name: towonelsecret
 
       volumes:
       - name: resourceconfig
