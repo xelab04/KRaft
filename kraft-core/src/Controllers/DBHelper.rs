@@ -135,7 +135,10 @@ pub mod user {
         Ok(user_data)
     }
 
-    pub async fn get_id_from_uuid(pool: &web::Data<PgPool>, uuid: &str) -> Result<i32, sqlx::Error> {
+    pub async fn get_id_from_uuid(
+        pool: &web::Data<PgPool>,
+        uuid: &str,
+    ) -> Result<i32, sqlx::Error> {
         let user_id: i32 = sqlx::query_scalar("SELECT user_id FROM users WHERE uuid=($1)")
             .bind(uuid)
             .fetch_one(pool.as_ref())
@@ -176,10 +179,7 @@ pub mod user {
         Ok(same_users)
     }
 
-    pub async fn same_email(
-        pool: &web::Data<PgPool>,
-        email: &str,
-    ) -> Result<bool, sqlx::Error> {
+    pub async fn same_email(pool: &web::Data<PgPool>, email: &str) -> Result<bool, sqlx::Error> {
         let same_users: bool =
             sqlx::query_scalar("SELECT EXISTS(SELECT 1 FROM users WHERE email = $1)")
                 .bind(email)
@@ -188,13 +188,10 @@ pub mod user {
         Ok(same_users)
     }
 
-    pub async fn is_first_user(
-        pool: &web::Data<PgPool>
-    ) -> Result<bool, sqlx::Error> {
-        let same_users: bool =
-            sqlx::query_scalar("SELECT EXISTS(SELECT 1 FROM users LIMIT 1)")
-                .fetch_one(pool.get_ref())
-                .await?;
+    pub async fn is_first_user(pool: &web::Data<PgPool>) -> Result<bool, sqlx::Error> {
+        let same_users: bool = sqlx::query_scalar("SELECT EXISTS(SELECT 1 FROM users LIMIT 1)")
+            .fetch_one(pool.get_ref())
+            .await?;
         Ok(same_users)
     }
 
@@ -365,10 +362,12 @@ pub mod betacode {
     }
 
     pub async fn verify(pool: &web::Data<PgPool>, betacode: &str) -> Result<bool, sqlx::Error> {
-        let matches: bool = sqlx::query_scalar("SELECT EXISTS (SELECT 1 FROM betacode WHERE enabled = TRUE AND betacode = ($1))")
-            .bind(betacode)
-            .fetch_one(pool.get_ref())
-            .await?;
+        let matches: bool = sqlx::query_scalar(
+            "SELECT EXISTS (SELECT 1 FROM betacode WHERE enabled = TRUE AND betacode = ($1))",
+        )
+        .bind(betacode)
+        .fetch_one(pool.get_ref())
+        .await?;
 
         Ok(matches)
     }

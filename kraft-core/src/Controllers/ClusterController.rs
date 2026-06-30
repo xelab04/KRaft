@@ -2,8 +2,8 @@ use k3k_rs::cluster::ExposeIngress;
 use log::{error, info};
 use std::collections::BTreeMap;
 
-use actix_web::web::{self, Path};
 use actix_web::web::Json;
+use actix_web::web::{self, Path};
 use actix_web::{HttpRequest, HttpResponse};
 
 use sqlx;
@@ -398,7 +398,11 @@ pub async fn list(pool: web::Data<PgPool>, user: AuthUser) -> HttpResponse {
 }
 
 #[get("/api/admin/get/clusters/{user_uuid}")]
-pub async fn admin_list(pool: web::Data<PgPool>, user: AuthUser, user_uuid: Path<String>) -> HttpResponse {
+pub async fn admin_list(
+    pool: web::Data<PgPool>,
+    user: AuthUser,
+    user_uuid: Path<String>,
+) -> HttpResponse {
     let user_id = user.user_id;
     let user_id_int: i32 = user_id.parse().unwrap_or(0);
     let target_uuid: String = user_uuid.into_inner();

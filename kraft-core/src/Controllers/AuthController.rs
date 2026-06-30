@@ -170,7 +170,10 @@ pub async fn register(
         }
         if is_first_user {
             let b = betacode.clone();
-            let betacode_struct = Betacode{betacode: b , enabled: false};
+            let betacode_struct = Betacode {
+                betacode: b,
+                enabled: false,
+            };
             betacode_db::update(&pool, &betacode_struct).await.unwrap();
         }
     }
