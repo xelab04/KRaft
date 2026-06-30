@@ -15,7 +15,20 @@ use crate::{
 use k3k_rs;
 use kube::Client;
 
-#[actix_web::get("/auth/user/details")]
+#[get("/auth/user/list")]
+pub async fn list(pool: web::Data<PgPool>, user: AuthUser) -> HttpResponse {
+    let user_id: i32 = user.user_id.parse().unwrap();
+    if !user::is_admin(&pool, &user_id).await.unwrap_or(false) {
+        return HttpResponse::Forbidden().finish();
+    }
+    let users = user::list_users(&pool)
+        .await
+        .expect("failed to list all users in db");
+
+    HttpResponse::Ok().json(users)
+}
+
+#[get("/auth/user/details")]
 pub async fn details(
     pool: web::Data<PgPool>,
     user: AuthUser,
@@ -71,7 +84,7 @@ pub async fn details(
     }
 }
 
-#[actix_web::delete("/auth/user/delete")]
+#[delete("/auth/user/delete")]
 pub async fn user_delete(
     user: AuthUser,
     pool: web::Data<PgPool>,
@@ -122,7 +135,7 @@ pub async fn user_delete(
 }
 
 /// Validate the user account with a token sent to their mail
-#[actix_web::get("/auth/validate/{token}")]
+#[get("/auth/validate/{token}")]
 pub async fn validate(
     user: AuthUser,
     pool: web::Data<PgPool>,

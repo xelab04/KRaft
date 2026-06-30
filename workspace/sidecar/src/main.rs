@@ -3,13 +3,14 @@ use actix_web::{App, HttpRequest, HttpResponse, HttpServer, middleware, web};
 use actix_ws::Message;
 use futures_util::{SinkExt, StreamExt};
 use std::env;
+use log::info;
 
 async fn validate_token(token: &str, cluster_id: &str) -> bool {
     let host_config = env::var("HOST").unwrap();
 
     let local_host = format!("http://kraft-core.kraft.svc.cluster.local:5000");
 
-    println!("validating token {}", token);
+    info!("validating token {}", token);
 
     let client = reqwest::Client::new();
     let res = client
@@ -27,10 +28,10 @@ async fn validate_token(token: &str, cluster_id: &str) -> bool {
     match res {
         Ok(r) => {
             if r.status().is_success() {
-                println!("Verifying token successful: {}", token);
+                info!("Verifying token successful: {}", token);
                 true
             } else {
-                println!(
+                info!(
                     "Verifying token unsuccessful: {} status {}",
                     token,
                     r.status()
@@ -39,7 +40,7 @@ async fn validate_token(token: &str, cluster_id: &str) -> bool {
             }
         }
         Err(e) => {
-            println!("Token validation request failed: {}", e);
+            info!("Token validation request failed: {}", e);
             false
         }
     }
@@ -156,7 +157,7 @@ async fn proxy_http(req: HttpRequest) -> HttpResponse {
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
     unsafe {
-        env::set_var("RUST_LOG", "actix_web=debug,actix_server=info");
+        env::set_var("RUST_LOG", "actix_web=debug,actix_server=info,info");
     }
     env_logger::init();
 

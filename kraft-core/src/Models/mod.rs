@@ -1,3 +1,4 @@
+pub mod Betacode;
 pub mod Cluster;
 pub mod Config;
 pub mod JWT;

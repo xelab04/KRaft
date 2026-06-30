@@ -1,4 +1,6 @@
+pub mod AdminController;
 pub mod AuthController;
+pub mod BetacodeController;
 pub mod ClusterController;
 pub mod DBHelper;
 pub mod JWTController;
