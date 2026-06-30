@@ -20,7 +20,8 @@ use Controllers::{ClusterController, UserController, WorkspaceController};
 use kube::Client;
 
 use crate::Controllers::{
-    AuthController, BetacodeController, DBHelper, JWTController, LogsController, ResourceController, utils,
+    AuthController, BetacodeController, DBHelper, JWTController, LogsController,
+    ResourceController, utils,
 };
 mod db_connect;
 

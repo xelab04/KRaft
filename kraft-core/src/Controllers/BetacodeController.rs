@@ -1,5 +1,5 @@
-use rand::{distributions::Alphanumeric, Rng};
 use log::{error, info};
+use rand::{Rng, distributions::Alphanumeric};
 use std::collections::BTreeMap;
 
 use actix_web::web;
@@ -96,13 +96,14 @@ pub async fn delete(
 }
 
 pub async fn first_startup(pool: &PgPool) -> Result<(), sqlx::Error> {
-
-    let valid_betacode: Option<String> = sqlx::query_scalar("SELECT betacode FROM betacode WHERE enabled=true LIMIT 1")
-        .fetch_optional(pool)
-        .await?;
-    let admin_user_exists: bool = sqlx::query_scalar("SELECT EXISTS ( SELECT 1 FROM users LIMIT 1 )")
-        .fetch_one(pool)
-        .await?;
+    let valid_betacode: Option<String> =
+        sqlx::query_scalar("SELECT betacode FROM betacode WHERE enabled=true LIMIT 1")
+            .fetch_optional(pool)
+            .await?;
+    let admin_user_exists: bool =
+        sqlx::query_scalar("SELECT EXISTS ( SELECT 1 FROM users LIMIT 1 )")
+            .fetch_one(pool)
+            .await?;
     // TODO
     //
     // if there is something in the beta code table but there are no users...
