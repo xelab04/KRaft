@@ -43,7 +43,30 @@
         return "meow";
       }
 
-      update_resource_usage();
+      function check_towonel_active() {
+        var domains_button = document.getElementById('domains')
+
+        fetch("/api/towonel/isactive", {
+          method: "GET"
+        })
+        .then(response => {
+          if (response.ok) {
+            domains_button.style.display = "inline";
+          } else {
+            domains_button.style.display = 'none';
+          }
+        })
+        .catch(error => {
+          console.log("error on checking towonel active")
+          domains_button.style.display = 'none';
+        })
+
+      }
+
+      document.addEventListener("DOMContentLoaded", () => {
+        update_resource_usage();
+        check_towonel_active();
+      });
     </script>
 </head>
 <body class="bg-black h-screen w-screen flex flex-col items-center justify-center m-0 p-0">
@@ -56,6 +79,7 @@
         <div class="text-white font-mono flex flex-col mt-8">
             <a href="./sub/create" class="text-2xl underline block">[&gt;] Create a cluster</a>
             <a href="./sub/view" class="text-2xl underline block mt-6">[&gt;] View clusters</a>
+            <a href="./sub/domains" id="domains" class="text-2xl underline block mt-6" style="display:none;">[&gt;] Manage domains</a>
             <a href="./sub/about/0" class="text-2xl underline block mt-6">[&gt;] ReadMe.md</a>
             <a href="./sub/account" class="text-2xl underline block mt-6">[&gt;] Account</a>
         </div>
