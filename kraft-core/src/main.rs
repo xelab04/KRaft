@@ -1,9 +1,9 @@
 #[macro_use]
 extern crate actix_web;
 
+use log::{error, info};
 use rustls;
 use std::{env, io, panic::PanicHookInfo};
-use log::{info, error};
 
 use actix_web::{
     App, Error, HttpServer,
@@ -20,7 +20,8 @@ use Controllers::{ClusterController, UserController, WorkspaceController};
 use kube::Client;
 
 use crate::Controllers::{
-    AuthController, JWTController, LogsController, ResourceController, utils,
+    AuthController, BetacodeController, DBHelper, JWTController, LogsController,
+    ResourceController, utils,
 };
 mod db_connect;
 
@@ -95,6 +96,10 @@ async fn main() -> io::Result<()> {
     let db_pool = db_connect::get_db_pool().await.unwrap();
     let client = Client::try_default().await.unwrap();
 
+    // check if a user already exists
+    // and if a beta code already exists
+    BetacodeController::first_startup(&db_pool).await.unwrap();
+
     HttpServer::new(move || {
         App::new()
             .app_data(web::Data::new(db_pool.clone()))
@@ -115,11 +120,18 @@ async fn main() -> io::Result<()> {
             .service(AuthController::logout)
             .service(AuthController::register)
             .service(AuthController::validate_jwt)
+            .service(AuthController::validate_admin)
             .service(AuthController::changepwd)
             .service(UserController::details)
             .service(UserController::user_delete)
+            .service(UserController::list)
             .service(ResourceController::get_cluster_use)
             .service(ResourceController::get_namespace_use)
+            .service(ClusterController::admin_list)
+            .service(BetacodeController::create)
+            .service(BetacodeController::update)
+            .service(BetacodeController::new)
+            .service(BetacodeController::delete)
     })
     .bind("0.0.0.0:5000")?
     .run()

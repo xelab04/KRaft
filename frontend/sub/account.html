@@ -78,6 +78,34 @@
         window.location.href = `/`;
       }
 
+      function adminCheck() {
+          fetch("/auth/validate-admin", {
+              method: "GET",
+          })
+            .then((response) => {
+              if (response.status === 401 || response.status === 403) {
+                return null;
+              }
+              return response.json();
+            })
+            .then((data) => {
+              if (!data) return false;
+
+              console.log("Data:", data);
+              if (data.status == "error") {
+                  document.getElementById(
+                      "error-message",
+                  ).textContent = data.message;
+                  return false;
+              } else {
+                  return true;
+              }
+            })
+            .catch((error) => {
+              console.log("not supposed to reach here");
+            });
+      }
+
       function userCheck() {
         fetch('/auth/validate-jwt', {
           method: 'GET',
@@ -88,7 +116,7 @@
           if (data.status == "error") {
             document.getElementById('error-message').textContent = data.message;
             // redirect to login page
-            window.location.href = `/sub/login.html`;
+            window.location.href = `/sub/login`;
           } else {
             return true;
           }
@@ -104,7 +132,7 @@
           fetch('/auth/logout', {
             method: "POST"
           });
-          window.location.href = `/sub/login.html`;
+          window.location.href = `/sub/login`;
         }
       }
 
@@ -135,6 +163,20 @@
         <button onclick="signOut()"  class="text-black bg-white hover:bg-gray-300 font-mono mt-2 text-xl">
             Sign out
         </button>
+
+        <div x-show="isAdmin">
+            <div class="text-white font-mono flex flex-col mt-8">
+                <a href="#" class="text-2xl underline block">[&gt;] Admin</a>
+            </div>
+
+            <button onclick="location.href = '/admin';"  class="text-black bg-white hover:bg-gray-300 font-mono mt-2 text-xl">
+                go to admin panel
+            </button>
+
+            <!-- <div class="text-white font-mono mt-2 text-xl">
+                <a href="/admin"></a>
+            </div> -->
+        </div>
 
         <div class="text-white font-mono flex flex-col mt-8">
             <a href="#" class="text-2xl underline block">[&gt;] Password</a>
@@ -179,8 +221,28 @@
         return {
           user: null,
           error: null,
+          isAdmin: false,
 
-          async userFetch() {
+          adminCheck() {
+            fetch("/auth/validate-admin", {
+              method: "GET",
+            })
+            .then((response) => {
+              console.log("response");
+              console.log(response);
+              if (response.status === 401 || response.status === 403) {
+                this.isAdmin = false;
+              } else if (response.status === 200) {
+                this.isAdmin = true;
+              }
+            })
+            .catch((error) => {
+              console.log(error);
+              console.log("not supposed to reach here");
+            });
+          },
+
+          userFetch() {
 
             fetch('/auth/user/details')
               .then(response => response.json())
@@ -205,6 +267,7 @@
 
           init() {
             this.userFetch()
+            this.adminCheck()
           }
 
         }

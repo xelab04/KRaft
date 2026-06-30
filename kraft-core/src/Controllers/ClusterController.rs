@@ -2,8 +2,8 @@ use k3k_rs::cluster::ExposeIngress;
 use log::{error, info};
 use std::collections::BTreeMap;
 
-use actix_web::web;
 use actix_web::web::Json;
+use actix_web::web::{self, Path};
 use actix_web::{HttpRequest, HttpResponse};
 
 use sqlx;
@@ -391,6 +391,29 @@ pub async fn list(pool: web::Data<PgPool>, user: AuthUser) -> HttpResponse {
     let user_id_int: i32 = user_id.parse().unwrap_or(0);
 
     let clusters: Vec<Cluster> = clusters::list(&pool, &user_id_int).await.unwrap();
+
+    HttpResponse::Ok()
+        .content_type("application/json")
+        .json(clusters)
+}
+
+#[get("/api/admin/get/clusters/{user_uuid}")]
+pub async fn admin_list(
+    pool: web::Data<PgPool>,
+    user: AuthUser,
+    user_uuid: Path<String>,
+) -> HttpResponse {
+    let user_id = user.user_id;
+    let user_id_int: i32 = user_id.parse().unwrap_or(0);
+    let target_uuid: String = user_uuid.into_inner();
+
+    if !user::is_admin(&pool, &user_id_int).await.unwrap() {
+        return HttpResponse::Unauthorized().finish();
+    }
+
+    let target_user_id = user::get_id_from_uuid(&pool, &target_uuid).await.unwrap();
+
+    let clusters: Vec<Cluster> = clusters::list(&pool, &target_user_id).await.unwrap();
 
     HttpResponse::Ok()
         .content_type("application/json")
