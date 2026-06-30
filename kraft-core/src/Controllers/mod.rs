@@ -6,6 +6,7 @@ pub mod DBHelper;
 pub mod JWTController;
 pub mod LogsController;
 pub mod ResourceController;
+pub mod TowonelController;
 pub mod UserController;
 pub mod WorkspaceController;
 pub mod utils;

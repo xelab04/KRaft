@@ -147,6 +147,18 @@ pub mod user {
         Ok(user_id)
     }
 
+    pub async fn get_uuid_from_id(
+        pool: &web::Data<PgPool>,
+        user_id: &i32,
+    ) -> Result<String, sqlx::Error> {
+        let uuid: String = sqlx::query_scalar("SELECT uuid FROM users WHERE user_id=($1)")
+            .bind(user_id)
+            .fetch_one(pool.as_ref())
+            .await?;
+
+        Ok(uuid)
+    }
+
     /// used by the admin to list all users
     pub async fn list_users(pool: &web::Data<PgPool>) -> Result<Vec<User>, sqlx::Error> {
         let user_list = sqlx::query_as::<_, User>(
@@ -370,5 +382,37 @@ pub mod betacode {
         .await?;
 
         Ok(matches)
+    }
+}
+
+pub mod towonel_db {
+    use crate::Models::Towonel;
+    use actix_web::web;
+    use sqlx::PgPool;
+
+    pub async fn get_user_uuid_from_token_id(
+        token_id: &str,
+        pool: &web::Data<PgPool>,
+    ) -> Result<Option<String>, sqlx::Error> {
+        let user_uuid: Option<String> =
+            sqlx::query_scalar("SELECT user_uuid FROM towonel WHERE token_id=($1)")
+                .bind(token_id)
+                .fetch_optional(pool.as_ref())
+                .await?;
+
+        Ok(user_uuid)
+    }
+
+    pub async fn get_token_id_from_user_uuid(
+        user_uuid: &str,
+        pool: &web::Data<PgPool>,
+    ) -> Result<Option<String>, sqlx::Error> {
+        let token_id: Option<String> =
+            sqlx::query_scalar("SELECT token_id FROM towonel WHERE user_uuid=($1)")
+                .bind(user_uuid)
+                .fetch_optional(pool.as_ref())
+                .await?;
+
+        Ok(token_id)
     }
 }
