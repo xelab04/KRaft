@@ -415,4 +415,17 @@ pub mod towonel_db {
 
         Ok(token_id)
     }
+
+    pub async fn get_token_id_from_user_id(
+        user_id: &i32,
+        pool: &web::Data<PgPool>,
+    ) -> Result<Option<String>, sqlx::Error> {
+        let token_id: Option<String> =
+            sqlx::query_scalar("SELECT token_id FROM towonel WHERE user_id=($1)")
+                .bind(user_id)
+                .fetch_optional(pool.as_ref())
+                .await?;
+
+        Ok(token_id)
+    }
 }
