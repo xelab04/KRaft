@@ -59,6 +59,8 @@ async fn main() -> io::Result<()> {
     }
     env_logger::init_from_env(env_logger::Env::default().default_filter_or("info"));
     info!("KRaft, created by Alex");
+    info!("with help from Erwan, for the GitHub Actions");
+    info!("and with the help and support of the Home Ops community");
     info!("written in rust 🏳️‍⚧️");
 
     rustls::crypto::ring::default_provider()
