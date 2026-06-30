@@ -5,5 +5,5 @@ use sqlx::FromRow;
 #[derive(Serialize, Deserialize, Debug, FromRow, Clone)]
 pub struct Token {
     pub token_id: String,
-    pub user_uuid: String,
+    pub user_id: i32,
 }

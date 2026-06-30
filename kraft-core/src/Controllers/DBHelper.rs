@@ -403,19 +403,6 @@ pub mod towonel_db {
         Ok(user_uuid)
     }
 
-    pub async fn get_token_id_from_user_uuid(
-        user_uuid: &str,
-        pool: &web::Data<PgPool>,
-    ) -> Result<Option<String>, sqlx::Error> {
-        let token_id: Option<String> =
-            sqlx::query_scalar("SELECT token_id FROM towonel WHERE user_uuid=($1)")
-                .bind(user_uuid)
-                .fetch_optional(pool.as_ref())
-                .await?;
-
-        Ok(token_id)
-    }
-
     pub async fn get_token_id_from_user_id(
         user_id: &i32,
         pool: &web::Data<PgPool>,
@@ -427,5 +414,23 @@ pub mod towonel_db {
                 .await?;
 
         Ok(token_id)
+    }
+}
+
+pub mod domains_db {
+    use crate::Models::Domain::Domain;
+    use actix_web::web;
+    use sqlx;
+    use sqlx::PgPool;
+
+    pub async fn list(pool: &web::Data<PgPool>, user_id: &i32) -> Result<Vec<Domain>, sqlx::Error> {
+        let domains = sqlx::query_as::<_, Domain>(
+            "SELECT user_id, domain, token_id FROM domain WHERE user_id=($1)",
+        )
+        .bind(user_id)
+        .fetch_all(pool.as_ref())
+        .await?;
+
+        Ok(domains)
     }
 }

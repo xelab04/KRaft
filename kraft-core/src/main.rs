@@ -20,7 +20,8 @@ use Controllers::{ClusterController, UserController, WorkspaceController};
 use kube::Client;
 
 use crate::Controllers::{
-    AuthController, BetacodeController, DBHelper, JWTController, LogsController, ResourceController, TowonelController, utils,
+    AuthController, BetacodeController, DBHelper, JWTController, LogsController,
+    ResourceController, TowonelController, utils,
 };
 mod db_connect;
 
@@ -133,6 +134,7 @@ async fn main() -> io::Result<()> {
             .service(BetacodeController::delete)
             .service(TowonelController::is_towonel_configured)
             .service(TowonelController::new_domain)
+            .service(TowonelController::list)
     })
     .bind("0.0.0.0:5000")?
     .run()

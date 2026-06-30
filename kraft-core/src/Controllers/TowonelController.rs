@@ -1,12 +1,21 @@
 use std::fmt::Error;
 
-use actix_web::{HttpResponse, web::{self, Path}};
+use actix_web::{
+    HttpResponse,
+    web::{self, Path},
+};
+use log::{error, info};
 use reqwest::Response;
 use serde_json::json;
 use sqlx::PgPool;
 
 use crate::{
-    Controllers::DBHelper::{towonel_db, user}, Models::{Config::{AppConfig, TowonelConfig}, User::{AuthUser, User}},
+    Controllers::DBHelper::{domains_db, towonel_db, user},
+    Models::{
+        Config::{AppConfig, TowonelConfig},
+        Domain::Domain,
+        User::{AuthUser, User, UserUUID},
+    },
 };
 
 pub fn generate_url(hub: &str, request_path: &str) -> String {
@@ -22,7 +31,13 @@ pub fn generate_url(hub: &str, request_path: &str) -> String {
     host
 }
 
-pub async fn existing_token(pool: &web::Data<PgPool>, user: &User, domain: &str, towonel_config: &TowonelConfig, token_id: &str) -> Response {
+pub async fn existing_token(
+    pool: &web::Data<PgPool>,
+    user: &User,
+    domain: &str,
+    towonel_config: &TowonelConfig,
+    token_id: &str,
+) -> Response {
     let request_body = json!({"hostnames": Vec::from([domain]), "name": &user.username});
     let request_path = format!("/v1/invites/{token_id}/hostnames");
     let host = generate_url(&towonel_config.hub, &request_path);
@@ -32,7 +47,12 @@ pub async fn existing_token(pool: &web::Data<PgPool>, user: &User, domain: &str,
     return result;
 }
 
-pub async fn new_token(pool: &web::Data<PgPool>, user: &User, domain: &str, towonel_config: &TowonelConfig) -> Response {
+pub async fn new_token(
+    pool: &web::Data<PgPool>,
+    user: &User,
+    domain: &str,
+    towonel_config: &TowonelConfig,
+) -> Response {
     let request_body = json!({"hostnames": Vec::from([domain])});
     let request_path = format!("/v1/invites");
     let host = generate_url(&towonel_config.hub, &request_path);
@@ -97,7 +117,9 @@ pub async fn new_domain(
         return HttpResponse::Ok().finish();
     } else {
         let code = status.as_u16();
-        if code == 409 { return HttpResponse::Conflict().finish(); }
+        if code == 409 {
+            return HttpResponse::Conflict().finish();
+        }
         return HttpResponse::InternalServerError().finish();
     }
 }
@@ -108,4 +130,31 @@ pub async fn is_towonel_configured(config: web::Data<AppConfig>) -> HttpResponse
         return HttpResponse::NotImplemented().finish();
     }
     return HttpResponse::Ok().finish();
+}
+
+#[get("/api/towonel/list")]
+pub async fn list(
+    config: web::Data<AppConfig>,
+    pool: web::Data<PgPool>,
+    user: AuthUser,
+    useruuid_param: Option<web::Query<UserUUID>>,
+) -> HttpResponse {
+    if config.towonel_config.is_none() {
+        return HttpResponse::NotImplemented().finish();
+    }
+
+    let user_id = user.user_id.parse::<i32>().unwrap();
+    let is_admin = user::is_admin(&pool, &user_id).await.unwrap_or(false);
+    let domains: Vec<Domain>;
+
+    if let Some(uuid_param) = useruuid_param
+        && is_admin
+    {
+        let target_user_id = user::get_id_from_uuid(&pool, &uuid_param.u).await.unwrap();
+        domains = domains_db::list(&pool, &target_user_id).await.unwrap();
+    } else {
+        domains = domains_db::list(&pool, &user_id).await.unwrap();
+    }
+
+    return HttpResponse::Ok().json(domains);
 }

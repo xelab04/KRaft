@@ -84,3 +84,24 @@ CREATE TABLE betacode (
     betacode VARCHAR(255) PRIMARY KEY,
     enabled BOOLEAN NOT NULL DEFAULT FALSE
 );
+
+CREATE TABLE towonel (
+    token_id VARCHAR(255) PRIMARY KEY,
+    user_id INT NOT NULL,
+    CONSTRAINT fk_user
+        FOREIGN KEY (user_id)
+        REFERENCES users(user_id)
+
+);
+
+CREATE TABLE domain (
+    domain VARCHAR(255) PRIMARY KEY,
+    user_id INT NOT NULL,
+    token_id VARCHAR(255),
+    CONSTRAINT fk_token
+        FOREIGN KEY (token_id)
+        REFERENCES towonel(token_id),
+    CONSTRAINT fk_user
+        FOREIGN KEY (user_id)
+        REFERENCES users(user_id)
+);

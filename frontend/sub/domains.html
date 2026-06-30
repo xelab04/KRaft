@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KRaft</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/alpinejs" defer></script>
+</head>
+<body class="bg-black h-screen w-screen flex flex-col items-center justify-center m-0 p-0"
+      x-data="domainManager()">
+    <div class="p-8 rounded-md shadow-lg max-w-2xl w-full mx-4 outline-white-500 h-[60vh]">
+        <!-- bg-zinc-800 -->
+        <div class="flex items-center mb-4">
+            <a href="/"><h1 class="text-white font-mono text-3xl">KRaft</h1></a>
+            <h3 class="text-white font-mono text-sm ml-2 self-end mb-1">by Alex</h3>
+        </div>
+        <div class="text-white font-mono flex flex-col mt-8">
+            <a href="#" class="text-2xl underline block mt-6">[&gt;] Manage Domains</a>
+            <!-- <div class="font-bold mt-8">1. Creating a cluster</div> -->
+            <div>
+                Adding domains here will allow you to use them with your own clusters and workloads as KRaftCloud sits behind <a class="underline" href="https://towonel.dev">Towonel</a>, an alternative to Clownflare Tunnel. Simply add your domains here, and create the appropriate DNS records to <span class="underline">102.222.105.35</span> and/or <span class="underline">2c0f:e8f8:2000:233::372:547d</span>
+            </div>
+        </div>
+
+        <!-- <table class="table-fixed text-white font-mono mt-8">
+            <thead>
+                <tr>
+                    <th class="px-4 py-2 border border-gray-500">Cluster</th>
+                    <th class="px-4 py-2 border border-gray-500">Endpoint</th>
+                    <th class="px-4 py-2 border border-gray-500">Actions</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                <template x-for="cluster in clusters" :key="cluster.id">
+                    <tr>
+                        <td class="px-4 py-2 border border-gray-500" x-text="cluster.name"></td>
+                        <td class="px-4 py-2 border border-gray-500" x-text="cluster.endpoint"></td>
+                        <td class="px-4 py-2 border border-gray-500">
+                            <button class="hover:bg-gray-500 underline" @click="toggleViewCluster(cluster)">
+                                Expand
+                            </button>
+                        </td>
+                    </tr>
+                </template>
+
+                Show non-existent loading
+                <tr x-show="loading">
+                    <td colspan="3" class="px-4 py-2 border border-gray-500 text-center">
+                        Loading clusters...
+                    </td>
+                </tr>
+
+                No clusters?
+                <tr x-show="!loading && clusters.length === 0">
+                    <td colspan="3" class="px-4 py-2 border border-gray-500 text-center">
+                        No clusters found
+                    </td>
+                </tr>
+            </tbody>
+
+        </table> -->
+
+        <!-- <div class="text-lg text-white" x-show="viewCluster">
+            <div class="text-xl block font-mono flex flex-col mt-8">Cluster Name</div>
+            <div class="px-6" x-text="viewCluster.name">
+            </div>
+            <div class="text-xl block font-mono flex flex-col mt-4">API Server Endpoint</div>
+            <div class="px-6" x-text="viewCluster.endpoint">
+            </div>
+
+            <div class="text-xl block font-mono flex flex-col mt-4">Kubeconfig</div>
+            <button class="hover:bg-gray-500 underline px-6" @click="kubeconfig(viewCluster.name)">
+                Download
+            </button>
+
+            <div class="text-xl block font-mono flex flex-col mt-4">Workspace</div>
+            <button class="hover:bg-gray-500 underline px-6" @click="workspace(viewCluster.name, viewCluster.id)">
+                Load Workspace
+            </button>
+
+            <div class="text-xl block font-mono flex flex-col mt-4">Delete Cluster</div>
+            <button class="hover:bg-gray-500 underline px-6" @click="clusterdelete(viewCluster.name)">
+                Delete
+            </button>
+
+            <div class="text-xl block font-mono flex flex-col mt-4">Cluster Logs</div>
+            <button class="hover:bg-gray-500 underline px-6" @click="getLogs(viewCluster.name, 'server')">
+                Server
+            </button>
+            <button class="hover:bg-gray-500 underline px-6" @click="getLogs(viewCluster.name, 'agent')">
+                Agents
+            </button>
+
+            <button class="hover:bg-gray-500 underline px-6 text-md" @click="getLogs(viewCluster.name, null)" x-show="logType">
+                refresh
+            </button>
+
+            <button class="hover:bg-gray-500 underline px-6 text-md" @click="copyLogs()" x-show="logType">
+                copy
+            </button>
+
+            <div class="mb-8 py-8">
+                <div
+                class="text-sm bg-gray-900 text-gray-100 font-mono p-3 rounded-md w-full max-w-4xl h-64 overflow-y-auto whitespace-pre-wrap"
+                x-show="clusterLogs"
+                x-text="clusterLogs"
+                ></div>
+            </div>
+        </div> -->
+
+        <div class="text-2xl bg-red-300 font-mono mt-8 text-center" id="error-message">
+            <!-- will be filled with error message -->
+        </div>
+
+    </div>
+
+
+    <!-- 88x31 image at the bottom -->
+    <div class="absolute bottom-4 hidden">
+        <img src="assets/88x31.gif" alt="88x31 banner" width="88" height="31" />
+    </div>
+
+    <script>
+        function domainManager() {
+            return {
+                loading: true,
+                error: null,
+
+                userCheck() {
+                  fetch('/auth/validate-jwt', {
+                    method: 'GET',
+                  })
+                  .then(response => response.json())
+                  .then(data => {
+                    console.log("Data:", data);
+                    if (data.status == "error") {
+                      // redirect to login page
+                      window.location.href = `/sub/login`;
+                    } else {
+                      return true;
+                    }
+                  })
+                  .catch(error => {
+                    console.log('An error occurred somewhere between here and the server.');
+                  });
+                },
+
+                init() {
+                  this.userCheck()
+                }
+            }
+        }
+    </script>
+</body>
+</html>
