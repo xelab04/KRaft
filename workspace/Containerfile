@@ -1,9 +1,11 @@
 FROM registry.suse.com/suse/sle15:15.7
 
+USER root
+WORKDIR /root
 # This could have been a bash script...
 
 # Install basic cli tools
-RUN zypper --non-interactive --gpg-auto-import-keys install git wget bash-completion vim
+RUN zypper --non-interactive --gpg-auto-import-keys install git wget bash-completion vim iputils
 
 # Install fish
 RUN zypper --non-interactive addrepo https://download.opensuse.org/repositories/shells:fish:release:4/15.6/ shells_fish
@@ -40,8 +42,8 @@ RUN git clone https://github.com/LazyVim/starter ~/.config/nvim
 
 # Install ttyd
 RUN curl -LO https://github.com/tsl0922/ttyd/releases/download/1.7.7/ttyd.x86_64
-RUN chmod +x /ttyd.x86_64
-RUN mv ttyd.x86_64 /bin/ttyd
+RUN chmod +x ./ttyd.x86_64
+RUN mv ./ttyd.x86_64 /bin/ttyd
 
 # Yes, okay, you can just copy.fail your way into root but giving root outright feels bad
 RUN groupadd -g 1000 kraft && useradd -u 1000 -g kraft -m -s /usr/bin/bash kraft
