@@ -320,6 +320,13 @@ pub async fn netpol(client: &Client, cluster_name: &str, namespace: &str) {
                             "kubernetes.io/metadata.name": "kraft"
                         }
                     }
+                }],
+                "to": [{
+                    "podSelector": {
+                        "matchLabels": {
+                            "cluster": cluster_name
+                        }
+                    }
                 }]
             }]
         }

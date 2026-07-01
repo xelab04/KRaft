@@ -83,28 +83,6 @@ pub async fn create(
                     annotations: None,
                 }),
             }),
-            serverLimit: Some(BTreeMap::from([
-                (
-                    "cpu".to_string(),
-                    config
-                        .resource_config
-                        .cluster_resources
-                        .servers
-                        .limits
-                        .cpu
-                        .clone(),
-                ),
-                (
-                    "memory".to_string(),
-                    config
-                        .resource_config
-                        .cluster_resources
-                        .servers
-                        .limits
-                        .memory
-                        .clone(),
-                ),
-            ])),
             serverResources: Some(k3k_rs::cluster::ResourcesSpec {
                 limits: Some(BTreeMap::from([
                     (
@@ -151,28 +129,6 @@ pub async fn create(
                     ),
                 ])),
             }),
-            workerLimit: Some(BTreeMap::from([
-                (
-                    "cpu".to_string(),
-                    config
-                        .resource_config
-                        .cluster_resources
-                        .workers
-                        .limits
-                        .cpu
-                        .clone(),
-                ),
-                (
-                    "memory".to_string(),
-                    config
-                        .resource_config
-                        .cluster_resources
-                        .workers
-                        .limits
-                        .memory
-                        .clone(),
-                ),
-            ])),
             workerResources: Some(k3k_rs::cluster::ResourcesSpec {
                 limits: Some(BTreeMap::from([
                     (
