@@ -245,7 +245,7 @@ pub async fn statefulset(
                             "resources": {
                                 "limits": {
                                     "cpu": "100m",
-                                    "memory": "50M"
+                                    "memory": "125M"
                                 }
                             },
                             "securityContext": {
