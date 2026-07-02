@@ -45,10 +45,11 @@ pub async fn changepwd(
     user: AuthUser,
 ) -> HttpResponse {
     let user_id = user.user_id;
+    let int_user_id: i32 = user_id.parse().unwrap();
 
     let user_password: String =
-        sqlx::query_scalar("SELECT password FROM users WHERE user_id = ($1)")
-            .bind(&user_id)
+        sqlx::query_scalar("SELECT password FROM users WHERE user_id=($1)")
+            .bind(&int_user_id)
             .fetch_one(pool.get_ref())
             .await
             .unwrap();
