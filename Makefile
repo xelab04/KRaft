@@ -18,6 +18,11 @@ wkspc:
 	cd workspace && podman build . -t registry.alexbissessur.dev/kraft-workspace
 	podman push registry.alexbissessur.dev/kraft-workspace
 
+wkspc-nix:
+	cd workspace/nix && nix-build main.nix && podman load < result && podman tag localhost/kraft-workspace:latest ghcr.io/xelab04/kraft-workspace:latest
+	# registry.alexbissessur.dev/kraft-workspace:latest
+	podman push ghcr.io/xelab04/kraft-workspace:latest
+
 podman:
 	cd frontend && podman build . -t registry.alexbissessur.dev/kraft-frontend
 	podman push registry.alexbissessur.dev/kraft-frontend
