@@ -15,7 +15,7 @@ CREATE TABLE users (
     verified_email       BOOLEAN NOT NULL,
     last_email           TIMESTAMP,
     verification_code    VARCHAR(255)
-) ENGINE=InnoDB;
+);
 
 CREATE TABLE clusters (
     cluster_id           SERIAL PRIMARY KEY,
@@ -26,7 +26,7 @@ CREATE TABLE clusters (
     CONSTRAINT fk_clusters_user
         FOREIGN KEY (user_id)
         REFERENCES users(user_id)
-) ENGINE=InnoDB;
+);
 
 CREATE TABLE workspaces (
     workspace_id         SERIAL PRIMARY KEY,
@@ -37,7 +37,7 @@ CREATE TABLE workspaces (
     CONSTRAINT fk_workspaces_user
         FOREIGN KEY (user_id)
         REFERENCES users(user_id)
-) ENGINE=InnoDB;
+);
 
 CREATE TABLE workspace_tokens (
     token                VARCHAR(255) PRIMARY KEY,
@@ -49,12 +49,12 @@ CREATE TABLE workspace_tokens (
     CONSTRAINT fk_workspace_tokens_user
         FOREIGN KEY (user_id)
         REFERENCES users(user_id)
-) ENGINE=InnoDB;
+);
 
 CREATE TABLE betacode (
     betacode             VARCHAR(255) PRIMARY KEY,
     enabled              BOOLEAN NOT NULL DEFAULT FALSE
-) ENGINE=InnoDB;
+);
 
 -- INSERT INTO users VALUES (1, "alex", "alexbissessur@gmail.com", "password");
 
