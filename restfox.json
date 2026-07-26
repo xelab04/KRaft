@@ -1,9 +1,6 @@
 {
   "exportedFrom": "Restfox-1.0.0",
   "collection": [
-
-
-
     {
       "_type": "request",
       "method": "GET",
