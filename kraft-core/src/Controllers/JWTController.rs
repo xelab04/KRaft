@@ -1,15 +1,22 @@
-use actix_web::cookie::Cookie;
-use actix_web::cookie::time;
-use actix_web::web;
-use actix_web::{HttpRequest, cookie::SameSite};
+use actix_web::{
+    HttpRequest,
+    cookie::{Cookie, SameSite, time},
+    web,
+};
 use chrono::{Duration, Utc};
-use jsonwebtoken::{Algorithm, DecodingKey, Validation, decode, errors::ErrorKind};
-use jsonwebtoken::{EncodingKey, Header, encode, errors::Error as JwtError};
+use jsonwebtoken::{
+    Algorithm, DecodingKey, EncodingKey, Header, Validation, decode, encode,
+    errors::{Error as JwtError, ErrorKind},
+};
 use sqlx::PgPool;
 
-use crate::Controllers::DBHelper::user;
-use crate::Models::Config::AppConfig;
-use crate::Models::JWT::{Claims, JWT};
+use crate::{
+    Controllers::DBHelper::user,
+    Models::{
+        Config::AppConfig,
+        JWT::{Claims, JWT},
+    },
+};
 
 pub async fn create_jwt(
     pool: &web::Data<PgPool>,

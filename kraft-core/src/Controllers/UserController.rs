@@ -1,15 +1,15 @@
 use actix_web::{HttpResponse, web};
 use log::{error, info};
-use serde_json;
-use serde_json::json;
+use serde_json::{self, json};
 use sqlx::PgPool;
 
 use crate::{
     Controllers::{
         DBHelper::{clusters, user, workspaces},
-        JWTController, utils,
+        JWTController,
     },
     Models::User::{AuthUser, User, UserUUID},
+    utils,
 };
 
 use k3k_rs;

@@ -1,21 +1,19 @@
-use actix_web::HttpResponse;
-use actix_web::web;
-use actix_web::web::Json;
+use actix_web::{
+    HttpResponse,
+    web::{self, Json},
+};
 use serde::{self, Deserialize, Serialize};
-use sqlx::Pool;
-use sqlx::Postgres;
+use sqlx::{self, PgPool, Pool, Postgres};
 
 use chrono;
 use log::info;
 use uuid::Uuid;
 
-use sqlx;
-use sqlx::PgPool;
-
-use crate::Controllers::DBHelper::{clusters, workspaces};
-use crate::Models::Config::AppConfig;
-use crate::Models::User::AuthUser;
-use crate::utils;
+use crate::{
+    Controllers::DBHelper::{clusters, workspaces},
+    Models::{Config::AppConfig, User::AuthUser},
+    utils,
+};
 
 use kube::{
     Client,

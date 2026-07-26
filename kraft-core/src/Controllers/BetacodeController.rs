@@ -1,17 +1,15 @@
+use actix_web::{
+    HttpRequest, HttpResponse,
+    web::{self, Json},
+};
 use log::info;
 use rand::{Rng, distributions::Alphanumeric};
+use sqlx::{self, PgPool};
 
-use actix_web::web;
-use actix_web::web::Json;
-use actix_web::{HttpRequest, HttpResponse};
-
-use sqlx;
-use sqlx::PgPool;
-
-use crate::Controllers::DBHelper::*;
-use crate::Models::Betacode::Betacode;
-
-use crate::Models::User::AuthUser;
+use crate::{
+    Controllers::DBHelper::*,
+    Models::{Betacode::Betacode, User::AuthUser},
+};
 
 #[get("/api/admin/betacode/list")]
 pub async fn create(_req: HttpRequest, pool: web::Data<PgPool>, user: AuthUser) -> HttpResponse {

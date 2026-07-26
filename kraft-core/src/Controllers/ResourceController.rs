@@ -1,8 +1,8 @@
-use crate::Controllers::utils;
-use crate::Models::Resources::{cluster_resources, namespace_resources};
-use actix_web::HttpResponse;
-use actix_web::web;
-use actix_web::web::Path;
+use actix_web::{
+    HttpResponse,
+    web::{self, Path},
+};
+
 use k8s_openapi::api::core::v1::Node;
 use kube::ResourceExt;
 use kube::{
@@ -10,6 +10,11 @@ use kube::{
     core::{ApiResource, DynamicObject},
 };
 use serde_json::json;
+
+use crate::{
+    Models::Resources::{cluster_resources, namespace_resources},
+    utils,
+};
 
 async fn get_pod_use(client: &Client, namespace: &str) -> namespace_resources {
     // let gvk = GroupVersionKind::gvk("metrics.k8s.io", "v1beta1", "pods");

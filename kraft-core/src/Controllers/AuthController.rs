@@ -1,5 +1,4 @@
-use argon2::password_hash::PasswordHash;
-use argon2::{Argon2, PasswordVerifier};
+use argon2::{Argon2, PasswordVerifier, password_hash::PasswordHash};
 use jsonwebtoken::{Algorithm, DecodingKey, Validation, decode};
 
 use actix_web::{
@@ -12,18 +11,20 @@ use serde_json::{self, json};
 use sqlx::PgPool;
 use uuid;
 
-// use crate::jwt;
-// use crate::util::{check_passwords_match, hash_password};
-// use crate::class::{AppConfig, AuthUser, Claims, PasswordChange, PasswordParams, User};
-// use crate::util::send_mail;
-
-use crate::Controllers::DBHelper::{betacode as betacode_db, password, user};
-use crate::Controllers::{JWTController, utils};
-use crate::Models::Betacode::Betacode;
-use crate::Models::Config::AppConfig;
-use crate::Models::JWT::Claims;
-use crate::Models::Password::PasswordChange;
-use crate::Models::User::{AuthUser, User};
+use crate::{
+    Controllers::{
+        DBHelper::{betacode as betacode_db, password, user},
+        JWTController,
+    },
+    Models::{
+        Betacode::Betacode,
+        Config::AppConfig,
+        JWT::Claims,
+        Password::PasswordChange,
+        User::{AuthUser, User},
+    },
+    utils,
+};
 
 // #[actix_web::get("/auth/password")]
 // pub async fn generate_password(query: web::Query<PasswordParams>) -> HttpResponse {

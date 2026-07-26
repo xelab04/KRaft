@@ -1,4 +1,3 @@
-pub mod AdminController;
 pub mod AuthController;
 pub mod BetacodeController;
 pub mod ClusterController;
@@ -8,4 +7,3 @@ pub mod LogsController;
 pub mod ResourceController;
 pub mod UserController;
 pub mod WorkspaceController;
-pub mod utils;
