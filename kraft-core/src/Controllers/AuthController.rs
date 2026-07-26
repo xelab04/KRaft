@@ -11,6 +11,8 @@ use serde_json::{self, json};
 use sqlx::PgPool;
 use uuid;
 
+use serde::Deserialize;
+
 use crate::{
     Controllers::{
         DBHelper::{betacode as betacode_db, password, user},
@@ -26,6 +28,11 @@ use crate::{
     utils,
 };
 
+#[derive(Deserialize)]
+pub struct ValidateTokenRequest {
+    pub token: String,
+}
+
 // #[actix_web::get("/auth/password")]
 // pub async fn generate_password(query: web::Query<PasswordParams>) -> HttpResponse {
 //     let password = &query.user_password;
@@ -38,7 +45,7 @@ use crate::{
 //     ))
 // }
 
-#[actix_web::post("/auth/changepassword")]
+#[actix_web::post("/auth/change-password")]
 pub async fn changepwd(
     pool: web::Data<PgPool>,
     payload: web::Json<PasswordChange>,
@@ -155,7 +162,8 @@ pub async fn register(
     let user = &payload.username;
     let email = &payload.email;
     let user_password = &payload.user_password;
-    let betacode = &payload.betacode.clone().unwrap_or_default(); //.unwrap_or_default();
+    let betacode = &payload.betacode.clone().unwrap_or_default();
+
     let is_first_user: bool = user::is_first_user(&pool).await.unwrap();
     let is_admin = is_first_user;
 
@@ -253,8 +261,12 @@ pub async fn register(
                 if let Some(mail_config) = &app_config.email {
                     let subject = "Confirm your email for KRaft";
 
-                    let validation_link =
-                        format!("{}/auth/validate/{}", app_config.host, email_validation);
+                    // Logic for the /auth/user/validate route is in UserController.rs
+                    let validation_link = format!(
+                        "{}/auth/user/validate/{}",
+                        app_config.host, email_validation
+                    );
+
                     let body = format!("Thank you for creating an account on KRaft, please confirm your email address using the following link:
                         \n{validation_link}");
                     utils::send_mail(mail_config, email, subject, body.as_str())
@@ -284,12 +296,6 @@ pub async fn register(
 
 #[actix_web::get("/auth/validate-jwt")]
 pub async fn validate_jwt(req: HttpRequest, app_config: web::Data<AppConfig>) -> HttpResponse {
-    // let auth_header = req
-    //     .headers()
-    //     .get("Authorization")
-    //     .and_then(|h| h.to_str().ok())
-    //     .unwrap_or("");
-
     let cookie_token = req
         .cookie("auth_token")
         .map(|cookie| cookie.value().to_string())

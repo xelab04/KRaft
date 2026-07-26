@@ -98,16 +98,3 @@ pub fn extract_user_id_from_jwt(req: &HttpRequest) -> Result<String, JwtError> {
 
     Ok(token_data.claims.sub)
 }
-
-// pub fn validate_jwt(jwt_secret: String, jwt: &str) -> bool {
-//     let validation = Validation::new(jsonwebtoken::Algorithm::HS256);
-//     let token_data = decode::<JWT>(
-//         &jwt.to_string(),
-//         &DecodingKey::from_secret(jwt_secret.as_bytes()),
-//         &validation,
-//     );
-//     match token_data {
-//         Ok(_) => {return true;}
-//         Err(_) => {return false;}
-//     }
-// }

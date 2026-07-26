@@ -21,6 +21,7 @@ pub async fn list(pool: web::Data<PgPool>, user: AuthUser) -> HttpResponse {
     if !user::is_admin(&pool, &user_id).await.unwrap_or(false) {
         return HttpResponse::Forbidden().finish();
     }
+
     let users = user::list_users(&pool)
         .await
         .expect("failed to list all users in db");
@@ -41,26 +42,12 @@ pub async fn details(
     // check if is admin
     let is_admin = user::is_admin(&pool, &int_user_id).await.unwrap_or(false);
 
-    // If admin, let the user get the details for all users
-    if is_admin {
-        let req_uuid: String = match useruuid_param {
-            Some(found_uuid) => {
-                info!("admin used, no userid specified");
-                found_uuid.u.clone()
-            }
-            None => {
-                println!("admin used, no userid specified");
-
-                let int_user_id = user.user_id.clone().parse::<i32>().unwrap();
-                let found_user = user::get_details(&pool, &int_user_id).await.unwrap();
-                return HttpResponse::Ok().json(json!({"status": "success", "data": found_user}));
-            }
-        };
-
+    // If admin, let the user get the details for any user
+    if is_admin && let Some(found_uuid) = useruuid_param {
         let found_user: User = sqlx::query_as::<_, User>(
             "SELECT user_id, username, email, uuid FROM users WHERE uuid = ($1)",
         )
-        .bind(&req_uuid)
+        .bind(&found_uuid.u)
         .fetch_one(pool.as_ref())
         .await
         .unwrap();
@@ -68,7 +55,7 @@ pub async fn details(
         return HttpResponse::Ok().json(json!({"status": "success", "data": found_user}));
     }
 
-    // get user details from database
+    // get current user details from database
     match user::get_details(&pool, &int_user_id).await {
         Err(e) => {
             error!("Error: {:?}", e);
@@ -93,8 +80,6 @@ pub async fn user_delete(
 ) -> HttpResponse {
     let user_jwt = user.user_id;
     let int_user_id = user_jwt.parse::<i32>().unwrap();
-
-    let _is_admin = user::is_admin(&pool, &int_user_id).await.unwrap_or(false);
 
     let clusters = clusters::list(&pool, &int_user_id).await.unwrap();
 
@@ -128,14 +113,13 @@ pub async fn user_delete(
     user::delete(&pool, &int_user_id).await.unwrap();
     let delete_cookie = JWTController::del_cookie();
 
-    // return HttpResponse::Ok().finish();
     HttpResponse::Ok()
         .cookie(delete_cookie)
         .json(json!({ "status": "success", "message": "success" }))
 }
 
 /// Validate the user account with a token sent to their mail
-#[get("/auth/validate/{token}")]
+#[get("/auth/user/validate/{token}")]
 pub async fn validate(
     user: AuthUser,
     pool: web::Data<PgPool>,
