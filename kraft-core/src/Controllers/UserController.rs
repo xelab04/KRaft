@@ -9,7 +9,6 @@ use crate::{
         JWTController,
     },
     Models::User::{AuthUser, User, UserUUID},
-    utils,
 };
 
 use k3k_rs;
@@ -118,28 +117,30 @@ pub async fn user_delete(
         .json(json!({ "status": "success", "message": "success" }))
 }
 
-/// Validate the user account with a token sent to their mail
-#[get("/auth/user/validate/{token}")]
+/// Validate the user account with a uuid sent to their mail
+#[get("/auth/user/validate/{validation_code}")]
 pub async fn validate(
     user: AuthUser,
     pool: web::Data<PgPool>,
-    token: web::Path<String>,
+    validation_code: web::Path<String>,
 ) -> HttpResponse {
-    let raw_token = token.into_inner();
-    let int_user_token = user.user_id.parse::<i32>().unwrap();
+    let raw_code = validation_code.into_inner();
+    let int_user_id = user.user_id.parse::<i32>().unwrap();
 
-    let user_token = match user::get_validation_token(&pool, &int_user_token).await {
-        Ok(token) => token,
+    let user_verification_code = match user::get_verification_code(&pool, &int_user_id).await {
+        Ok(code) => code,
         Err(_) => {
             return HttpResponse::Unauthorized().finish();
         }
     };
 
-    if !utils::check_passwords_match(&raw_token, &user_token) {
+    if raw_code != user_verification_code {
         return HttpResponse::Unauthorized().finish();
     }
 
-    user::validate(&pool, &user_token).await.unwrap();
+    user::validate(&pool, &user_verification_code)
+        .await
+        .unwrap();
 
-    HttpResponse::Ok().json(json!({"status":"success", "message":"account validated, thank you"}))
+    HttpResponse::Ok().json(json!({"status":"success", "message":"account verified, thank you"}))
 }

@@ -88,12 +88,6 @@ pub async fn first_startup(pool: &PgPool) -> Result<(), sqlx::Error> {
         sqlx::query_scalar("SELECT EXISTS ( SELECT 1 FROM users LIMIT 1 )")
             .fetch_one(pool)
             .await?;
-    // TODO
-    //
-    // if there is something in the beta code table but there are no users...
-    // do we generate yet another beta code? -> restart looping before registration will make MANY codes
-    // --- do we output a funtional code? -> have to check and find a functional beta code, or generate one otherwise
-    // do we check that at least one code must be valid at start? -> no, you might want registration to be closed
 
     // if there are no admin users, and no valid beta codes, generate one and output it
     if !admin_user_exists && valid_betacode.is_none() {
