@@ -7,9 +7,8 @@ use k8s_openapi::api::core::v1::Node;
 use kube::ResourceExt;
 use kube::{
     Api, Client,
-    core::{ApiResource, DynamicObject, GroupVersionKind},
+    core::{ApiResource, DynamicObject},
 };
-use log::info;
 use serde_json::json;
 
 async fn get_pod_use(client: &Client, namespace: &str) -> namespace_resources {
@@ -52,11 +51,11 @@ async fn get_pod_use(client: &Client, namespace: &str) -> namespace_resources {
         }
     }
 
-    return namespace_resources {
+    namespace_resources {
         cpu: total_pods_cpu_use,
         memory: total_pods_mem_use,
         storage: 0,
-    };
+    }
 }
 
 #[actix_web::get("/resources/ns/{namespace}")]
@@ -64,7 +63,7 @@ async fn get_namespace_use(kubeclient: web::Data<Client>, namespace: Path<String
     println!("meow!");
     let pod_use = get_pod_use(&kubeclient, &namespace).await;
 
-    return HttpResponse::Ok().json(pod_use);
+    HttpResponse::Ok().json(pod_use)
 }
 
 async fn get_node_use(client: &Client) -> cluster_resources {
@@ -82,7 +81,7 @@ async fn get_node_use(client: &Client) -> cluster_resources {
     let mut total_nodes_cpu_use: i32 = 0;
     let mut total_nodes_mem_use: i32 = 0;
     for node in node_metrics.items {
-        let name = node.name_any();
+        let _name = node.name_any();
         let cpu = utils::convert_cpu(node.data["usage"]["cpu"].as_str().unwrap_or("0"));
         let memory = utils::convert_memory(node.data["usage"]["memory"].as_str().unwrap_or("0"));
 
@@ -90,11 +89,11 @@ async fn get_node_use(client: &Client) -> cluster_resources {
         total_nodes_mem_use += memory;
     }
 
-    return cluster_resources {
+    cluster_resources {
         cpu: total_nodes_cpu_use,
         memory: total_nodes_mem_use,
         storage: 100,
-    };
+    }
 }
 
 async fn get_node_capacity(client: &Client) -> cluster_resources {
@@ -131,11 +130,11 @@ async fn get_node_capacity(client: &Client) -> cluster_resources {
         .map(|c| utils::convert_memory(&c.0))
         .sum();
 
-    return cluster_resources {
+    cluster_resources {
         cpu: total_cpu,
         memory: total_memory,
         storage: 100,
-    };
+    }
 }
 
 #[actix_web::get("/resources/cluster")]
@@ -159,5 +158,5 @@ async fn get_cluster_use(kubeclient: web::Data<Client>) -> HttpResponse {
         }
     });
 
-    return HttpResponse::Ok().json(return_json);
+    HttpResponse::Ok().json(return_json)
 }

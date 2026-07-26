@@ -7,13 +7,6 @@ use crate::Models::{
     Config::{AppConfig, MailConfig, NetworkingConfig, NtfyConfig},
 };
 
-use kube::{
-    Client,
-    api::{Api, PostParams},
-    core::{ApiResource, DynamicObject, GroupVersionKind},
-};
-use serde_json::json;
-
 use std::env;
 
 use argon2::password_hash::{PasswordHash, SaltString};

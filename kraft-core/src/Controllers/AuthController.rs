@@ -48,7 +48,7 @@ pub async fn changepwd(
     let int_user_id: i32 = user_id.parse().unwrap();
 
     let user_password: String = sqlx::query_scalar("SELECT password FROM users WHERE user_id=($1)")
-        .bind(&int_user_id)
+        .bind(int_user_id)
         .fetch_one(pool.get_ref())
         .await
         .unwrap();
@@ -163,7 +163,7 @@ pub async fn register(
         .is_empty();
 
     if betacode_enabled || is_first_user {
-        let valid = betacode_db::verify(&pool, &betacode).await.unwrap();
+        let valid = betacode_db::verify(&pool, betacode).await.unwrap();
         if !valid {
             return HttpResponse::Forbidden()
                 .json(json!({ "status": "error", "message": "Invalid registration code" }));
@@ -178,7 +178,7 @@ pub async fn register(
         }
     }
 
-    let email_clash = user::same_email(&pool, &email).await.unwrap();
+    let email_clash = user::same_email(&pool, email).await.unwrap();
     if email_clash {
         return HttpResponse::Conflict()
             .json(json!({ "status": "error", "message": "User already exists with that email" }));
@@ -325,7 +325,7 @@ pub async fn validate_jwt(req: HttpRequest, app_config: web::Data<AppConfig>) ->
 #[actix_web::get("/auth/validate-admin")]
 pub async fn validate_admin(
     _req: HttpRequest,
-    app_config: web::Data<AppConfig>,
+    _app_config: web::Data<AppConfig>,
     pool: web::Data<PgPool>,
     user: AuthUser,
 ) -> HttpResponse {
@@ -334,5 +334,5 @@ pub async fn validate_admin(
         return HttpResponse::Forbidden().finish();
     }
 
-    return HttpResponse::Ok().finish();
+    HttpResponse::Ok().finish()
 }

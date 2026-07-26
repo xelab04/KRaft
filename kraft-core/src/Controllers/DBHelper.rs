@@ -106,7 +106,7 @@ pub mod password {
 }
 
 pub mod user {
-    use crate::{Controllers::DBHelper::user, Models::User::User};
+    use crate::Models::User::User;
     use actix_web::web;
     use sqlx::PgPool;
 
@@ -334,8 +334,8 @@ pub mod betacode {
 
     pub async fn update(pool: &web::Data<PgPool>, betacode: &Betacode) -> Result<(), sqlx::Error> {
         let _r = sqlx::query("UPDATE betacode SET enabled = ($1) WHERE betacode = ($2)")
-            .bind(&betacode.enabled)
             .bind(&betacode.betacode)
+            .bind(betacode.enabled)
             .execute(pool.as_ref())
             .await?;
 
@@ -345,7 +345,7 @@ pub mod betacode {
     pub async fn create(pool: &web::Data<PgPool>, betacode: &Betacode) -> Result<(), sqlx::Error> {
         let _r = sqlx::query("INSERT INTO betacode (betacode, enabled) VALUES ($1, $2)")
             .bind(&betacode.betacode)
-            .bind(&betacode.enabled)
+            .bind(betacode.enabled)
             .execute(pool.as_ref())
             .await?;
 

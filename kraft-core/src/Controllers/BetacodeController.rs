@@ -1,6 +1,5 @@
-use log::{error, info};
+use log::info;
 use rand::{Rng, distributions::Alphanumeric};
-use std::collections::BTreeMap;
 
 use actix_web::web;
 use actix_web::web::Json;
@@ -11,7 +10,6 @@ use sqlx::PgPool;
 
 use crate::Controllers::DBHelper::*;
 use crate::Models::Betacode::Betacode;
-use crate::Models::Config::AppConfig;
 
 use crate::Models::User::AuthUser;
 
@@ -42,12 +40,8 @@ pub async fn update(
     }
 
     match betacode::update(&pool, &betacode).await {
-        Ok(_) => {
-            return HttpResponse::Ok().finish();
-        }
-        Err(e) => {
-            return HttpResponse::InternalServerError().json(e.to_string());
-        }
+        Ok(_) => HttpResponse::Ok().finish(),
+        Err(e) => HttpResponse::InternalServerError().json(e.to_string()),
     }
 }
 
@@ -64,12 +58,8 @@ pub async fn new(
     }
 
     match betacode::create(&pool, &betacode).await {
-        Ok(_) => {
-            return HttpResponse::Ok().finish();
-        }
-        Err(e) => {
-            return HttpResponse::InternalServerError().json(e.to_string());
-        }
+        Ok(_) => HttpResponse::Ok().finish(),
+        Err(e) => HttpResponse::InternalServerError().json(e.to_string()),
     }
 }
 
@@ -86,12 +76,8 @@ pub async fn delete(
     }
 
     match betacode::delete(&pool, &betacode).await {
-        Ok(_) => {
-            return HttpResponse::Ok().finish();
-        }
-        Err(e) => {
-            return HttpResponse::InternalServerError().json(e.to_string());
-        }
+        Ok(_) => HttpResponse::Ok().finish(),
+        Err(e) => HttpResponse::InternalServerError().json(e.to_string()),
     }
 }
 

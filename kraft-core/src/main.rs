@@ -1,8 +1,7 @@
 #[macro_use]
 extern crate actix_web;
 
-use log::{error, info};
-use rustls;
+use log::info;
 use std::{env, io, panic::PanicHookInfo};
 
 use actix_web::{
@@ -13,15 +12,16 @@ use actix_web::{
     web,
 };
 
+#[allow(non_snake_case)]
 mod Controllers;
+#[allow(non_snake_case)]
 mod Models;
 
 use Controllers::{ClusterController, UserController, WorkspaceController};
 use kube::Client;
 
 use crate::Controllers::{
-    AuthController, BetacodeController, DBHelper, JWTController, LogsController,
-    ResourceController, utils,
+    AuthController, BetacodeController, JWTController, LogsController, ResourceController, utils,
 };
 mod db_connect;
 
