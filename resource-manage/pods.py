@@ -1,3 +1,4 @@
+import logging
 import utils
 
 def get_pod_use(api_instance, custom_api, namespace):
@@ -12,10 +13,10 @@ def get_pod_use(api_instance, custom_api, namespace):
 
         total_cpu, total_memory = 0, 0
 
-        for pod_metric in metrics['items']:
-            for container in pod_metric['containers']:
-                cpu_usage = container['usage'].get('cpu', '0')
-                memory_usage = container['usage'].get('memory', '0')
+        for pod_metric in metrics.get('items', []):
+            for container in pod_metric.get('containers', []):
+                cpu_usage = container.get('usage', {}).get('cpu', '0')
+                memory_usage = container.get('usage', {}).get('memory', '0')
 
                 cpu = utils.convert_cpu(cpu_usage)
                 memory = utils.convert_memory(memory_usage)
@@ -24,10 +25,8 @@ def get_pod_use(api_instance, custom_api, namespace):
                 total_memory += memory
 
     except Exception as e:
-        print(f"Error getting metrics: {e}")
-
+        logging.warning("Metrics API unavailable, falling back to pod requests: %s", e)
         return get_pod_requests(api_instance, namespace)
-        # Meh I'm sure requests is a fair comparison
 
 
     return {

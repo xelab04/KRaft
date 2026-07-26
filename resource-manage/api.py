@@ -1,6 +1,5 @@
 from kubernetes import client, config
-from flask import Flask, send_file, jsonify
-from pprint import pprint
+from flask import Flask, jsonify
 
 import pods
 import nodes
@@ -22,11 +21,11 @@ def get_resources(namespace):
 
     total_cpu, total_memory = compute["total_cpu"], compute["total_memory"]
 
-    return {
+    return jsonify({
         "cpu": total_cpu,
         "memory": total_memory,
         "storage": sto
-    }
+    })
 
 # For the homepage to see cluster resource usage
 @app.route('/resources/cluster', methods=["GET"])

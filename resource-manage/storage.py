@@ -1,5 +1,5 @@
+import logging
 import utils
-from pprint import pprint
 
 
 def get_storage_reserved_cluster_longhorn(custom_api):
@@ -12,14 +12,17 @@ def get_storage_reserved_cluster_longhorn(custom_api):
         )
 
         total_storage = 0
-        for node in longhorn_nodes['items']:
-            for disk in node['status']['diskStatus']:
-                total_storage += utils.convert_storage(node['status']['diskStatus'][disk]['storageScheduled'])
+        for node in longhorn_nodes.get('items', []):
+            disk_status = node.get('status', {}).get('diskStatus', {})
+            for disk in disk_status:
+                total_storage += utils.convert_storage(
+                    disk_status[disk].get('storageScheduled', '0')
+                )
 
         return total_storage
 
     except Exception as e:
-        print(f"Error getting Longhorn used storage: {e}")
+        logging.warning("Error getting Longhorn used storage: %s", e)
         return None
 
 # get storage which has been reserved across cluster
@@ -36,8 +39,11 @@ def get_pv_claimed_storage(api_instance, custom_api):
 
     total_claimed_storage = 0
     for persistent_volume in returned_list_of_pvs.items:
-        # pprint(persistent_volume)
-        total_claimed_storage += utils.convert_storage(str(persistent_volume.spec.capacity['storage']))
+        capacity = persistent_volume.spec.capacity
+        if capacity:
+            total_claimed_storage += utils.convert_storage(
+                str(capacity.get('storage', '0'))
+            )
 
     return total_claimed_storage
 
@@ -47,7 +53,8 @@ def get_pvc_claimed_storage(api_instance, namespace):
 
     total_claimed_storage = 0
     for persistent_volume_claim in returned_list_of_pvcs.items:
-        # pprint(persistent_volume_claim)
-        total_claimed_storage += utils.convert_storage(persistent_volume_claim.status.capacity['storage'])
+        capacity = persistent_volume_claim.status.capacity
+        if capacity:
+            total_claimed_storage += utils.convert_storage(capacity.get('storage', '0'))
 
     return total_claimed_storage

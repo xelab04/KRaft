@@ -17,7 +17,7 @@ def convert_memory(mem):
         return int(mem) // (1000 * 1000)
 
 def convert_storage(st):
-    if type(st) == int:
+    if isinstance(st, int):
         st = str(st)
     if st.endswith("Mi"):
         st = int(st.strip("Mi"))
@@ -25,5 +25,5 @@ def convert_storage(st):
         st = int(st.strip("Gi")) * 1000
     else:
         # given to me in B, so convert to Mi
-        st = int(int(st) / 1000000)
+        st = int(st) // 1000000
     return st

@@ -1,11 +1,18 @@
+import logging
 import utils
-from pprint import pprint
 
 def get_node_compute_capacity(api_instance):
     nodes = api_instance.list_node(watch=False)
 
-    total_cpu_capacity = sum([utils.convert_cpu(node.status.capacity.get('cpu', '0')) for node in nodes.items])
-    total_mem_capacity = sum([utils.convert_memory(node.status.capacity.get('memory', '0')) for node in nodes.items])
+    total_cpu_capacity = sum([
+        utils.convert_cpu(node.status.capacity.get('cpu', '0'))
+        for node in nodes.items if node.status.capacity
+    ])
+
+    total_mem_capacity = sum([
+        utils.convert_memory(node.status.capacity.get('memory', '0'))
+        for node in nodes.items if node.status.capacity
+    ])
 
     return {
         "total_cpu": total_cpu_capacity,
@@ -22,11 +29,11 @@ def get_node_use(custom_api):
             plural="nodes"
         )
 
-        total_cpu = sum([utils.convert_cpu(node['usage'].get('cpu', 0)) for node in metrics['items']])
-        total_memory = sum([utils.convert_memory(node['usage'].get('memory', 0)) for node in metrics['items']])
+        total_cpu = sum([utils.convert_cpu(node.get('usage', {}).get('cpu', 0)) for node in metrics.get('items', [])])
+        total_memory = sum([utils.convert_memory(node.get('usage', {}).get('memory', 0)) for node in metrics.get('items', [])])
 
     except Exception as e:
-        print(f"Error getting metrics: {e}")
+        logging.warning("Error getting node metrics: %s", e)
 
         return {
             "total_cpu": 0,
@@ -49,18 +56,17 @@ def get_node_storage_longhorn(custom_api):
 
         total_storage = 0
 
-        for node in longhorn_nodes['items']:
-            # reserved = sum([utils.convert_storage(disk.storageReserved) for disk in node.spec.disks])
-            for disk in node['status']['diskStatus']:
-                # pprint(disk)
-                total_storage += utils.convert_storage(node['status']['diskStatus'][disk]['storageMaximum'])
-
-            # total_storage_on_node = sum([ )
+        for node in longhorn_nodes.get('items', []):
+            disk_status = node.get('status', {}).get('diskStatus', {})
+            for disk in disk_status:
+                total_storage += utils.convert_storage(
+                    disk_status[disk].get('storageMaximum', '0')
+                )
 
         return total_storage
 
     except Exception as e:
-        print(f"Error getting total storage: {e}")
+        logging.warning("Error getting total storage: %s", e)
         return None
 
 def get_allocatable_node_storage(api_instance, custom_api):
@@ -70,6 +76,10 @@ def get_allocatable_node_storage(api_instance, custom_api):
     if total_allocatable_storage:
         return total_allocatable_storage
 
-    total_allocatable_storage = sum([utils.convert_storage(node.status.allocatable['ephemeral-storage']) for node in returned_list_of_nodes.items])
+    total_allocatable_storage = sum([
+        utils.convert_storage(node.status.allocatable.get('ephemeral-storage', '0'))
+        for node in returned_list_of_nodes.items
+        if node.status.allocatable
+    ])
 
     return total_allocatable_storage

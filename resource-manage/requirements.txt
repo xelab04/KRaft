@@ -1,3 +1,5 @@
 kubernetes
 flask
 gunicorn
+mysql-connector-python
+python-dotenv
