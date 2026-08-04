@@ -43,6 +43,7 @@ pub async fn details(
 
     // If admin, let the user get the details for any user
     if is_admin && let Some(found_uuid) = useruuid_param {
+        info!("admin used, looking up {}", found_uuid.u);
         let found_user: User = sqlx::query_as::<_, User>(
             "SELECT user_id, username, email, uuid FROM users WHERE uuid = ($1)",
         )
