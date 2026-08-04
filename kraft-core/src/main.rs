@@ -62,6 +62,7 @@ async fn main() -> io::Result<()> {
 
     info!("KRaft, created by Alex");
     info!("with help from Erwan, for the GitHub Actions");
+    info!("as well as the help from Kishan, cleaning up my old code");
     info!("and with the help and support of the Home Ops community");
     info!("written in rust 🏳️‍⚧️");
 
