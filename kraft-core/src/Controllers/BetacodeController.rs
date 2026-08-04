@@ -1,19 +1,15 @@
-use log::{error, info};
+use actix_web::{
+    HttpRequest, HttpResponse,
+    web::{self, Json},
+};
+use log::info;
 use rand::{Rng, distributions::Alphanumeric};
-use std::collections::BTreeMap;
+use sqlx::{self, PgPool};
 
-use actix_web::web;
-use actix_web::web::Json;
-use actix_web::{HttpRequest, HttpResponse};
-
-use sqlx;
-use sqlx::PgPool;
-
-use crate::Controllers::DBHelper::*;
-use crate::Models::Betacode::Betacode;
-use crate::Models::Config::AppConfig;
-
-use crate::Models::User::AuthUser;
+use crate::{
+    Controllers::DBHelper::*,
+    Models::{Betacode::Betacode, User::AuthUser},
+};
 
 #[get("/api/admin/betacode/list")]
 pub async fn create(_req: HttpRequest, pool: web::Data<PgPool>, user: AuthUser) -> HttpResponse {
@@ -42,12 +38,8 @@ pub async fn update(
     }
 
     match betacode::update(&pool, &betacode).await {
-        Ok(_) => {
-            return HttpResponse::Ok().finish();
-        }
-        Err(e) => {
-            return HttpResponse::InternalServerError().json(e.to_string());
-        }
+        Ok(_) => HttpResponse::Ok().finish(),
+        Err(e) => HttpResponse::InternalServerError().json(e.to_string()),
     }
 }
 
@@ -64,12 +56,8 @@ pub async fn new(
     }
 
     match betacode::create(&pool, &betacode).await {
-        Ok(_) => {
-            return HttpResponse::Ok().finish();
-        }
-        Err(e) => {
-            return HttpResponse::InternalServerError().json(e.to_string());
-        }
+        Ok(_) => HttpResponse::Ok().finish(),
+        Err(e) => HttpResponse::InternalServerError().json(e.to_string()),
     }
 }
 
@@ -86,12 +74,8 @@ pub async fn delete(
     }
 
     match betacode::delete(&pool, &betacode).await {
-        Ok(_) => {
-            return HttpResponse::Ok().finish();
-        }
-        Err(e) => {
-            return HttpResponse::InternalServerError().json(e.to_string());
-        }
+        Ok(_) => HttpResponse::Ok().finish(),
+        Err(e) => HttpResponse::InternalServerError().json(e.to_string()),
     }
 }
 
@@ -104,12 +88,6 @@ pub async fn first_startup(pool: &PgPool) -> Result<(), sqlx::Error> {
         sqlx::query_scalar("SELECT EXISTS ( SELECT 1 FROM users LIMIT 1 )")
             .fetch_one(pool)
             .await?;
-    // TODO
-    //
-    // if there is something in the beta code table but there are no users...
-    // do we generate yet another beta code? -> restart looping before registration will make MANY codes
-    // --- do we output a funtional code? -> have to check and find a functional beta code, or generate one otherwise
-    // do we check that at least one code must be valid at start? -> no, you might want registration to be closed
 
     // if there are no admin users, and no valid beta codes, generate one and output it
     if !admin_user_exists && valid_betacode.is_none() {

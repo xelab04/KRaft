@@ -2,26 +2,26 @@ use k3k_rs::cluster::ExposeIngress;
 use log::{error, info};
 use std::collections::BTreeMap;
 
-use actix_web::web::Json;
-use actix_web::web::{self, Path};
-use actix_web::{HttpRequest, HttpResponse};
+use actix_web::{
+    HttpRequest, HttpResponse,
+    web::{self, Json, Path},
+};
 
-use sqlx;
-use sqlx::PgPool;
+use sqlx::{self, PgPool};
 
 use k3k_rs;
-use k8s_openapi::api::core::v1::Namespace;
-use k8s_openapi::apimachinery::pkg::apis::meta::v1::ObjectMeta;
+use k8s_openapi::{api::core::v1::Namespace, apimachinery::pkg::apis::meta::v1::ObjectMeta};
 use kube::Client;
 
-// use crate::class;
-// use crate::AppConfig;
-use crate::Controllers::utils;
-use crate::Controllers::{DBHelper::*, WorkspaceController};
-use crate::Models::Config::AppConfig;
-
-use crate::Models::Cluster::{Cluster, ClusterCreateForm, ClusterResourceConfig};
-use crate::Models::User::AuthUser;
+use crate::{
+    Controllers::{DBHelper::*, WorkspaceController},
+    Models::{
+        Cluster::{Cluster, ClusterCreateForm},
+        Config::AppConfig,
+        User::AuthUser,
+    },
+    utils,
+};
 
 #[post("/api/create/clusters")]
 pub async fn create(
@@ -257,12 +257,12 @@ pub async fn create(
     .await
     .unwrap();
 
-    for (_i, tlssan) in validated_tlssan_list.iter().enumerate() {
+    for tlssan in validated_tlssan_list {
         let _ = k3k_rs::ingress::ingress_create(
             &kubeclient,
             &cluster_name,
             &namespace,
-            tlssan,
+            &tlssan,
             &config.network_config.ingress_class,
         )
         .await;

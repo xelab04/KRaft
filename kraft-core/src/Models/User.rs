@@ -3,7 +3,6 @@ use futures_util::future::{Ready, ready};
 
 use serde::{self, Deserialize, Serialize};
 use sqlx::FromRow;
-// use crate::{AppConfig, NtfyConfig, jwt};
 
 use crate::Controllers::JWTController;
 

@@ -1,24 +1,19 @@
-use actix_web::HttpResponse;
-use actix_web::web;
-use actix_web::web::Json;
-use actix_web::web::to;
-use k3k_rs::cluster;
-use kube::core::ErrorResponse;
+use actix_web::{
+    HttpResponse,
+    web::{self, Json},
+};
 use serde::{self, Deserialize, Serialize};
-use sqlx::Pool;
-use sqlx::Postgres;
+use sqlx::{self, PgPool, Pool, Postgres};
 
 use chrono;
 use log::info;
 use uuid::Uuid;
 
-use sqlx;
-use sqlx::PgPool;
-
-use crate::Controllers::DBHelper::{clusters, workspaces};
-use crate::Models::Config::AppConfig;
-use crate::Models::User::AuthUser;
-use crate::utils;
+use crate::{
+    Controllers::DBHelper::{clusters, workspaces},
+    Models::{Config::AppConfig, User::AuthUser},
+    utils,
+};
 
 use kube::{
     Client,
@@ -157,7 +152,7 @@ pub async fn statefulset(
     // api
     let statefulset_handler: Api<DynamicObject> =
         Api::namespaced_with(client.clone(), namespace, &ar);
-    let statefulset_name = format!("workspace");
+    let statefulset_name = String::from("workspace");
 
     match statefulset_handler.get(&statefulset_name).await {
         Ok(_) => {
@@ -258,7 +253,7 @@ pub async fn statefulset(
                         "name": "kubeconfig",
                         "secret": {
                             "secretName": format!("k3k-{}-kubeconfig", cluster_name),
-                            "defaultMode": 0444,
+                            "defaultMode": 0o444,
                             "items": [{
                                 "key": "kubeconfig.yaml",
                                 "path": "config"
@@ -343,6 +338,7 @@ pub struct WorkspaceCreate {
     pub name: String,
 }
 
+#[allow(clippy::too_many_arguments)]
 pub async fn core_workspace_create(
     kubeclient: &Client,
     pool: &web::Data<Pool<Postgres>>,
@@ -356,11 +352,11 @@ pub async fn core_workspace_create(
     user_id: &i32,
     cluster_id: &i32,
 ) {
-    netpol(&kubeclient, cluster_name, namespace).await;
+    netpol(kubeclient, cluster_name, namespace).await;
 
     statefulset(kubeclient, cluster_name, namespace, cluster_id, host).await;
 
-    service(&kubeclient, cluster_name, namespace).await;
+    service(kubeclient, cluster_name, namespace).await;
 
     ingress(
         kubeclient,
@@ -372,7 +368,7 @@ pub async fn core_workspace_create(
     )
     .await;
 
-    workspaces::create(pool, workspace_name, &cluster_name, user_id)
+    workspaces::create(pool, workspace_name, cluster_name, user_id)
         .await
         .expect("failed adding workspace to db");
 }

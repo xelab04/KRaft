@@ -1,13 +1,12 @@
 use actix_web::{HttpResponse, web};
 use log::{error, info};
-use serde_json;
-use serde_json::json;
+use serde_json::{self, json};
 use sqlx::PgPool;
 
 use crate::{
     Controllers::{
         DBHelper::{clusters, user, workspaces},
-        JWTController, utils,
+        JWTController,
     },
     Models::User::{AuthUser, User, UserUUID},
 };
@@ -21,6 +20,7 @@ pub async fn list(pool: web::Data<PgPool>, user: AuthUser) -> HttpResponse {
     if !user::is_admin(&pool, &user_id).await.unwrap_or(false) {
         return HttpResponse::Forbidden().finish();
     }
+
     let users = user::list_users(&pool)
         .await
         .expect("failed to list all users in db");
@@ -41,26 +41,13 @@ pub async fn details(
     // check if is admin
     let is_admin = user::is_admin(&pool, &int_user_id).await.unwrap_or(false);
 
-    // If admin, let the user get the details for all users
-    if is_admin {
-        let req_uuid: String = match useruuid_param {
-            Some(found_uuid) => {
-                info!("admin used, no userid specified");
-                found_uuid.u.clone()
-            }
-            None => {
-                println!("admin used, no userid specified");
-
-                let int_user_id = user.user_id.clone().parse::<i32>().unwrap();
-                let found_user = user::get_details(&pool, &int_user_id).await.unwrap();
-                return HttpResponse::Ok().json(json!({"status": "success", "data": found_user}));
-            }
-        };
-
+    // If admin, let the user get the details for any user
+    if is_admin && let Some(found_uuid) = useruuid_param {
+        info!("admin used, looking up {}", found_uuid.u);
         let found_user: User = sqlx::query_as::<_, User>(
             "SELECT user_id, username, email, uuid FROM users WHERE uuid = ($1)",
         )
-        .bind(&req_uuid)
+        .bind(&found_uuid.u)
         .fetch_one(pool.as_ref())
         .await
         .unwrap();
@@ -68,7 +55,7 @@ pub async fn details(
         return HttpResponse::Ok().json(json!({"status": "success", "data": found_user}));
     }
 
-    // get user details from database
+    // get current user details from database
     match user::get_details(&pool, &int_user_id).await {
         Err(e) => {
             error!("Error: {:?}", e);
@@ -94,8 +81,6 @@ pub async fn user_delete(
     let user_jwt = user.user_id;
     let int_user_id = user_jwt.parse::<i32>().unwrap();
 
-    let _is_admin = user::is_admin(&pool, &int_user_id).await.unwrap_or(false);
-
     let clusters = clusters::list(&pool, &int_user_id).await.unwrap();
 
     // Delete all clusters associated with the user
@@ -104,7 +89,7 @@ pub async fn user_delete(
         info!("Deleting cluster {}", cluster_name);
         let namespace = format!("k3k-{}", cluster_name);
         let r = k3k_rs::cluster::delete(&client, &namespace, &cluster_name).await;
-        let _r2 = k3k_rs::namespace::delete(&client, namespace.as_str())
+        k3k_rs::namespace::delete(&client, namespace.as_str())
             .await
             .unwrap();
         match r {
@@ -128,34 +113,35 @@ pub async fn user_delete(
     user::delete(&pool, &int_user_id).await.unwrap();
     let delete_cookie = JWTController::del_cookie();
 
-    // return HttpResponse::Ok().finish();
     HttpResponse::Ok()
         .cookie(delete_cookie)
         .json(json!({ "status": "success", "message": "success" }))
 }
 
-/// Validate the user account with a token sent to their mail
-#[get("/auth/validate/{token}")]
+/// Validate the user account with a uuid sent to their mail
+#[get("/auth/user/validate/{validation_code}")]
 pub async fn validate(
     user: AuthUser,
     pool: web::Data<PgPool>,
-    token: web::Path<String>,
+    validation_code: web::Path<String>,
 ) -> HttpResponse {
-    let raw_token = token.into_inner();
-    let int_user_token = user.user_id.parse::<i32>().unwrap();
+    let raw_code = validation_code.into_inner();
+    let int_user_id = user.user_id.parse::<i32>().unwrap();
 
-    let user_token = match user::get_validation_token(&pool, &int_user_token).await {
-        Ok(token) => token,
+    let user_verification_code = match user::get_verification_code(&pool, &int_user_id).await {
+        Ok(code) => code,
         Err(_) => {
             return HttpResponse::Unauthorized().finish();
         }
     };
 
-    if !utils::check_passwords_match(&raw_token, &user_token) {
+    if raw_code != user_verification_code {
         return HttpResponse::Unauthorized().finish();
     }
 
-    user::validate(&pool, &user_token).await.unwrap();
+    user::validate(&pool, &user_verification_code)
+        .await
+        .unwrap();
 
-    HttpResponse::Ok().json(json!({"status":"success", "message":"account validated, thank you"}))
+    HttpResponse::Ok().json(json!({"status":"success", "message":"account verified, thank you"}))
 }
