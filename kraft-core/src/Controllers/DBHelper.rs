@@ -106,7 +106,7 @@ pub mod password {
 }
 
 pub mod user {
-    use crate::{Controllers::DBHelper::user, Models::User::User};
+    use crate::Models::User::User;
     use actix_web::web;
     use sqlx::PgPool;
 
@@ -158,15 +158,6 @@ pub mod user {
         Ok(user_list)
     }
 
-    pub async fn get_role(pool: &web::Data<PgPool>, user_id: &i32) -> Result<String, sqlx::Error> {
-        let role = sqlx::query_scalar("SELECT")
-            .bind(user_id)
-            .fetch_one(pool.get_ref())
-            .await?;
-
-        Ok(role)
-    }
-
     pub async fn same_username(
         pool: &web::Data<PgPool>,
         username: &str,
@@ -195,26 +186,26 @@ pub mod user {
         Ok(same_users)
     }
 
-    pub async fn validate(pool: &web::Data<PgPool>, db_token: &str) -> Result<(), sqlx::Error> {
+    pub async fn validate(pool: &web::Data<PgPool>, code: &str) -> Result<(), sqlx::Error> {
         let _r =
             sqlx::query("UPDATE users SET verified_email = true WHERE verification_code = ($1)")
-                .bind(db_token)
+                .bind(code)
                 .execute(pool.as_ref())
                 .await?;
         Ok(())
     }
 
-    pub async fn get_validation_token(
+    pub async fn get_verification_code(
         pool: &web::Data<PgPool>,
         user_id: &i32,
     ) -> Result<String, sqlx::Error> {
-        let possible_stored_user_token =
+        let possible_stored_user_verification_code =
             sqlx::query_scalar("SELECT verification_code FROM users WHERE user_id = ($1)")
                 .bind(user_id)
                 .fetch_one(pool.as_ref())
                 .await?;
 
-        Ok(possible_stored_user_token)
+        Ok(possible_stored_user_verification_code)
     }
 
     pub async fn is_admin(pool: &web::Data<PgPool>, user_id: &i32) -> Result<bool, sqlx::Error> {
@@ -334,8 +325,8 @@ pub mod betacode {
 
     pub async fn update(pool: &web::Data<PgPool>, betacode: &Betacode) -> Result<(), sqlx::Error> {
         let _r = sqlx::query("UPDATE betacode SET enabled = ($1) WHERE betacode = ($2)")
-            .bind(&betacode.enabled)
             .bind(&betacode.betacode)
+            .bind(betacode.enabled)
             .execute(pool.as_ref())
             .await?;
 
@@ -345,7 +336,7 @@ pub mod betacode {
     pub async fn create(pool: &web::Data<PgPool>, betacode: &Betacode) -> Result<(), sqlx::Error> {
         let _r = sqlx::query("INSERT INTO betacode (betacode, enabled) VALUES ($1, $2)")
             .bind(&betacode.betacode)
-            .bind(&betacode.enabled)
+            .bind(betacode.enabled)
             .execute(pool.as_ref())
             .await?;
 

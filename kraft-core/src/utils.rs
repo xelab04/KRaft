@@ -1,23 +1,17 @@
 use log::{info, warn};
 use regex::Regex;
-use reqwest;
 
 use crate::Models::{
     Cluster::ClusterResourceConfig,
     Config::{AppConfig, MailConfig, NetworkingConfig, NtfyConfig},
 };
 
-use kube::{
-    Client,
-    api::{Api, PostParams},
-    core::{ApiResource, DynamicObject, GroupVersionKind},
-};
-use serde_json::json;
-
 use std::env;
 
-use argon2::password_hash::{PasswordHash, SaltString};
-use argon2::{Argon2, PasswordHasher, PasswordVerifier, password_hash::Salt};
+use argon2::{
+    Argon2, PasswordHasher, PasswordVerifier,
+    password_hash::{PasswordHash, Salt, SaltString},
+};
 use mail_builder::MessageBuilder;
 use mail_send::SmtpClientBuilder;
 use rand::rngs::OsRng;

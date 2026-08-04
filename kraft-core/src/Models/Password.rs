@@ -8,7 +8,7 @@ pub struct PasswordChange {
 }
 
 // Generate hashed password for test
-#[derive(Deserialize)]
-pub struct PasswordParams {
-    pub user_password: String,
-}
+// #[derive(Deserialize)]
+// pub struct PasswordParams {
+//     pub user_password: String,
+// }

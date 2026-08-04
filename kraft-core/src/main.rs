@@ -1,8 +1,8 @@
 #[macro_use]
 extern crate actix_web;
 
-use log::{error, info};
-use rustls;
+use kube::Client;
+use log::info;
 use std::{env, io, panic::PanicHookInfo};
 
 use actix_web::{
@@ -13,17 +13,18 @@ use actix_web::{
     web,
 };
 
+#[allow(non_snake_case)]
 mod Controllers;
+#[allow(non_snake_case)]
 mod Models;
 
-use Controllers::{ClusterController, UserController, WorkspaceController};
-use kube::Client;
-
-use crate::Controllers::{
-    AuthController, BetacodeController, DBHelper, JWTController, LogsController,
-    ResourceController, utils,
-};
 mod db_connect;
+mod utils;
+
+use Controllers::{
+    AuthController, BetacodeController, ClusterController, JWTController, LogsController,
+    ResourceController, UserController, WorkspaceController,
+};
 
 pub async fn update_cookie_middleware<B>(
     req: ServiceRequest,
@@ -58,6 +59,7 @@ async fn main() -> io::Result<()> {
         env::set_var("RUST_LOG", "actix_web=debug,actix_server=info,info");
     }
     env_logger::init_from_env(env_logger::Env::default().default_filter_or("info"));
+
     info!("KRaft, created by Alex");
     info!("with help from Erwan, for the GitHub Actions");
     info!("and with the help and support of the Home Ops community");

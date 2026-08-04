@@ -1,17 +1,17 @@
-use actix_web::HttpResponse;
-use actix_web::web;
+use actix_web::{HttpResponse, web};
 use log::error;
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 
-use sqlx;
-use sqlx::PgPool;
+use sqlx::{self, PgPool};
 
 use k3k_rs;
 use kube::Client;
 
-use crate::Controllers::DBHelper::clusters;
-use crate::Models::User::AuthUser;
+use crate::{
+    Controllers::DBHelper::clusters,
+    Models::{Config::AppConfig, User::AuthUser},
+};
 
 #[derive(Serialize, Deserialize)]
 pub struct LogsType {
@@ -23,7 +23,7 @@ pub struct LogsType {
 pub async fn getlogs(
     pool: web::Data<PgPool>,
     client: web::Data<Client>,
-    // config: web::Data<AppConfig>,
+    _config: web::Data<AppConfig>,
     query: web::Query<LogsType>,
     user: AuthUser,
 ) -> HttpResponse {
