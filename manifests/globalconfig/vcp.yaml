@@ -16,7 +16,7 @@ spec:
       defaultRequest:
         cpu: 50m
         memory: 75Mi
-      type: Container
+      type: Pod
 
   quota:
     hard:

@@ -4,7 +4,7 @@ use reqwest;
 
 use crate::Models::{
     Cluster::ClusterResourceConfig,
-    Config::{AppConfig, MailConfig, NetworkingConfig, NtfyConfig, TowonelConfig},
+    Config::{AppConfig, MailConfig, NetworkingConfig, NtfyConfig},
 };
 
 use kube::{
@@ -49,12 +49,12 @@ pub fn get_ntfy_config() -> Option<NtfyConfig> {
     })
 }
 
-pub fn get_towonel_config() -> Option<TowonelConfig> {
-    let token = std::env::var("TOWONEL_TOKEN").ok()?;
-    let hub = std::env::var("TOWONEL_HUB").ok()?;
-
-    Some(TowonelConfig { token, hub })
-}
+// pub fn get_towonel_config() -> Option<TowonelConfig> {
+//     let token = std::env::var("TOWONEL_TOKEN").ok()?;
+//     let hub = std::env::var("TOWONEL_HUB").ok()?;
+//
+//     Some(TowonelConfig { token, hub })
+// }
 
 pub fn generate_appconfig() -> AppConfig {
     let email = generate_email_config();
@@ -89,7 +89,6 @@ pub fn generate_appconfig() -> AppConfig {
         ingress_class,
         cluster_issuer,
     };
-    let towonel_config = get_towonel_config();
 
     let conf: AppConfig = AppConfig {
         email,
@@ -100,7 +99,6 @@ pub fn generate_appconfig() -> AppConfig {
         jwt_secret,
         resource_config,
         network_config,
-        towonel_config,
     };
 
     conf

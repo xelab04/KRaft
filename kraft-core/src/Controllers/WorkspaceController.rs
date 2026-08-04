@@ -245,7 +245,7 @@ pub async fn statefulset(
                             "resources": {
                                 "limits": {
                                     "cpu": "100m",
-                                    "memory": "50M"
+                                    "memory": "125M"
                                 }
                             },
                             "securityContext": {
@@ -318,6 +318,13 @@ pub async fn netpol(client: &Client, cluster_name: &str, namespace: &str) {
                     "namespaceSelector": {
                         "matchLabels": {
                             "kubernetes.io/metadata.name": "kraft"
+                        }
+                    }
+                }],
+                "to": [{
+                    "podSelector": {
+                        "matchLabels": {
+                            "cluster": cluster_name
                         }
                     }
                 }]
