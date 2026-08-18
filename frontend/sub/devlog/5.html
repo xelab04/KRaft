@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>KRaft</title>
+        <script src="https://cdn.tailwindcss.com"></script>
+    </head>
+    <body
+        class="bg-black h-screen w-screen flex flex-col items-center justify-center m-0 p-0"
+    >
+        <div class="p-8 rounded-md shadow-lg max-w-2xl w-full mx-4 h-[60vh]">
+            <!-- bg-zinc-800 outline-white-500 outline -->
+            <div class="flex items-center mb-4">
+                <a href="/"
+                    ><h1 class="text-white font-mono text-3xl">KRaft</h1></a
+                >
+                <h3 class="text-white font-mono text-sm ml-2 self-end mb-1">
+                    by Alex
+                </h3>
+            </div>
+            <div class="text-white font-mono flex flex-col mt-8 pb-4">
+                <a href="#" class="text-2xl underline block">[&gt;] Rewrite it in... Rust?</a>
+                <div class="font-bold mt-8">When it's already written in Rust, what do you do when you have the urge to rewrite everything again?</div>
+                <div>
+                    Making KRaft more maintainable has been something on my ToDo list for way too long now. This update is therefore a bit of a major one as it is a huge step for the project itself. From a certain point of view, this is a "refreshed" and cleaner version of the previous KRaft.
+                </div>
+
+                <div class="font-bold mt-4">Features and Changes</div>
+                <div>
+                    KRaft has been rewritten, which you can probably guess from the title and introduction. The previous version of KRaft was intended to have microservices so I could easily bolt on functionality in the future, and give me some extra flexibility. This extra flexibility never materialised, which is possibly the consequence of me not being that experienced with designing microservices. Adding on features quickly became a bit of a chore, and utility functions to abstract away the mess became longer than the core KRaft logic.
+                    <br/>
+                    The first version of KRaft split logic into a cluster manager, authentication, and resource manager service. Of course, more complex features arrived later down the line, with workspaces being a recent addition, and the split services made it harder to integrate them.
+                    <br/>
+                    Now, I have completely merged all those three "microservices" into kraft-core, which has much tidier code, better organisation of files, and a much "cleaner" development approach. Despite combining these three services, kraft-core is still incredibly lightweight at 30MB RAM usage on average. Additionally, by removing the original resource-manager Python service, which itself consumed 300MB, KRaft is now lighter than ever!
+                </div>
+
+                <div class="font-bold mt-4">Future Work</div>
+                <div>
+                    I am quite enjoying the shorter updates! That's basically it for this one, and I am so relieved to have the rewrite out of the way, and I can focus on adding more features in the future.
+                </div>
+
+            <div
+                class="text-white font-mono flex flex-col mt-8 text-right pb-8"
+            >
+                <a href="./6" class="text-2xl underline block"
+                    >Next [&lt;]</a
+                >
+            </div>
+        </div>
+
+        <!-- 88x31 image at the bottom -->
+        <div class="absolute bottom-4">
+            <img
+                src="assets/88x31.gif"
+                alt="88x31 banner"
+                width="88"
+                height="31"
+            />
+        </div>
+    </body>
+</html>

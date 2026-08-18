@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>KRaft</title>
+        <script src="https://cdn.tailwindcss.com"></script>
+    </head>
+    <body
+        class="bg-black h-screen w-screen flex flex-col items-center justify-center m-0 p-0"
+    >
+        <div class="p-8 rounded-md shadow-lg max-w-2xl w-full mx-4 h-[60vh]">
+            <!-- bg-zinc-800 outline-white-500 outline -->
+            <div class="flex items-center mb-4">
+                <a href="/"
+                    ><h1 class="text-white font-mono text-3xl">KRaft</h1></a
+                >
+                <h3 class="text-white font-mono text-sm ml-2 self-end mb-1">
+                    by Alex
+                </h3>
+            </div>
+            <div class="text-white font-mono flex flex-col mt-8 pb-4">
+                <a href="#" class="text-2xl underline block">[&gt;] An Admin Panel</a>
+                <div class="font-bold mt-8">Controlling everything through kubectl was getting a bit tough.</div>
+                <div>
+                    Since the last update really helped KRaft in terms of maintainability, I wanted to also improve the experience for the operator behind the host cluster. I had been operating everything through kubectl until now, which wasn't sustainable, so an admin panel was the next feature I wanted to implement.
+                </div>
+
+                <div class="font-bold mt-4">Features and Changes</div>
+                <div>
+                    I'm not exactly sure what to write here though... It's an admin panel. The admin/operator account is the first one created and has full access to the admin panel. This panel gives an overview of users, their clusters, as well as the beta codes. The latter is the smallest yet most significant change for me, as I don't have to enter the database to create or disable beta codes anymore.
+                    <br/>
+                    The user view lets me view all the details about the users, except, obviously the password which is hashed. I can also dig further down into the cluster view for each user, and can perform the same operations the user can, including viewing logs, deleting, and downloading the kubeconfig file. And also I can use a user's workspace.
+                    <br/>
+                    These features will be helpful for debugging and troubleshooting problems in the future. It also should not be a surprise to users that an operator can do this, as it is clearly mentioned in the Readme on the homepage. And unless you use something like confidential compute, your cloud service provider can do the same.
+                </div>
+
+                <div class="font-bold mt-4">Future Work</div>
+                <div>
+                    And on that bombshell, that's it for this feature update! The admin panel has me feeling like a frontend developer which is... oof. I need a break after this, and anyways, DevCon is coming up so I have slides to prepare. I'll undoubtedly have a bunch of ideas for KRaft after DevCon as well!
+                </div>
+
+            <div
+                class="text-white font-mono flex flex-col mt-8 text-right pb-8"
+            >
+                <a href="./7" class="text-2xl underline block"
+                    >Next [&lt;]</a
+                >
+            </div>
+        </div>
+
+        <!-- 88x31 image at the bottom -->
+        <div class="absolute bottom-4">
+            <img
+                src="assets/88x31.gif"
+                alt="88x31 banner"
+                width="88"
+                height="31"
+            />
+        </div>
+    </body>
+</html>
