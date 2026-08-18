@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>KRaft</title>
+        <script src="https://cdn.tailwindcss.com"></script>
+    </head>
+    <body
+        class="bg-black h-screen w-screen flex flex-col items-center justify-center m-0 p-0"
+    >
+        <div class="p-8 rounded-md shadow-lg max-w-2xl w-full mx-4 h-[60vh]">
+            <!-- bg-zinc-800 outline-white-500 outline -->
+            <div class="flex items-center mb-4">
+                <a href="/"
+                    ><h1 class="text-white font-mono text-3xl">KRaft</h1></a
+                >
+                <h3 class="text-white font-mono text-sm ml-2 self-end mb-1">
+                    by Alex
+                </h3>
+            </div>
+            <div class="text-white font-mono flex flex-col mt-8 pb-4">
+                <a href="#" class="text-2xl underline block">[&gt;] KRaft in Alpha</a>
+                <div class="font-bold mt-8">KRaft now in Alpha!</div>
+                <div>
+                    After a lot of work done recently, KRaft is ready to be made available to my friends for beta testing. Base functionality is present and all the features implemented so far do actually work. Effort has of course been put into reducing jank where possible, though, given the early stages of this project, there might be some friction in some places.
+                    If you are willing to help test, troubleshoot, or fix KRaft, please get in touch!
+                </div>
+
+                <div class="font-bold mt-4">Features and Changes</div>
+                <ul class="list-inside list-disc">
+                    <li>Resource usage is respectable, with KRaft services sipping on around 50MB RAM total on idle. The only heavy parts at this stage are the MariaDB database, as well as the singular Python service. K3k virtual clusters also use little RAM, save for the server which needs more due to the etcd server it runs inside.</li>
+                    <li>K3k-rs: a Rust crate for handling K3k resources using kube-rs. Until recently, K3k clusters were created by running the shell command of "k3kcli cluster create", though this offers no safety rails and is a very bad practice. Now, K3k-rs is used, and it provides all the type safety features which Rust is known for.</li>
+                    <li>First slopped-together PR! On the occasion of Hacktoberfest, I received an unbelievably bad PR which was obviously AI generated. Unsurprisingly, the LLM had little context behind the relatively new K3k project or the associated Rust crate. This prompted a review of the contribution policy in order to preserve this project's light-hearted spirit.</li>
+                    <li>Cluster logs. It is very useful to have logs from the K3k pods running the virtual cluster in case any problems arise during cluster creation or in its lifecycle. This feature brings logs into the web view so cluster owners can check out control plane and agent pod logs without needing host cluster access.</li>
+                </ul>
+
+                <div class="font-bold mt-4">Future Work</div>
+                <div>
+                    With this "release" done, I have closed 21 issues over on Github, and only 6 remain. Of course, as the project grows and matures, I expect many more features to come to mind, so 6 is a very optimistic view for the next few months. Some features in particular which I want to address are related to the user account view, where they can view and change details pertaining to their account, as well as completely delete their clusters and whole account.
+                </div>
+
+            <div
+                class="text-white font-mono flex flex-col mt-8 text-right pb-8"
+            >
+                <a href="./2" class="text-2xl underline block"
+                    >Next [&lt;]</a
+                >
+            </div>
+        </div>
+
+        <!-- 88x31 image at the bottom -->
+        <div class="absolute bottom-4">
+            <img
+                src="assets/88x31.gif"
+                alt="88x31 banner"
+                width="88"
+                height="31"
+            />
+        </div>
+    </body>
+</html>

@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>KRaft</title>
+        <script src="https://cdn.tailwindcss.com"></script>
+    </head>
+    <body
+        class="bg-black h-screen w-screen flex flex-col items-center justify-center m-0 p-0"
+    >
+        <div class="p-8 rounded-md shadow-lg max-w-2xl w-full mx-4 h-[60vh]">
+            <!-- bg-zinc-800 outline-white-500 outline -->
+            <div class="flex items-center mb-4">
+                <a href="/"
+                    ><h1 class="text-white font-mono text-3xl">KRaft</h1></a
+                >
+                <h3 class="text-white font-mono text-sm ml-2 self-end mb-1">
+                    by Alex
+                </h3>
+            </div>
+            <div class="text-white font-mono flex flex-col mt-8 pb-4">
+                <a href="#" class="text-2xl underline block">[&gt;] Too Many Useless Features</a>
+                <div class="font-bold mt-8">Well, is it useless if I was having fun playing with things?</div>
+                <div>
+                    It's been a while since the last update, about 4 months. In this time, I have had a ton of fun with KRaft, which has led to some features of questionable importance. You might be thinking that I've been slacking off for this much time, but there's actually a reason my Github contributions chart is so bare - a reason I will touch on in the features! It's not exactly a feature, but whatever!
+                    Enjoy!
+                </div>
+
+                <div class="font-bold mt-4">Features and Changes</div>
+                <ul class="list-inside list-disc">
+                    <li>New hardware? More likely than you would think! I obtained an old HP Proliant DL380p Gen8 from work recently, and after checking the spec-sheet, I ordered the most powerful CPUs which can fit inside from Aliexpress. Buying CPUs from Aliexpress is definitely a first for me, and it's yet to be delivered, so we'll see! I got 2 E5 2697v2, which will give me 24 cores and 48 threads in total. I also bought a 128GB RAM kit, and have the possibility to expand to much more in the future. My homelab nodes also got an upgrade to 32GB of RAM each, which has allowed me to relax the default cluster limits a bit.</li>
+                    <li>Ntfy integration. This is useless feature number one. It sends a notification over Ntfy when users do certain things on the cluster, including creating an account or creating a cluster. This makes it easy to keep an eye on KRaft without expensive or sophisticated monitoring tools. Could I have used something like Sentry? Maybe. But this is easier for the average homelabber.</li>
+                    <li>Useless feature number two is an extension of the ntfy integration. It is a panic hook for the Rust code. While developing KRaft, I made liberal use of the unwrap function which panics if an error is encountered, rather than handle it gracefully. Most places with unwraps are where I would either want a panic or can be sure that the code would never generate an error there. However, there's still a few which might have bugs which are being ironed out. So, Ntfy notifications containing the stacktrace are sent out whenever the code panics. This has helped me fix several things quickly and easily.</li>
+                    <li>Email verification is a somewhat useful feature available too, though I haven't exactly bothered with setting it up in production yet. It does work, but isn't something I'm excited about.</li>
+                    <li>No More MariaDB. After a lot of harassment from my friends, I finally converted the entire KRaft project to run on PostgreSQL. This change also makes sense since CNPG is the de-facto way of running databases the cloud native way, so running a MariaDB/MySQL statefulset next to the KRaft deployment could be considered inelegant. Unsurprisingly this caused a few issues here and there since the sqlx queries are different. Anyways. I did try supporting both, but it was a lot of glue and string to make it work, and so that approach was abandoned.</li>
+                    <li>New dev experience! Caching in my Containerfiles, using "chef", has allowed build times to be massively reduced. I know I tend to work on my overpowered desktop most of the time, but not needing to recompile all the dependencies every time is so nice and I cannot believe I didn't do this before.</li>
+                    <li>Why have I been so silent? Ah, well, I went to Europe for around three weeks for KubeCon and EasterHegg. The big news is that I talked about KRaft during a lightning talk at KubeCon! The recording is on YouTube in case you missed me there! <a href="https://www.youtube.com/watch?v=wgc5fBmlIFg">YouTube Link</a></li>
+                </ul>
+
+                <div class="font-bold mt-4">Future Work</div>
+                <div>
+                    After DevCon, I have a bunch of ideas about things I want to try and features I could add. I was at a workshop organised for Cilium on the day 0 of the conference, and they had dedicated kubernetes environments available through the browser for the attendees. That, among other cool bits of technology I saw during the conference, have influenced me a lot and the direction I want KRaft to progress in.
+                    Fingers crossed, the next update will be coming soon!
+                </div>
+
+            <div
+                class="text-white font-mono flex flex-col mt-8 text-right pb-8"
+            >
+                <a href="./4" class="text-2xl underline block"
+                    >Next [&lt;]</a
+                >
+            </div>
+        </div>
+
+        <!-- 88x31 image at the bottom -->
+        <div class="absolute bottom-4">
+            <img
+                src="assets/88x31.gif"
+                alt="88x31 banner"
+                width="88"
+                height="31"
+            />
+        </div>
+    </body>
+</html>

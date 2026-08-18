@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>KRaft</title>
+        <script src="https://cdn.tailwindcss.com"></script>
+    </head>
+    <body
+        class="bg-black h-screen w-screen flex flex-col items-center justify-center m-0 p-0"
+    >
+        <div class="p-8 rounded-md shadow-lg max-w-2xl w-full mx-4 h-[60vh]">
+            <!-- bg-zinc-800 outline-white-500 outline -->
+            <div class="flex items-center mb-4">
+                <a href="/"
+                    ><h1 class="text-white font-mono text-3xl">KRaft</h1></a
+                >
+                <h3 class="text-white font-mono text-sm ml-2 self-end mb-1">
+                    by Alex
+                </h3>
+            </div>
+            <div class="text-white font-mono flex flex-col mt-8 pb-4">
+                <a href="#" class="text-2xl underline block">[&gt;] A Lot Of Testing</a>
+                <div class="font-bold mt-8">KRaft now in Alpha!</div>
+                <div>
+                    Since the last (and, well, first) update, I now have a small army of friends who were willing to test out KRaft and attempt to break it. Some more fun news comes in the form of a tidier networking setup split between my homelab and KRaft, with a VPS in the loop to give a static IP to the service (which is somewhat desirable).
+                    Anyways, let's get into it!
+                </div>
+
+                <div class="font-bold mt-4">Features and Changes</div>
+                <ul class="list-inside list-disc">
+                    <li>A little bit of vendor lock-in. When making KRaft, I want it to run anywhere in the world, on any kind of hardware, and in any kind of conditions (including on the floor of a conference center). So it is a bit of a defeat that KRaft, for the time being, relies on Traefik Ingress, and Traefik's own IngressRoutes and IngressRouteTCP resources. This has been necessary as my homelab uses those due to old problems with certmanager, and both KRaft and my personal lab share the same cluster.</li>
+                    <li>Another change, which might help with the above problem, is that, with some help, I have cleaned up the network situation between my VPS and homelab. This means that I should be able to remove some technical debt on my cluster soon, which in turn might open a few doors for fixing the Traefik lock-in. Anyways, a cleaner network setup is nice and more maintainable, so this is definitely a change worth mentioning.</li>
+                    <li>Virtual Cluster Policies are now being used to limit resource usage on virtual clusters being created. This will help avoid resource abuse, and would also prevent guest clusters from creating privileged pods, which... could be problematic. I am also able to set default cpu and memory requests and limits for all created pods as well, which also encourages guests to specify requests/limits on their own.</li>
+                    <li>Test users. So much testing done and so many opinions gathered. I had two friends test out KRaft by creating clusters, deploying workloads to them, and trying to expose them to the internet. A problem came up with the domain as the .dev TLD has HSTS which enforces HTTPS. Still, the testing was pretty successful and, save for a few minor bugs, showed that most features work! There was also a cloud native community meetup where I presented the project and gathered feedback and ideas from other community members.</li>
+                    <li>Europeans rejoice! I now have better(?) GDPR compliance as you can, at the click of a button, nuke your account, clusters, and workloads in one go. You were never here.</li>
+                </ul>
+
+                <div class="font-bold mt-4">Future Work</div>
+                <div>
+                    While my Github issues remain mostly unchanged, I have a few things I want to tackle soon. First is compute, as the project risks becoming much bigger than my small homelab can comfortably run. So on that front, I need to find some cheap servers or make a new cluster specifically for KRaft. 8GB RAM on each node is... limiting... There's also a good amount of cleanup to be done, since the project has progressed rapidly recently and the microservices approach is causing more friction than I would have liked.
+                </div>
+
+            <div
+                class="text-white font-mono flex flex-col mt-8 text-right pb-8"
+            >
+                <a href="./3" class="text-2xl underline block"
+                    >Next [&lt;]</a
+                >
+            </div>
+        </div>
+
+        <!-- 88x31 image at the bottom -->
+        <div class="absolute bottom-4">
+            <img
+                src="assets/88x31.gif"
+                alt="88x31 banner"
+                width="88"
+                height="31"
+            />
+        </div>
+    </body>
+</html>
